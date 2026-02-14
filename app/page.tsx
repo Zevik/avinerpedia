@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 async function getPosts() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -43,8 +45,8 @@ export default async function Home() {
       {posts && posts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {posts.map((post: any) => (
-            <Link 
-              key={post.slug} 
+            <Link
+              key={post.slug}
               href={`/wiki/${post.slug}`}
               className="block p-6 bg-white border rounded-lg shadow hover:bg-gray-50 transition"
             >
