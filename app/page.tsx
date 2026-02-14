@@ -90,20 +90,29 @@ export default async function Home() {
         )}
 
         {/* Navigation Links */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/wiki" className="text-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
-            📚 <div className="font-semibold">ויקי</div>
+        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <Link href="/wiki" className="group text-center p-8 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-blue-600 hover:border-blue-600 transition-all duration-300 shadow-sm hover:shadow-lg">
+            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📚</div>
+            <div className="font-bold text-gray-900 group-hover:text-white transition-colors">ויקי</div>
+            <div className="text-xs text-gray-500 mt-2 group-hover:text-blue-100 transition-colors">חיפוש בארכיון</div>
           </Link>
-          <Link href="/articles" className="text-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition">
-            📝 <div className="font-semibold">מאמרים</div>
+          <Link href="/articles" className="group text-center p-8 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-purple-600 hover:border-purple-600 transition-all duration-300 shadow-sm hover:shadow-lg">
+            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📝</div>
+            <div className="font-bold text-gray-900 group-hover:text-white transition-colors">מאמרים</div>
+            <div className="text-xs text-gray-500 mt-2 group-hover:text-purple-100 transition-colors">כתבות וטורים</div>
           </Link>
-          <Link href="/qa" className="text-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition">
-            ❓ <div className="font-semibold">שו"תים</div>
+          <Link href="/qa" className="group text-center p-8 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-green-600 hover:border-green-600 transition-all duration-300 shadow-sm hover:shadow-lg">
+            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">❓</div>
+            <div className="font-bold text-gray-900 group-hover:text-white transition-colors">שו"תים</div>
+            <div className="text-xs text-gray-500 mt-2 group-hover:text-green-100 transition-colors">שאלות ותשובות</div>
           </Link>
-          <Link href="/videos" className="text-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition">
-            🎥 <div className="font-semibold">וידאו</div>
+          <Link href="/videos" className="group text-center p-8 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-red-600 hover:border-red-600 transition-all duration-300 shadow-sm hover:shadow-lg">
+            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🎥</div>
+            <div className="font-bold text-gray-900 group-hover:text-white transition-colors">וידאו</div>
+            <div className="text-xs text-gray-500 mt-2 group-hover:text-red-100 transition-colors">שיעורים לצפייה</div>
           </Link>
         </div>
+      </div>
     </main>
   );
 }
