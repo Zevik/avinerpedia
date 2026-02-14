@@ -10,6 +10,7 @@
     "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.1",
     "@supabase/supabase-js": "^2.48.1",
     "@tailwindcss/typography": "^0.5.19",
     "gray-matter": "^4.0.3",
