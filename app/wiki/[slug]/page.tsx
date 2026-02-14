@@ -1,35 +1,103 @@
-import { getPostBySlug, getAllPosts } from '@/lib/wiki';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { createClient } from '@supabase/supabase-js';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
-export async function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+async function getPost(slug: string) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return null;
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id, title, slug, content, category_id, status, created_at')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch post:', error);
+    return null;
+  }
 }
 
-export default function WikiPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+async function getCategory(categoryId: string) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return null;
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data } = await supabase
+      .from('categories')
+      .select('name')
+      .eq('id', categoryId)
+      .single();
+
+    return data?.name || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+export default async function WikiPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
 
   if (!post) {
-    return <div className="p-10 text-center">הדף לא נמצא</div>;
+    notFound();
   }
+
+  const categoryName = post.category_id ? await getCategory(post.category_id) : null;
 
   return (
     <div className="max-w-4xl mx-auto p-6" dir="rtl">
-      <h1 className="text-4xl font-bold mb-4 text-blue-800">{post.data.title}</h1>
-      
-      {/* תגית הקטגוריה */}
+      {/* Header */}
       <div className="mb-8">
-        <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
-          {post.data.type || 'כללי'}
-        </span>
+        <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+          ← חזור לעמוד הבית
+        </Link>
+        
+        <h1 className="text-4xl font-bold mb-4 text-blue-800">{post.title}</h1>
+        
+        {/* Category Badge */}
+        {categoryName && (
+          <div className="mb-4">
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+              {categoryName}
+            </span>
+          </div>
+        )}
+
+        {/* Meta Info */}
+        <div className="text-sm text-gray-500 mb-6">
+          פורסם: {new Date(post.created_at).toLocaleDateString('he-IL')}
+        </div>
       </div>
 
-      {/* תוכן המאמר */}
-      <article className="prose prose-lg max-w-none prose-headings:text-blue-700">
-        <MDXRemote source={post.content} />
+      {/* Content */}
+      <article className="prose prose-lg max-w-none prose-headings:text-blue-700 whitespace-pre-wrap">
+        {post.content}
       </article>
+
+      {/* Footer */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <Link href="/" className="text-blue-600 hover:text-blue-800">
+          ← חזור לרשימת השיעורים
+        </Link>
+      </div>
     </div>
   );
 }
