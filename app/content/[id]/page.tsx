@@ -142,8 +142,8 @@ function stripVideoContent(content: string): string {
   if (!content) return '';
 
   return content
-    // Remove Machon Meir tags
-    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+)<\/machonMeeir(?:FR|IL|EN)?>/gi, '')
+    // Remove Machon Meir tags (more flexible regex to catch IDs with parameters)
+    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi, '')
     // Remove video_id fields
     .replace(/video_id:\s*"?([\w-]+)"?/gi, '')
     // Remove standalone YouTube/Vimeo links

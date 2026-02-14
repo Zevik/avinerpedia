@@ -1,13 +1,14 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { getVimeoId } from '@/lib/video';
 
 interface ContentRendererProps {
   content: string;
   className?: string;
 }
 
-export function ContentRenderer({ content, className = '' }: ContentRendererProps) {
+export async function ContentRenderer({ content, className = '' }: ContentRendererProps) {
   // Extract YouTube video IDs from <youtube> tags
   const youtubeMatches = content.match(/<youtube>([^<]+)<\/youtube>/g);
   const youtubeIds = youtubeMatches?.map(match => {
@@ -15,21 +16,34 @@ export function ContentRenderer({ content, className = '' }: ContentRendererProp
     return id;
   }) || [];
 
-  // Clean and fix markdown syntax issues from source data
-  let cleanedContent = content
-    // Remove <youtube> tags - we'll render them separately
-    .replace(/<youtube>[^<]+<\/youtube>/g, '')
-    // Handle Machon Meir iframes in content if they haven't been stripped
-    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi, (match, id) => {
-      return `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
+  // 1. Resolve Machon Meir tags to clean embeds first
+  // We need to do this asynchronously
+  let processedContent = content;
+  const meirMatches = Array.from(content.matchAll(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi));
+
+  for (const match of meirMatches) {
+    const [fullTag, id] = match;
+    const vimeoId = await getVimeoId(id);
+    const embedUrl = vimeoId
+      ? `https://player.vimeo.com/video/${vimeoId}`
+      : `https://meirtv.com/shiurim/shiur-${id}/fvp/`;
+
+    const replacement = `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
         <iframe
           class="absolute top-0 left-0 w-full h-full rounded-lg"
-          src="https://meirtv.com/shiurim/shiur-${id}/fvp/"
+          src="${embedUrl}"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
         ></iframe>
       </div>`;
-    })
+
+    processedContent = processedContent.replace(fullTag, replacement);
+  }
+
+  // 2. Clean and fix markdown syntax issues
+  let cleanedContent = processedContent
+    // Remove <youtube> tags - we'll render them separately
+    .replace(/<youtube>[^<]+<\/youtube>/g, '')
     // Remove footer text from video content
     .replace(/• למאגר מלא ומסודר.*?https:\/\/twitter\.com\/RavAviner__/gs, '')
     // Stage 1: Fix patterns with trailing punctuation: * text*' -> **text**

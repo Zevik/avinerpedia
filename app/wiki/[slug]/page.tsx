@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { ContentRenderer } from '@/components/ContentRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,8 +96,8 @@ export default async function WikiPage({
       </div>
 
       {/* Content */}
-      <article className="prose prose-lg max-w-none prose-headings:text-blue-700 whitespace-pre-wrap">
-        {post.content}
+      <article className="prose prose-lg max-w-none prose-headings:text-blue-700">
+        <ContentRenderer content={post.content} />
       </article>
 
       {/* Footer */}
