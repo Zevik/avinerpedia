@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { VideoCard } from '@/components/VideoCard';
 import { getContentItems, getSubCategories } from '@/lib/db';
+import { getVimeoId } from '@/lib/video';
 
 interface VideosPageProps {
   searchParams: Promise<{ topic?: string }>;
@@ -21,6 +22,22 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
     }),
     getSubCategories('סרטונים'),
   ]);
+
+  // Enhance videos with Vimeo IDs and thumbnails
+  const enhancedVideos = await Promise.all(
+    videos.map(async (video) => {
+      if (video.video_id && video.video_id.includes('Meir:')) {
+        const meirId = video.video_id.replace('Meir:', '').split('&')[0];
+        const vimeoId = await getVimeoId(meirId);
+        return {
+          ...video,
+          vimeo_id: vimeoId,
+          thumbnail: vimeoId ? `https://vumbnail.com/${vimeoId}.jpg` : null
+        };
+      }
+      return video;
+    })
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
@@ -51,7 +68,7 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
 
             {videos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {videos.map((video) => (
+                {enhancedVideos.map((video) => (
                   <VideoCard key={video.id} item={video} />
                 ))}
               </div>

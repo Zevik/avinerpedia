@@ -16,9 +16,10 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
   const isMeir = videoId && videoId.includes('Meir:');
   const isMaale = videoId && videoId.includes('Maale:');
 
-  const thumbnailUrl = isYouTube
+  // Use pre-resolved thumbnail if available, otherwise calculate it
+  const thumbnailUrl = (item as any).thumbnail || (isYouTube
     ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-    : null;
+    : null);
 
   return (
     <Link
