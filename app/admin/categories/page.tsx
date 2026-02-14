@@ -63,7 +63,7 @@ export default function CategoriesAdminPage() {
     }
 
     async function handleDelete(id: number) {
-        if (!confirm('Are you sure? This might affect content items linked to this category.')) return;
+        if (!confirm('האם אתה בטוח? מחיקת קטגוריה תסיר את השיוך של כל התוכן הקשור אליה (יהפוך ל"ללא קטגוריה"). אם יש כפילויות, עדיף להשתמש במיזוג.')) return;
         try {
             await deleteCategory(id);
             loadCategories();
@@ -71,6 +71,41 @@ export default function CategoriesAdminPage() {
             alert('Failed to delete category');
         }
     }
+
+    // Merge state
+    const [showMergeModal, setShowMergeModal] = useState(false);
+    const [mergeSource, setMergeSource] = useState<Category | null>(null);
+    const [mergeTargetId, setMergeTargetId] = useState<number | null>(null);
+
+    async function handleMerge() {
+        if (!mergeSource || !mergeTargetId) return;
+        if (mergeSource.id === mergeTargetId) {
+            alert('לא ניתן למזג קטגוריה לעצמה');
+            return;
+        }
+
+        if (!confirm(`האם אתה בטוח שברצונך למזג את "${mergeSource.name}" לתוך הקטגוריה הנבחרת? פעולה זו תעביר את כל התוכן ותמחק את "${mergeSource.name}".`)) return;
+
+        try {
+            const { mergeCategories } = await import('@/lib/db');
+            await mergeCategories(mergeSource.id, mergeTargetId);
+            setShowMergeModal(false);
+            setMergeSource(null);
+            setMergeTargetId(null);
+            loadCategories();
+            alert('המיזוג בוצע בהצלחה!');
+        } catch (err) {
+            console.error(err);
+            alert('שגיאה בביצוע המיזוג');
+        }
+    }
+
+    const openMergeModal = (category: Category) => {
+        setMergeSource(category);
+        setMergeTargetId(null);
+        setShowMergeModal(true);
+    };
+
 
     const toggleExpand = (id: number) => {
         setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
@@ -118,14 +153,14 @@ export default function CategoriesAdminPage() {
                                 <div className="flex items-center gap-2">
                                     {editingId === mainCat.id ? (
                                         <>
-                                            <button onClick={() => handleUpdate(mainCat.id)} className="p-2 text-green-600 hover:bg-green-50 rounded"><Save className="w-4 h-4" /></button>
-                                            <button onClick={() => setEditingId(null)} className="p-2 text-gray-500 hover:bg-gray-50 rounded"><X className="w-4 h-4" /></button>
+                                            <button onClick={() => handleUpdate(mainCat.id)} className="p-2 text-green-600 hover:bg-green-50 rounded" title="שמור"><Save className="w-4 h-4" /></button>
+                                            <button onClick={() => setEditingId(null)} className="p-2 text-gray-500 hover:bg-gray-50 rounded" title="ביטול"><X className="w-4 h-4" /></button>
                                         </>
                                     ) : (
                                         <>
-                                            <button onClick={() => { setEditingId(mainCat.id); setEditName(mainCat.name); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded"><Edit2 className="w-4 h-4" /></button>
-                                            {/* Prevent deleting main categories that have children usually, but for now simple delete */}
-                                            <button onClick={() => handleDelete(mainCat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
+                                            <button onClick={() => openMergeModal(mainCat)} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 ml-2">מזג</button>
+                                            <button onClick={() => { setEditingId(mainCat.id); setEditName(mainCat.name); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded" title="ערוך"><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDelete(mainCat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded" title="מחק"><Trash2 className="w-4 h-4" /></button>
                                         </>
                                     )}
                                 </div>
@@ -158,13 +193,14 @@ export default function CategoriesAdminPage() {
                                                     <div className="flex items-center gap-2">
                                                         {editingId === subCat.id ? (
                                                             <>
-                                                                <button onClick={() => handleUpdate(subCat.id)} className="p-1 text-green-600"><Save className="w-4 h-4" /></button>
-                                                                <button onClick={() => setEditingId(null)} className="p-1 text-gray-500"><X className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleUpdate(subCat.id)} className="p-1 text-green-600" title="שמור"><Save className="w-4 h-4" /></button>
+                                                                <button onClick={() => setEditingId(null)} className="p-1 text-gray-500" title="ביטול"><X className="w-4 h-4" /></button>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <button onClick={() => { setEditingId(subCat.id); setEditName(subCat.name); }} className="p-1 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 className="w-4 h-4" /></button>
-                                                                <button onClick={() => handleDelete(subCat.id)} className="p-1 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+                                                                <button onClick={() => openMergeModal(subCat)} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 ml-2">מזג</button>
+                                                                <button onClick={() => { setEditingId(subCat.id); setEditName(subCat.name); }} className="p-1 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" title="ערוך"><Edit2 className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleDelete(subCat.id)} className="p-1 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" title="מחק"><Trash2 className="w-4 h-4" /></button>
                                                             </>
                                                         )}
                                                     </div>
@@ -242,6 +278,59 @@ export default function CategoriesAdminPage() {
                                 </button>
                                 <button
                                     onClick={() => setShowAddModal(false)}
+                                    className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium"
+                                >
+                                    ביטול
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Merge Modal */}
+            {showMergeModal && mergeSource && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+                        <h2 className="text-2xl font-bold mb-4 text-purple-700">מיזוג קטגוריות</h2>
+
+                        <p className="mb-4 text-gray-600">
+                            אתה עומד למזג את הקטגוריה <strong>"{mergeSource.name}"</strong>.
+                            <br />
+                            נא לבחור לאיזו קטגוריה להעביר את כל התוכן שלה:
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">קטגוריית יעד</label>
+                                <select
+                                    value={mergeTargetId || ''}
+                                    onChange={e => setMergeTargetId(Number(e.target.value))}
+                                    className="w-full border rounded-lg px-3 py-2"
+                                >
+                                    <option value="">-- בחר קטגוריה --</option>
+                                    {(mergeSource.type === 'main' ? categories.main : categories.sub)
+                                        .filter(c => c.id !== mergeSource.id)
+                                        .map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+
+                            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
+                                ⚠️ פעולה זו תעביר את כל התוכן לתוך קטגוריית היעד ותמחק את "{mergeSource.name}" לצמיתות.
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={handleMerge}
+                                    disabled={!mergeTargetId}
+                                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    מזג ומחק
+                                </button>
+                                <button
+                                    onClick={() => { setShowMergeModal(false); setMergeSource(null); }}
                                     className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium"
                                 >
                                     ביטול

@@ -286,6 +286,41 @@ export async function deleteCategory(id: number) {
   return true;
 }
 
+export async function mergeCategories(sourceId: number, targetId: number) {
+  // 1. Get source category info
+  const { data: source } = await supabase.from('categories').select('type').eq('id', sourceId).single();
+  if (!source) throw new Error('Source category not found');
+
+  const column = source.type === 'main' ? 'main_category_id' : 'sub_category_id';
+  const legacyColumn = source.type === 'main' ? 'main_category' : 'sub_category';
+
+  // 2. Get target category info for legacy sync
+  const { data: target } = await supabase.from('categories').select('name').eq('id', targetId).single();
+  if (!target) throw new Error('Target category not found');
+
+  // 3. Update all content items from source to target
+  const { error: updateError } = await supabase
+    .from('content_items')
+    .update({
+      [column]: targetId,
+      [legacyColumn]: target.name
+    })
+    .eq(column, sourceId);
+
+  if (updateError) throw updateError;
+
+  // 4. Delete the source category
+  const { error: deleteError } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', sourceId);
+
+  if (deleteError) throw deleteError;
+
+  return true;
+}
+
+
 export async function updateContentCategory(contentId: number, mainCatId: number, subCatId?: number) {
   // Retrieve names first to keep string columns in sync
   const { data: mainCat } = await supabase.from('categories').select('name').eq('id', mainCatId).single();
