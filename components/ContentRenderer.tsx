@@ -19,6 +19,13 @@ export function ContentRenderer({ content, className = '' }: ContentRendererProp
   let cleanedContent = content
     // Remove <youtube> tags - we'll render them separately
     .replace(/<youtube>[^<]+<\/youtube>/g, '')
+    // Handle Machon Meir iframes in content if they haven't been stripped
+    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi, (match, id) => {
+      return `<div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 text-center">
+        <p class="text-sm text-orange-800 mb-2">סרטון מכון מאיר זמין לצפייה באתר המקור</p>
+        <a href="http://meirtv.co.il/site/content_idx.asp?idx=${id}" target="_blank" class="text-orange-600 font-bold hover:underline">צפה בסרטון ←</a>
+      </div>`;
+    })
     // Remove footer text from video content
     .replace(/• למאגר מלא ומסודר.*?https:\/\/twitter\.com\/RavAviner__/gs, '')
     // Stage 1: Fix patterns with trailing punctuation: * text*' -> **text**
@@ -33,18 +40,16 @@ export function ContentRenderer({ content, className = '' }: ContentRendererProp
     .replace(/\* ([^*\n]+)\*(?=\s|$)/g, '**$1**')
     // Stage 6: Remove standalone * * lines
     .replace(/^\* \*\s*$/gm, '')
-    // Stage 7: Remove orphaned asterisks
-    .replace(/^\*\s*\n/gm, '\n')
-    // Stage 8: Bold Q&A markers before removing other asterisks
+    // Stage 7: Remove orphaned asterisks at start of lines
+    .replace(/^\*\s*$/gm, '')
+    // Stage 8: Bold Q&A markers
     .replace(/^(שאלה:)/gm, '**שאלה:**')
     .replace(/^(תשובה:)/gm, '**תשובה:**')
     .replace(/^(ש:)/gm, '**ש:**')
     .replace(/^(ת:)/gm, '**ת:**')
-    // Stage 9: Remove ALL remaining asterisks (they are formatting marks, not content)
-    .replace(/\*\*\*\*/g, '**')  // Fix quadruple asterisks to double
-    .replace(/\*\*\*([^*])/g, '**$1')  // Fix triple to double
-    .replace(/([^*])\*\*\*/g, '$1**')  // Fix triple to double
-    .replace(/([^*])\*([^*])/g, '$1$2');  // Remove single asterisks but keep ** (bold)
+    // Stage 9: Only remove single asterisks that are NOT part of **.
+    // We use a negative lookahead/lookbehind to avoid touching ** or ***.
+    .replace(/(?<!\*)\*(?!\*)/g, '');
 
   return (
     <div className={`prose prose-lg max-w-none ${className}`}>
