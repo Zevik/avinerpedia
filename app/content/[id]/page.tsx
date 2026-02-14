@@ -25,7 +25,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
     // Check if article content looks like Q&A (starts with ש: or שאלה:)
     const isQAFormat = item.content_md &&
       (item.content_md.trim().match(/^(ש:|שאלה:)/m) ||
-       item.content_md.match(/^\s*(ש:|שאלה:)/));
+        item.content_md.match(/^\s*(ש:|שאלה:)/));
 
     // Choose layout by category or content format
     if (item.main_category === 'שו"ת הלכה' || isQAFormat) {
@@ -107,7 +107,7 @@ function VideoContent({ item }: { item: any }) {
 
         {item.content_md && (
           <div className="border-t pt-6">
-            <ContentRenderer content={item.content_md} />
+            <ContentRenderer content={stripVideoContent(item.content_md)} />
           </div>
         )}
       </div>
@@ -115,12 +115,33 @@ function VideoContent({ item }: { item: any }) {
   );
 }
 
+// Helper to remove video embeds from content since we show the main player
+function stripVideoContent(content: string): string {
+  if (!content) return '';
+
+  return content
+    // Remove Machon Meir tags
+    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+)<\/machonMeeir(?:FR|IL|EN)?>/gi, '')
+    // Remove video_id fields
+    .replace(/video_id:\s*"?([\w-]+)"?/gi, '')
+    // Remove standalone YouTube/Vimeo links
+    .replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/gi, '')
+    // Remove iframes
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+    // Remove movieTitle divs often found in these pages
+    .replace(/<div\s+class=["']?movieTitle["']?>.*?<\/div>/gis, '')
+    // Remove empty divs left behind
+    .replace(/<div>\s*<\/div>/gi, '')
+    // Cleanup extra whitespace
+    .trim();
+}
+
 // Q&A Content Layout (Chat style)
 function QAContent({ item }: { item: any }) {
   // Check if content already contains Q&A format (ש: ת:)
   const hasInlineQA = item.content_md &&
     (item.content_md.match(/^(ש:|שאלה:)/m) ||
-     item.content_md.match(/^\s*(ש:|שאלה:)/));
+      item.content_md.match(/^\s*(ש:|שאלה:)/));
 
   // If content has inline Q&A, render as article with Q&A styling
   if (hasInlineQA) {
