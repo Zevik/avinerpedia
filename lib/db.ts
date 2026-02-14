@@ -186,3 +186,44 @@ export async function searchContent(query: string, limit: number = 20): Promise<
 
   return data || [];
 }
+
+/**
+ * Fetch wiki posts from the posts table
+ */
+export async function getWikiPosts(limit: number = 50, offset: number = 0, categoryId?: string) {
+  let query = supabase
+    .from('posts')
+    .select('id, title, slug, category_id, created_at')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  if (categoryId) {
+    query = query.eq('category_id', categoryId);
+  }
+
+  const { data, error } = await query.range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('Error fetching wiki posts:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Fetch all categories for the wiki
+ */
+export async function getWikiCategories() {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name');
+
+  if (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+
+  return data || [];
+}
