@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';
 import { ContentRenderer } from '@/components/ContentRenderer';
+import { getVimeoId } from '@/lib/video';
 
 interface ContentPageProps {
   params: Promise<{ id: string }>;
@@ -16,10 +17,17 @@ export default async function ContentPage({ params }: ContentPageProps) {
     notFound();
   }
 
+  // Resolve Vimeo ID if it's a Machon Meir video
+  let vimeoId = null;
+  if (item.video_id && item.video_id.includes('Meir:')) {
+    const meirId = item.video_id.replace('Meir:', '').split('&')[0];
+    vimeoId = await getVimeoId(meirId);
+  }
+
   const renderByCategory = () => {
     // If item has video_id, show video layout (for videos and video-based series)
     if (item.video_id && item.video_id.trim().length > 0) {
-      return <VideoContent item={item} />;
+      return <VideoContent item={item} vimeoId={vimeoId} />;
     }
 
     // Check if article content looks like Q&A (starts with ש: or שאלה:)
@@ -44,7 +52,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
 }
 
 // Video Content Layout
-function VideoContent({ item }: { item: any }) {
+function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null }) {
   const videoId = item.video_id;
   const isMaale = videoId && videoId.includes('Maale:');
   const isMeir = videoId && videoId.includes('Meir:');
@@ -84,7 +92,10 @@ function VideoContent({ item }: { item: any }) {
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src={`https://meirtv.com/shiurim/shiur-${videoId.replace('Meir:', '').split('&')[0]}/fvp/`}
+              src={vimeoId
+                ? `https://player.vimeo.com/video/${vimeoId}`
+                : `https://meirtv.com/shiurim/shiur-${videoId.replace('Meir:', '').split('&')[0]}/fvp/`
+              }
               title={item.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

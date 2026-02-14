@@ -11,11 +11,14 @@ interface VideoCardProps {
 export function VideoCard({ item, className = '' }: VideoCardProps) {
   const videoId = item.video_id;
 
-  // Determine if it's a YouTube video or Maale video
-  const isYouTube = videoId && !videoId.includes('Maale:');
+  // Determine if it's a YouTube video, Machon Meir, or Maale
+  const isYouTube = videoId && !videoId.includes('Maale:') && !videoId.includes('Meir:');
+  const isMeir = videoId && videoId.includes('Meir:');
+  const isMaale = videoId && videoId.includes('Maale:');
+
   const thumbnailUrl = isYouTube
     ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-    : '/placeholder-video.jpg'; // You can add a default placeholder
+    : null;
 
   return (
     <Link
@@ -23,7 +26,7 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
       className={`video-card block group ${className}`}
     >
       <div className="relative overflow-hidden rounded-lg bg-muted aspect-video">
-        {isYouTube ? (
+        {thumbnailUrl ? (
           <Image
             src={thumbnailUrl}
             alt={item.title}
@@ -32,8 +35,11 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-            <Play className="w-16 h-16 text-primary/50" />
+          <div className={`w-full h-full flex flex-col items-center justify-center ${isMeir ? 'bg-orange-50' : isMaale ? 'bg-blue-50' : 'bg-gradient-to-br from-primary/10 to-primary/5'
+            }`}>
+            <Play className={`w-12 h-12 ${isMeir ? 'text-orange-400' : isMaale ? 'text-blue-400' : 'text-primary/50'}`} />
+            {isMeir && <span className="text-[10px] font-bold text-orange-600 mt-2 uppercase tracking-wider">Machon Meir</span>}
+            {isMaale && <span className="text-[10px] font-bold text-blue-600 mt-2 uppercase tracking-wider">Maale</span>}
           </div>
         )}
 

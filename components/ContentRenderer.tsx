@@ -21,9 +21,13 @@ export function ContentRenderer({ content, className = '' }: ContentRendererProp
     .replace(/<youtube>[^<]+<\/youtube>/g, '')
     // Handle Machon Meir iframes in content if they haven't been stripped
     .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi, (match, id) => {
-      return `<div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 text-center">
-        <p class="text-sm text-orange-800 mb-2">סרטון מכון מאיר זמין לצפייה באתר המקור</p>
-        <a href="http://meirtv.co.il/site/content_idx.asp?idx=${id}" target="_blank" class="text-orange-600 font-bold hover:underline">צפה בסרטון ←</a>
+      return `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
+        <iframe
+          class="absolute top-0 left-0 w-full h-full rounded-lg"
+          src="https://meirtv.com/shiurim/shiur-${id}/fvp/"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
       </div>`;
     })
     // Remove footer text from video content

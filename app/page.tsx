@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
+import { getVideoThumbnail } from '@/lib/video';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,16 +24,36 @@ async function getStats() {
     // Get latest 12 posts for the grid
     const { data: latestPosts } = await supabase
       .from('posts')
-      .select('id, title, slug, category_id')
+      .select('id, title, slug, category_id, content')
       .eq('status', 'published')
       .not('content', 'is', null)
       .neq('content', '')
       .order('created_at', { ascending: false })
       .limit(12);
 
+    // Resolve thumbnails in parallel
+    const postsWithThumbnails = await Promise.all((latestPosts || []).map(async (post) => {
+      // Extract video tag from content
+      let videoId = null;
+      const youtubeMatch = post.content.match(/<youtube>([^<]+)<\/youtube>/i);
+      if (youtubeMatch) {
+        videoId = youtubeMatch[1].trim();
+      } else {
+        const meirMatch = post.content.match(/<machonMeeir(?:FR|IL|EN)?>(\d+)<\/machonMeeir(?:FR|IL|EN)?>/i);
+        if (meirMatch) {
+          videoId = `Meir:${meirMatch[1]}`;
+        }
+      }
+
+      return {
+        ...post,
+        thumbnail: videoId ? await getVideoThumbnail(videoId) : null
+      };
+    }));
+
     return {
       total: totalCount || 0,
-      latest: latestPosts || []
+      latest: postsWithThumbnails
     };
   } catch (error) {
     console.error('Stats fetch error:', error);
@@ -70,17 +91,33 @@ export default async function Home() {
 
         {latest.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {latest.map((post: any) => (
-              <Link
-                key={post.slug}
-                href={`/wiki/${post.slug}`}
-                className="group block p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="h-1 w-12 bg-blue-600 mb-4 transition-all group-hover:w-full"></div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
-                <p className="text-sm text-blue-600 font-medium">קרא עוד ←</p>
-              </Link>
-            ))}
+            {latest.map((post: any) => {
+              const thumbnail = post.thumbnail;
+              return (
+                <Link
+                  key={post.slug}
+                  href={`/wiki/${post.slug}`}
+                  className="group block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                >
+                  {thumbnail ? (
+                    <div className="relative aspect-video">
+                      <img
+                        src={thumbnail}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                    </div>
+                  ) : (
+                    <div className="h-1 w-12 bg-blue-600 mt-6 mx-6 transition-all group-hover:w-full"></div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2">{post.title}</h3>
+                    <p className="text-sm text-blue-600 font-medium">קרא עוד ←</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-12 text-center">
