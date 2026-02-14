@@ -1,0 +1,269 @@
+{
+  "timestamp": "2026-02-14T19:24:36.000Z",
+  "summary": {
+    "total_checked": 1000,
+    "unique_videos": 921,
+    "available": 879,
+    "unavailable": 42
+  },
+  "unavailable_records": [
+    {
+      "id": 95,
+      "title": "הספד לרב כהנא (וידאו קצר)",
+      "video_id": "MbWsFe7NH1I",
+      "table": "content_items"
+    },
+    {
+      "id": 151,
+      "title": "חוק גיוס חובה לחרדים",
+      "video_id": "PA4TMqGKeyQ",
+      "table": "content_items"
+    },
+    {
+      "id": 152,
+      "title": "תנ\"ך בגובה העיניים- מהלך של 5 שיעורים",
+      "video_id": "bhuWl9FCN3Y",
+      "table": "content_items"
+    },
+    {
+      "id": 170,
+      "title": "תשובה בזמן הגאולה",
+      "video_id": "Wd51TowXBqI",
+      "table": "content_items"
+    },
+    {
+      "id": 203,
+      "title": "ציות למשטרה",
+      "video_id": "PYhdbAViq10",
+      "table": "content_items"
+    },
+    {
+      "id": 205,
+      "title": "קרליבך, הרב - שיטתו",
+      "video_id": "RYW_5MjlGJE",
+      "table": "content_items"
+    },
+    {
+      "id": 206,
+      "title": "פרשת וירא - עקידת יצחק מימוש מטרת העולם",
+      "video_id": "9FX01JbEqjA",
+      "table": "content_items"
+    },
+    {
+      "id": 246,
+      "title": "האבות - האם אפשר להגיע למדרגתם? (שיעור)",
+      "video_id": "vFwcjO5Endg",
+      "table": "content_items"
+    },
+    {
+      "id": 348,
+      "title": "הרב אבינר - יום הולדת שבעים (וידאו קצר)",
+      "video_id": "MWIJ70GOyxU",
+      "table": "content_items"
+    },
+    {
+      "id": 364,
+      "title": "קיום מצוות - עד כמה?",
+      "video_id": "jUHMhx47pEo",
+      "table": "content_items"
+    },
+    {
+      "id": 366,
+      "title": "סנפלינג ובנג'י - יש בעיה?",
+      "video_id": "I1rjHVL1moY",
+      "table": "content_items"
+    },
+    {
+      "id": 535,
+      "title": "שלח - מדוע שלח משה מרגלים לדעת אם טובה הארץ או לא?",
+      "video_id": "qjUCeZFm58w",
+      "table": "content_items"
+    },
+    {
+      "id": 875,
+      "title": "אהבת הארץ",
+      "video_id": "SISTEczX37A",
+      "table": "content_items"
+    },
+    {
+      "id": 826,
+      "title": "הרב עובדיה יוסף זצ\"ל 2 (וידאו קצר)",
+      "video_id": "ae3B3vLRmW4",
+      "table": "content_items"
+    },
+    {
+      "id": 836,
+      "title": "וירא - עקידת יצחק אכן היתה ניסיון? (שיעור)",
+      "video_id": "COiWKpvJjwc",
+      "table": "content_items"
+    },
+    {
+      "id": 837,
+      "title": "הספד הרב אברהם צוקרמן",
+      "video_id": "yMr7Ifi2geg",
+      "table": "content_items"
+    },
+    {
+      "id": 846,
+      "title": "תשובה - כיצד?",
+      "video_id": "mT-e5usnhao",
+      "table": "content_items"
+    },
+    {
+      "id": 863,
+      "title": "וארא- מדוע ה' רצה דווקא עם ולא יחידים צדיקים?",
+      "video_id": "LYmMz7Fih14",
+      "table": "content_items"
+    },
+    {
+      "id": 892,
+      "title": "מורה שזרק סמארטפון של תלמיד",
+      "video_id": "vGOa_FS1Bss",
+      "table": "content_items"
+    },
+    {
+      "id": 893,
+      "title": "חוק הגיוס החדש",
+      "video_id": "cZ4h8KuyVNA",
+      "table": "content_items"
+    },
+    {
+      "id": 1109,
+      "title": "תארים לרבנים",
+      "video_id": "q7edc1LDSb4",
+      "table": "content_items"
+    },
+    {
+      "id": 1110,
+      "title": "הספד על הרב לוינגר",
+      "video_id": "605V7CAguE0",
+      "table": "content_items"
+    },
+    {
+      "id": 1104,
+      "title": "לא יסור שבט מיהודה",
+      "video_id": "xU5ISxinpUk",
+      "table": "content_items"
+    },
+    {
+      "id": 995,
+      "title": "שליח בשבת אירגון",
+      "video_id": "o7dNR4rcF1s",
+      "table": "content_items"
+    },
+    {
+      "id": 1151,
+      "title": "תשובה מאהבה",
+      "video_id": "I1LDD3PY9U0",
+      "table": "content_items"
+    },
+    {
+      "id": 1253,
+      "title": "מצווה או שכרה?",
+      "video_id": "Or6Osz73A5A",
+      "table": "content_items"
+    },
+    {
+      "id": 1118,
+      "title": "האם מותר לחלוק על קודמים",
+      "video_id": "PVbXChcfwLk",
+      "table": "content_items"
+    },
+    {
+      "id": 1130,
+      "title": "נביאי שקר - גם בימינו! (שיעור)",
+      "video_id": "WaQGq2rQjx8",
+      "table": "content_items"
+    },
+    {
+      "id": 1133,
+      "title": "מטות-מסעי ע''ה- הנדר- טוב אורע?",
+      "video_id": "qiuzUlr_pCg",
+      "table": "content_items"
+    },
+    {
+      "id": 1248,
+      "title": "וירא-מעשה אבות סימן לבנים",
+      "video_id": "SYe6eto7uc8",
+      "table": "content_items"
+    },
+    {
+      "id": 1264,
+      "title": "קיום מצות לפני מתן תורה",
+      "video_id": "YL_L3Z2GiKQ",
+      "table": "content_items"
+    },
+    {
+      "id": 15103,
+      "title": "א'- נתינת אוכל לאדם שאינו מברך. ב'- סליחות ספרדים ואשכנזים",
+      "video_id": "DU3HRMlgp6w",
+      "table": "content_items"
+    },
+    {
+      "id": 15107,
+      "title": "א'- תפילה למלאכים ואנשים מתים. ב'- רצף של תורה בישיבה",
+      "video_id": "yZit7hxA4u0",
+      "table": "content_items"
+    },
+    {
+      "id": 15141,
+      "title": "אדם שמצד אחד חוטא ומצד שני לומד דברים עמוקים (וידאו)",
+      "video_id": "vUZG9ei8fkA",
+      "table": "content_items"
+    },
+    {
+      "id": 2013,
+      "title": "שמות ע''ו - ייחודיותו של עם ישראל",
+      "video_id": "fyl1Plds0pY",
+      "table": "content_items"
+    },
+    {
+      "id": 15158,
+      "title": "אהבת הארץ",
+      "video_id": "SISTEczX37A",
+      "table": "content_items"
+    },
+    {
+      "id": 2307,
+      "title": "קימה בבוקר לתפילה",
+      "video_id": "0Q-ya-627XE",
+      "table": "content_items"
+    },
+    {
+      "id": 2369,
+      "title": "כסף מזויף",
+      "video_id": "5OeXkanB1jU",
+      "table": "content_items"
+    },
+    {
+      "id": 2814,
+      "title": "פרשת תצוה ע\"ו",
+      "video_id": "baHqWG91X8c",
+      "table": "content_items"
+    },
+    {
+      "id": 2935,
+      "title": "העולם הבא והעולם הזה",
+      "video_id": "g-XuhC6bOQ0",
+      "table": "content_items"
+    },
+    {
+      "id": 2956,
+      "title": "השתדלות ופרנסה",
+      "video_id": "YoIG5Ip-uek",
+      "table": "content_items"
+    },
+    {
+      "id": 3005,
+      "title": "פיתוח העולם הזה",
+      "video_id": "NF6tM6JwhGo",
+      "table": "content_items"
+    },
+    {
+      "id": 3024,
+      "title": "מקום היופי שבזוגיות",
+      "video_id": "tvxVVmYLYw0",
+      "table": "content_items"
+    }
+  ]
+}

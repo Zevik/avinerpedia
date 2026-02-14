@@ -1,0 +1,29 @@
+Environment check:
+- YOUTUBE_API_KEY: Found (AIzaSyDMNB...)
+
+🎬 YouTube Video Validation Script
+
+📊 Fetching YouTube videos from database...
+
+Found 1000 YouTube videos:
+  - 1000 from content_items
+  - 0 from posts
+
+Unique video IDs: 922
+
+🔍 Checking video availability with YouTube API...
+
+Checking 922 videos in 19 batches...
+Processing batch 1/19 (50 videos)...
+Error in batch 1: Error: YOUTUBE_API_KEY not found in environment variables
+    at checkVideosAvailability (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\lib\youtube-api.ts:27:15)
+    at batchCheckVideos (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\lib\youtube-api.ts:86:44)
+    at main (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\scripts\validate-youtube-videos.ts:135:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+❌ Error during video validation:
+Error: YOUTUBE_API_KEY not found in environment variables
+    at checkVideosAvailability (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\lib\youtube-api.ts:27:15)
+    at batchCheckVideos (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\lib\youtube-api.ts:86:44)
+    at main (C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\scripts\validate-youtube-videos.ts:135:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

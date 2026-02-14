@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-02-14T19:23:18.464Z",
+  "summary": {
+    "total": 1000,
+    "unchanged": 984,
+    "fixed": 7,
+    "invalid": 9,
+    "updated": 16,
+    "errors": 0
+  },
+  "fixed_ids": [
+    {
+      "id": 25,
+      "title": "שלום בית",
+      "old_video_id": "/ruU1By-NMk8",
+      "new_video_id": "ruU1By-NMk8",
+      "action": "fixed"
+    },
+    {
+      "id": 27,
+      "title": "דרך ארץ קדמה לתורה",
+      "old_video_id": "/bf-6ctCyyQs",
+      "new_video_id": "bf-6ctCyyQs",
+      "action": "fixed"
+    },
+    {
+      "id": 347,
+      "title": "תרומה-כיצד להתחבר לה'?",
+      "old_video_id": "http://youtu.be/icnFWn6eT78",
+      "new_video_id": "icnFWn6eT78",
+      "action": "fixed"
+    },
+    {
+      "id": 1007,
+      "title": "מציאה - על מה מכריזים וכיצד",
+      "old_video_id": "http://youtu.be/PibIuRyxoQw",
+      "new_video_id": "PibIuRyxoQw",
+      "action": "fixed"
+    },
+    {
+      "id": 1043,
+      "title": "גניבות - כיצד נכון לטפל בגנבים?",
+      "old_video_id": "http://youtu.be/BWkqraj6zL4",
+      "new_video_id": "BWkqraj6zL4",
+      "action": "fixed"
+    },
+    {
+      "id": 1049,
+      "title": "קימה בבוקר - גבורה גדולה",
+      "old_video_id": "http://youtu.be/1YgZeVhD8yY",
+      "new_video_id": "1YgZeVhD8yY",
+      "action": "fixed"
+    },
+    {
+      "id": 15304,
+      "title": "אורות התחיה, פסקה נא' - ב' (סדרה)",
+      "old_video_id": "jfBjRwftVkwS",
+      "new_video_id": "jfBjRwftVkw",
+      "action": "fixed"
+    }
+  ],
+  "invalid_ids": [
+    {
+      "id": 14,
+      "title": "המתת חסד",
+      "old_video_id": "related",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 100,
+      "title": "מקום מסוכן - מותר לגור שם?",
+      "old_video_id": "blog/3216",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 106,
+      "title": "מיהו מלך המשיח?",
+      "old_video_id": "jdfk8dflo4ru",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 111,
+      "title": "כיצד לנהוג במסתננים?",
+      "old_video_id": "jdfk8dflo4ru",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 112,
+      "title": "הדלקת נרות שבת במקום בו יש הרבה מדליקות",
+      "old_video_id": "jdfk8dflo4ru",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 181,
+      "title": "הכהונה",
+      "old_video_id": "0_zJ0aRUXk",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 15221,
+      "title": "אורות הקודש ב', עמ' שכט' - של' (סדרה)",
+      "old_video_id": "8S3RWL6K4Y",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 15377,
+      "title": "אורות התחיה: פסקה לו, שיעור 2 בסדרה: \"כל סופר\"- הרב אבינר",
+      "old_video_id": "OTh6gqHYMo",
+      "new_video_id": null,
+      "action": "invalid"
+    },
+    {
+      "id": 2991,
+      "title": "אורות התחיה: פסקה לו, שיעור 2 בסדרה: \"כל סופר\"- הרב אבינר",
+      "old_video_id": "OTh6gqHYMo",
+      "new_video_id": null,
+      "action": "invalid"
+    }
+  ]
+}

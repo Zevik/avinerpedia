@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-02-14T20:09:28.738Z",
+  "summary": {
+    "groups_processed": 14,
+    "records_deleted": 19,
+    "errors": 0
+  },
+  "groups": [
+    {
+      "video_id": "EOVRPVCEORY",
+      "primary_id": 4,
+      "deleted_ids": [
+        11,
+        16,
+        66,
+        70,
+        75,
+        90
+      ]
+    },
+    {
+      "video_id": "Kkrny6V5P70",
+      "primary_id": 3,
+      "deleted_ids": [
+        43
+      ]
+    },
+    {
+      "video_id": "mnU9kW_cfss",
+      "primary_id": 6,
+      "deleted_ids": [
+        7
+      ]
+    },
+    {
+      "video_id": "yhjxeV_Ydy8",
+      "primary_id": 52,
+      "deleted_ids": [
+        57
+      ]
+    },
+    {
+      "video_id": "8DbekRRsVw8",
+      "primary_id": 55,
+      "deleted_ids": [
+        58
+      ]
+    },
+    {
+      "video_id": "5Rt05vxO68M",
+      "primary_id": 91,
+      "deleted_ids": [
+        92
+      ]
+    },
+    {
+      "video_id": "_x05f9NNc4M",
+      "primary_id": 157,
+      "deleted_ids": [
+        161
+      ]
+    },
+    {
+      "video_id": "ktdw3LLLF0E",
+      "primary_id": 173,
+      "deleted_ids": [
+        175
+      ]
+    },
+    {
+      "video_id": "Na4857vWEL8",
+      "primary_id": 177,
+      "deleted_ids": [
+        187
+      ]
+    },
+    {
+      "video_id": "c_LRkSMP11Q",
+      "primary_id": 209,
+      "deleted_ids": [
+        210
+      ]
+    },
+    {
+      "video_id": "ZxivhwWTv5M",
+      "primary_id": 288,
+      "deleted_ids": [
+        289
+      ]
+    },
+    {
+      "video_id": "OUfKeA4rG4Q",
+      "primary_id": 877,
+      "deleted_ids": [
+        878
+      ]
+    },
+    {
+      "video_id": "zsBKcn1oOBU",
+      "primary_id": 901,
+      "deleted_ids": [
+        905
+      ]
+    },
+    {
+      "video_id": "XVJXeAp0zI0",
+      "primary_id": 979,
+      "deleted_ids": [
+        998
+      ]
+    }
+  ]
+}

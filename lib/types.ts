@@ -5,12 +5,23 @@
 
 export type MainCategory = 'סרטונים' | 'מאמרים' | 'שו"ת הלכה' | 'סדרות';
 
+export interface Category {
+  id: number;
+  name: string;
+  type: 'main' | 'sub';
+  parent_id: number | null;
+  display_order: number;
+  created_at: string;
+}
+
 export interface ContentItem {
   id: number;
   original_id: number | null;
   title: string;
-  main_category: MainCategory;
-  sub_category: string | null;
+  main_category: MainCategory; // Keeping for backward compatibility/display
+  sub_category: string | null; // Keeping for backward compatibility/display
+  main_category_id: number | null;
+  sub_category_id: number | null;
   video_id: string | null;
   publish_date: string | null;
   summary: string | null;
@@ -40,6 +51,8 @@ export interface SeriesItem extends ContentItem {
 export interface ContentFilters {
   main_category?: MainCategory;
   sub_category?: string;
+  main_category_id?: number;
+  sub_category_id?: number;
   search?: string;
   limit?: number;
   offset?: number;
@@ -48,6 +61,7 @@ export interface ContentFilters {
 // Type for series grouping (by sub_category)
 export interface SeriesGroup {
   sub_category: string;
+  sub_category_id?: number;
   title: string;
   count: number;
   items: ContentItem[];

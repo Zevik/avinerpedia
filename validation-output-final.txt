@@ -1,0 +1,78 @@
+Environment check:
+- YOUTUBE_API_KEY: Found (AIzaSyDMNB...)
+
+🎬 YouTube Video Validation Script
+
+📊 Fetching YouTube videos from database...
+
+Found 1000 YouTube videos:
+  - 1000 from content_items
+  - 0 from posts
+
+Unique video IDs: 921
+
+🔍 Checking video availability with YouTube API...
+
+Checking 921 videos in 19 batches...
+Processing batch 1/19 (50 videos)...
+Processing batch 2/19 (50 videos)...
+Processing batch 3/19 (50 videos)...
+Processing batch 4/19 (50 videos)...
+Processing batch 5/19 (50 videos)...
+Processing batch 6/19 (50 videos)...
+Processing batch 7/19 (50 videos)...
+Processing batch 8/19 (50 videos)...
+Processing batch 9/19 (50 videos)...
+Processing batch 10/19 (50 videos)...
+Processing batch 11/19 (50 videos)...
+Processing batch 12/19 (50 videos)...
+Processing batch 13/19 (50 videos)...
+Processing batch 14/19 (50 videos)...
+Processing batch 15/19 (50 videos)...
+Processing batch 16/19 (50 videos)...
+Processing batch 17/19 (50 videos)...
+Processing batch 18/19 (50 videos)...
+Processing batch 19/19 (21 videos)...
+
+📈 Results:
+  ✅ Available: 879
+  ❌ Unavailable: 42
+
+
+❌ Found 43 records with unavailable videos:
+
+📋 Breakdown:
+  - content_items: 43
+  - posts: 0
+
+📝 Examples (first 10):
+  1. [content_items] ID 95: "הספד לרב כהנא (וידאו קצר)"
+     Video ID: MbWsFe7NH1I
+  2. [content_items] ID 151: "חוק גיוס חובה לחרדים"
+     Video ID: PA4TMqGKeyQ
+  3. [content_items] ID 152: "תנ"ך בגובה העיניים- מהלך של 5 שיעורים"
+     Video ID: bhuWl9FCN3Y
+  4. [content_items] ID 170: "תשובה בזמן הגאולה"
+     Video ID: Wd51TowXBqI
+  5. [content_items] ID 203: "ציות למשטרה"
+     Video ID: PYhdbAViq10
+  6. [content_items] ID 205: "קרליבך, הרב - שיטתו"
+     Video ID: RYW_5MjlGJE
+  7. [content_items] ID 206: "פרשת וירא - עקידת יצחק מימוש מטרת העולם"
+     Video ID: 9FX01JbEqjA
+  8. [content_items] ID 246: "האבות - האם אפשר להגיע למדרגתם? (שיעור)"
+     Video ID: vFwcjO5Endg
+  9. [content_items] ID 348: "הרב אבינר - יום הולדת שבעים (וידאו קצר)"
+     Video ID: MWIJ70GOyxU
+  10. [content_items] ID 364: "קיום מצוות - עד כמה?"
+     Video ID: jUHMhx47pEo
+  ... and 33 more
+
+💾 Detailed report saved to: C:\Users\Zevik\OneDrive\מסמכים\avinerpedia\unavailable-videos-report.json
+
+✅ Validation complete!
+
+Next steps:
+  1. Review the report file
+  2. Decide what to do with unavailable videos
+  3. Run cleanup script (to be created)
