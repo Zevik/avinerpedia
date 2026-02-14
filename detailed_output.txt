@@ -1,0 +1,6 @@
+🔍 Detailed Statistics Check...
+
+✅ Supabase Counts:
+   📦 Table [content_items]: 14960 items
+      🎥 Videos in [content_items]: 5298
+   📝 Table [posts]: 1682 items
