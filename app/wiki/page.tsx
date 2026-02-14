@@ -19,7 +19,7 @@ export default async function WikiPage({ searchParams }: WikiPageProps) {
         getWikiCategories(),
     ]);
 
-    const selectedCategoryName = categories.find(c => c.id === selectedCategoryId)?.name;
+    const selectedCategoryName = categories.find(c => String(c.id) === selectedCategoryId)?.name;
 
     return (
         <div className="min-h-screen bg-slate-50 py-12" dir="rtl">
