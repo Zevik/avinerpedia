@@ -1,0 +1,46 @@
+
+> avinerpedia@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.12
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 5.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/8) ...
+   Generating static pages (2/8) 
+   Generating static pages (4/8) 
+   Generating static pages (6/8) 
+ ✓ Generating static pages (8/8)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      171 B         106 kB
+├ ○ /_not-found                            138 B         102 kB
+├ ○ /admin/dashboard                     1.77 kB         158 kB
+├ ○ /admin/login                         1.62 kB         158 kB
+├ ƒ /api/admin/categories                  138 B         102 kB
+├ ƒ /api/admin/posts                       138 B         102 kB
+├ ƒ /api/admin/posts/[id]                  138 B         102 kB
+├ ƒ /articles                            1.29 kB         107 kB
+├ ƒ /content/[id]                          138 B         102 kB
+├ ƒ /french                                171 B         106 kB
+├ ƒ /qa                                  1.29 kB         107 kB
+├ ƒ /search                                173 B         111 kB
+├ ƒ /series                              1.29 kB         107 kB
+├ ƒ /videos                              1.29 kB         112 kB
+└ ƒ /wiki/[slug]                           171 B         106 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/255-ebd51be49873d76c.js         46 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.99 kB
+
+
+ƒ Middleware                             81.4 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

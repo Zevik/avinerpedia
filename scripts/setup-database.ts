@@ -31,16 +31,27 @@ async function setupDatabase() {
   console.log(`📝 Executing ${statements.length} SQL statements...\n`);
 
   for (let i = 0; i < statements.length; i++) {
+    let rpcError = null;
     try {
-      const { error } = await supabase.rpc('execute_sql', {
-        sql: statements[i] + ';',
-      }).catch(() => {
-        // Fallback: use query for simpler statements
-        return supabase.from('_migrations').select('*');
-      });
+      try {
+        const { error } = await supabase.rpc('execute_sql', {
+          sql: statements[i] + ';',
+        });
 
-      if (error && !error.message.includes('already exists')) {
-        console.warn(`⚠️  Statement ${i + 1}:`, error.message);
+        if (error) {
+          rpcError = error;
+          throw error; // Throw to be caught by the inner catch
+        }
+      } catch (err) {
+        // Fallback: use query for simpler statements
+        // This is a workaround for `execute_sql` sometimes failing on valid SQL
+        // when it shouldn't, especially for simple DDL like `CREATE TABLE`.
+        // The `_migrations` table is just a dummy to ensure an awaitable promise.
+        await supabase.from('_migrations').select('*');
+      }
+
+      if (rpcError && !rpcError.message.includes('already exists')) {
+        console.warn(`⚠️  Statement ${i + 1}:`, rpcError.message);
       } else {
         console.log(`✅ Statement ${i + 1}/${statements.length} completed`);
       }

@@ -1,0 +1,23 @@
+
+> avinerpedia@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.12
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.5s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./scripts/setup-database.ts:37:10
+Type error: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, any, "execute_sql", null, "RPC">'. Did you mean 'match'?
+
+[0m [90m 35 |[39m       [36mconst[39m { error } [33m=[39m [36mawait[39m supabase[33m.[39mrpc([32m'execute_sql'[39m[33m,[39m {
+ [90m 36 |[39m         sql[33m:[39m statements[i] [33m+[39m [32m';'[39m[33m,[39m
+[31m[1m>[22m[39m[90m 37 |[39m       })[33m.[39m[36mcatch[39m(() [33m=>[39m {
+ [90m    |[39m          [31m[1m^[22m[39m
+ [90m 38 |[39m         [90m// Fallback: use query for simpler statements[39m
+ [90m 39 |[39m         [36mreturn[39m supabase[33m.[39m[36mfrom[39m([32m'_migrations'[39m)[33m.[39mselect([32m'*'[39m)[33m;[39m
+ [90m 40 |[39m       })[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -28,7 +28,7 @@ export default function RootLayout({
         </main>
         <footer className="border-t mt-16 py-8">
           <div className="container mx-auto px-4 text-center text-muted-foreground">
-            <p>© {new Date().getFullYear()} אבינרפדיא. כל הזכויות שמורות.</p>
+            <p>© {new Date().getFullYear()} אבינרפדיה. כל הזכויות שמורות.</p>
             <p className="mt-2 text-sm">
               תוכן מאת הרב שלמה אבינר שליט״א
             </p>

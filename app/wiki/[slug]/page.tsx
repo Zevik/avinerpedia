@@ -52,8 +52,13 @@ async function getCategory(categoryId: string) {
   }
 }
 
-export default async function WikiPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function WikiPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
   const post = await getPost(slug);
 
   if (!post) {
@@ -69,9 +74,9 @@ export default async function WikiPage({ params }: { params: Promise<{ slug: str
         <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
           ← חזור לעמוד הבית
         </Link>
-        
+
         <h1 className="text-4xl font-bold mb-4 text-blue-800">{post.title}</h1>
-        
+
         {/* Category Badge */}
         {categoryName && (
           <div className="mb-4">
