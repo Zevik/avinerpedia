@@ -46,8 +46,9 @@ export default async function ContentPage({ params }: ContentPageProps) {
 // Video Content Layout
 function VideoContent({ item }: { item: any }) {
   const videoId = item.video_id;
-  const isYouTube = videoId && !videoId.includes('Maale:');
   const isMaale = videoId && videoId.includes('Maale:');
+  const isMeir = videoId && videoId.includes('Meir:');
+  const isYouTube = videoId && !isMaale && !isMeir;
 
   return (
     <div className="container mx-auto px-4 max-w-6xl">
@@ -76,6 +77,22 @@ function VideoContent({ item }: { item: any }) {
                 className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 צפה בסרטון במעלה
+              </a>
+            </div>
+          </div>
+        ) : isMeir ? (
+          <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-orange-100 to-orange-50">
+            <div className="text-center">
+              <p className="text-lg text-muted-foreground mb-4">
+                סרטון זה מתארח באתר מכון מאיר
+              </p>
+              <a
+                href={`http://meirtv.co.il/site/content_idx.asp?idx=${videoId.replace('Meir:', '').split('&')[0]}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                צפה בסרטון במכון מאיר
               </a>
             </div>
           </div>
