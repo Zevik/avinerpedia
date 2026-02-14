@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { ContentItem, ContentFilters, MainCategory } from './types';
+import { ContentItem, ContentFilters, MainCategory, Category } from './types';
 
 /**
  * Fetch content items with optional filtering
@@ -225,7 +225,7 @@ export async function getSubCategories(mainCategory: MainCategory): Promise<stri
   }
 
   const unique = [...new Set(data.map(item => item.sub_category))].filter(Boolean) as string[];
-  return data || [];
+  return unique.sort();
 }
 
 /**
