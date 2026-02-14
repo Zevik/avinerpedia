@@ -81,20 +81,14 @@ function VideoContent({ item }: { item: any }) {
             </div>
           </div>
         ) : isMeir ? (
-          <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-orange-100 to-orange-50">
-            <div className="text-center">
-              <p className="text-lg text-muted-foreground mb-4">
-                סרטון זה מתארח באתר מכון מאיר
-              </p>
-              <a
-                href={`http://meirtv.co.il/site/content_idx.asp?idx=${videoId.replace('Meir:', '').split('&')[0]}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-              >
-                צפה בסרטון במכון מאיר
-              </a>
-            </div>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src={`https://meirtv.com/shiurim/shiur-${videoId.replace('Meir:', '').split('&')[0]}/fvp/`}
+              title={item.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         ) : (
           <div className="w-full h-96 flex items-center justify-center bg-muted">
