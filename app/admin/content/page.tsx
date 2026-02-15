@@ -19,6 +19,11 @@ export default function ContentAdminPage() {
     const [totalPages, setTotalPages] = useState(1);
     const ITEMS_PER_PAGE = 50;
 
+    // Edit state
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [tempMainId, setTempMainId] = useState<number | null>(null);
+    const [tempSubId, setTempSubId] = useState<number | null>(null);
+
     useEffect(() => {
         setPage(1);
         loadData();
