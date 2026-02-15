@@ -29,24 +29,27 @@ export default function AdminDashboard() {
           setUser(data.user);
         }
 
-        // Get statistics from CORRECT tables
-        const [contentRes, categoriesRes] = await Promise.all([
-          supabase.from('content_items').select('main_category', { count: 'exact' }),
-          supabase.from('categories').select('id', { count: 'exact' }),
+        // Get statistics from CORRECT tables using specific count queries
+        const [
+          totalRes,
+          articlesRes,
+          videosRes,
+          qaRes,
+          categoriesRes
+        ] = await Promise.all([
+          supabase.from('content_items').select('*', { count: 'exact', head: true }),
+          supabase.from('content_items').select('*', { count: 'exact', head: true }).eq('main_category', 'מאמרים'),
+          supabase.from('content_items').select('*', { count: 'exact', head: true }).eq('main_category', 'סרטונים'),
+          supabase.from('content_items').select('*', { count: 'exact', head: true }).eq('main_category', 'שו"ת הלכה'),
+          supabase.from('categories').select('id', { count: 'exact', head: true }),
         ]);
 
-        const totalContent = contentRes.count || 0;
-        const totalArticles = contentRes.data?.filter(i => i.main_category === 'מאמרים').length || 0;
-        const totalVideos = contentRes.data?.filter(i => i.main_category === 'סרטונים').length || 0;
-        const totalQA = contentRes.data?.filter(i => i.main_category === 'שו"ת הלכה').length || 0;
-        const categories = categoriesRes.count || 0;
-
         setStats({
-          totalContent,
-          totalArticles,
-          totalVideos,
-          totalQA,
-          categories,
+          totalContent: totalRes.count || 0,
+          totalArticles: articlesRes.count || 0,
+          totalVideos: videosRes.count || 0,
+          totalQA: qaRes.count || 0,
+          categories: categoriesRes.count || 0,
         });
       } catch (error) {
         console.error('Error loading data:', error);
