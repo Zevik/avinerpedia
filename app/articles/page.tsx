@@ -71,6 +71,12 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
 }
 
 function ArticleCard({ article }: { article: any }) {
+  // Helper to check if summary is valid content and not metadata
+  const isValidSummary = (text: string) => {
+    if (!text) return false;
+    return !text.includes('catid=');
+  };
+
   return (
     <Link
       href={`/content/${article.id}`}
@@ -80,7 +86,7 @@ function ArticleCard({ article }: { article: any }) {
         {article.title}
       </h2>
 
-      {article.summary && (
+      {article.summary && isValidSummary(article.summary) && (
         <p className="text-muted-foreground mb-4 line-clamp-3">
           {article.summary}
         </p>
