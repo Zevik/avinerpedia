@@ -19,14 +19,15 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
       // We don't filter by main_category 'סרטונים' anymore, we want ALL videos
       has_video: true,
       sub_category: selectedTopic,
-      limit: 1000,
+      limit: 5000,
     }),
     getSubCategories('סרטונים'), // Keep sidebar showing video-specific categories for now
   ]);
 
   // Enhance videos with Vimeo IDs and thumbnails
-  const enhancedVideos = await Promise.all(
-    videos.map(async (video) => {
+  // OPTIMIZATION: Only enhance the first 50 items to avoid Vercel timeouts with 4000+ items
+  const enhancedVideosHead = await Promise.all(
+    videos.slice(0, 50).map(async (video) => {
       if (video.video_id && video.video_id.includes('Meir:')) {
         const meirId = video.video_id.replace('Meir:', '').split('&')[0];
         const vimeoId = await getVimeoId(meirId);
@@ -39,6 +40,8 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
       return video;
     })
   );
+
+  const enhancedVideos = [...enhancedVideosHead, ...videos.slice(50)];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
