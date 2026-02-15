@@ -1,7 +1,20 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+
+export default function AdminPostsPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        router.push('/admin/content');
+    }, [router]);
+
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <p className="text-gray-500">Redirecting to Content Management...</p>
+        </div>
+    );
+}
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { Trash2, Edit, Search, Plus, ArrowRight } from 'lucide-react';
