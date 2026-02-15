@@ -337,17 +337,35 @@ export async function mergeCategories(sourceId: number, targetId: number) {
   const column = source.type === 'main' ? 'main_category_id' : 'sub_category_id';
   const legacyColumn = source.type === 'main' ? 'main_category' : 'sub_category';
 
-  // 2. Get target category info for legacy sync
-  const { data: target } = await supabase.from('categories').select('name').eq('id', targetId).single();
+  // 2. Get target category info
+  const { data: target } = await supabase.from('categories').select('id, name, parent_id, type').eq('id', targetId).single();
   if (!target) throw new Error('Target category not found');
+
+  // Prepare updates
+  const updates: any = {
+    [column]: targetId,
+    [legacyColumn]: target.name
+  };
+
+  // If merging sub-categories, we must ensure main_category_id is also updated 
+  // to match the target's parent. This allows moving/merging across different parents.
+  if (source.type === 'sub' && target.type === 'sub' && target.parent_id) {
+    const { data: targetParent } = await supabase
+      .from('categories')
+      .select('name')
+      .eq('id', target.parent_id)
+      .single();
+
+    if (targetParent) {
+      updates['main_category_id'] = target.parent_id;
+      updates['main_category'] = targetParent.name;
+    }
+  }
 
   // 3. Update all content items from source to target
   const { error: updateError } = await supabase
     .from('content_items')
-    .update({
-      [column]: targetId,
-      [legacyColumn]: target.name
-    })
+    .update(updates)
     .eq(column, sourceId);
 
   if (updateError) throw updateError;

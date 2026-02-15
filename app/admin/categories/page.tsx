@@ -18,6 +18,8 @@ export default function CategoriesAdminPage() {
     // Expanded main categories state
     const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
+    const [activeTab, setActiveTab] = useState<'hierarchy' | 'flat'>('hierarchy');
+
     useEffect(() => {
         loadCategories();
     }, []);
@@ -111,12 +113,14 @@ export default function CategoriesAdminPage() {
         setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
+    const flatSubCategories = categories.sub;
+
     if (loading) return <div className="p-8 text-center">Loading categories...</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 p-8" dir="rtl">
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-900">ניהול קטגוריות</h1>
                     <button
                         onClick={() => setShowAddModal(true)}
@@ -127,8 +131,26 @@ export default function CategoriesAdminPage() {
                     </button>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex bg-gray-200 p-1 rounded-lg mb-6 inline-flex">
+                    <button
+                        onClick={() => setActiveTab('hierarchy')}
+                        className={`px-4 py-2 rounded-md transition ${activeTab === 'hierarchy' ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                        תצוגת עץ (לפי סוג)
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('flat')}
+                        className={`px-4 py-2 rounded-md transition ${activeTab === 'flat' ? 'bg-white shadow text-blue-600 font-bold' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                        רשימת נושאים מלאה ({flatSubCategories.length})
+                    </button>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    {categories.main.map(mainCat => (
+
+                    {/* HIERARCHY VIEW */}
+                    {activeTab === 'hierarchy' && categories.main.map(mainCat => (
                         <div key={mainCat.id} className="border-b border-gray-100 last:border-0">
                             {/* Main Category Row */}
                             <div className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition">
@@ -211,6 +233,67 @@ export default function CategoriesAdminPage() {
                             )}
                         </div>
                     ))}
+
+                    {/* FLAT VIEW */}
+                    {activeTab === 'flat' && (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-right">
+                                <thead className="bg-gray-50 text-gray-500 text-sm">
+                                    <tr>
+                                        <th className="p-4 font-medium">שם הנושא</th>
+                                        <th className="p-4 font-medium">שייך ל...</th>
+                                        <th className="p-4 font-medium w-40">פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {flatSubCategories.map(cat => {
+                                        const parent = categories.main.find(p => p.id === cat.parent_id);
+                                        return (
+                                            <tr key={cat.id} className="hover:bg-gray-50 transition group">
+                                                <td className="p-4">
+                                                    {editingId === cat.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editName}
+                                                            onChange={e => setEditName(e.target.value)}
+                                                            className="border rounded px-2 py-1 w-full"
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <span className="font-medium text-gray-800">{cat.name}</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-4 text-gray-500">
+                                                    {parent?.name || '-'}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-2">
+                                                        {editingId === cat.id ? (
+                                                            <>
+                                                                <button onClick={() => handleUpdate(cat.id)} className="p-1 text-green-600" title="שמור"><Save className="w-4 h-4" /></button>
+                                                                <button onClick={() => setEditingId(null)} className="p-1 text-gray-500" title="ביטול"><X className="w-4 h-4" /></button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <button onClick={() => openMergeModal(cat)} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200">מזג</button>
+                                                                <button onClick={() => { setEditingId(cat.id); setEditName(cat.name); }} className="p-1 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" title="ערוך"><Edit2 className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleDelete(cat.id)} className="p-1 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" title="מחק"><Trash2 className="w-4 h-4" /></button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {flatSubCategories.length === 0 && (
+                                        <tr>
+                                            <td colSpan={3} className="p-8 text-center text-gray-500">לא נמצאו נושאים</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
 
