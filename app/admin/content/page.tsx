@@ -143,7 +143,6 @@ export default function ContentAdminPage() {
                                                         onChange={e => {
                                                             const val = Number(e.target.value);
                                                             setTempMainId(val);
-                                                            // Reset sub cat if main changes
                                                             setTempSubId(null);
                                                         }}
                                                         className="border rounded px-2 py-1 w-full"
@@ -179,12 +178,20 @@ export default function ContentAdminPage() {
                                                 <td className="p-4 text-gray-600">{item.main_category}</td>
                                                 <td className="p-4 text-gray-500">{item.sub_category || '-'}</td>
                                                 <td className="p-4">
-                                                    <button
-                                                        onClick={() => startEditing(item)}
-                                                        className="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm font-medium border border-blue-200"
-                                                    >
-                                                        שיוך קטגוריה
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <Link
+                                                            href={`/admin/content/edit/${item.id}`}
+                                                            className="text-gray-600 hover:bg-gray-100 px-3 py-1 rounded text-sm font-medium border border-gray-200 flex items-center gap-1"
+                                                        >
+                                                            ✏️ ערוך תוכן
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => startEditing(item)}
+                                                            className="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm font-medium border border-blue-200"
+                                                        >
+                                                            שיוך קטגוריה
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </>
                                         )}

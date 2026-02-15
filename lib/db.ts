@@ -442,3 +442,18 @@ export async function updateContentCategory(contentId: number, mainCatId: number
   return data;
 }
 
+export async function updateContentItem(
+  id: number,
+  updates: Partial<Pick<ContentItem, 'title' | 'summary' | 'content_md' | 'video_id' | 'publish_date' | 'original_tags'>>
+) {
+  const { data, error } = await supabase
+    .from('content_items')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
