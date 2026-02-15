@@ -19,7 +19,7 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
       // We don't filter by main_category 'סרטונים' anymore, we want ALL videos
       has_video: true,
       sub_category: selectedTopic,
-      limit: 50,
+      limit: 1000,
     }),
     getSubCategories('סרטונים'), // Keep sidebar showing video-specific categories for now
   ]);
