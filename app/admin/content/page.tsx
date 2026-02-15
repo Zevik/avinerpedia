@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getContentItems, getCategories, updateContentCategory } from '@/lib/db';
+import { getContentItems, getCategories, updateContentCategory, getContentCount } from '@/lib/db';
 import { Category, ContentItem, MainCategory } from '@/lib/types';
 import { Search, Filter, Save, Check } from 'lucide-react';
 import Link from 'next/link';
