@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const navLinks = [
     { href: '/', label: 'בית' },
@@ -17,13 +17,6 @@ export function Navbar() {
     { href: '/series', label: 'סדרות' },
     { href: '/french', label: 'Cours en Français' },
   ];
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
-    }
-  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
@@ -74,25 +67,10 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Now using Autocomplete */}
         {isSearchOpen && (
-          <div className="pb-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="חיפוש תוכן..."
-                className="w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-              >
-                <Search className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </form>
+          <div className="pb-4 flex justify-center">
+            <SearchAutocomplete />
           </div>
         )}
 
