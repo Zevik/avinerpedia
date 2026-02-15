@@ -350,6 +350,24 @@ export async function updateCategory(id: number, updates: { name?: string, paren
     .single();
 
   if (error) throw error;
+
+  // If name changed, propagate to content_items
+  if (updates.name && data) {
+    const column = data.type === 'main' ? 'main_category_id' : 'sub_category_id';
+    const legacyColumn = data.type === 'main' ? 'main_category' : 'sub_category';
+
+    const { error: propError } = await supabase
+      .from('content_items')
+      .update({ [legacyColumn]: updates.name })
+      .eq(column, id);
+
+    if (propError) {
+      console.error('Error propagating category update to content items:', propError);
+      // We don't throw here to avoid breaking the category update itself, 
+      // but strictly speaking this leaves data inconsistent.
+    }
+  }
+
   return data;
 }
 
