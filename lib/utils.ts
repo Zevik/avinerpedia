@@ -111,3 +111,9 @@ export function extractExcerpt(markdown: string | null, maxLength: number = 200)
 
   return truncate(plain, maxLength);
 }
+/**
+ * Class name merger utility
+ */
+export function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ');
+}
