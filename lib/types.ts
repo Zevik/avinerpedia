@@ -56,6 +56,7 @@ export interface ContentFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  has_video?: boolean;
 }
 
 // Type for series grouping (by sub_category)

@@ -13,14 +13,15 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
   const params = await searchParams;
   const selectedTopic = params.topic;
 
-  // Fetch videos and categories
+  // Fetch videos (all items with video_id) and categories
   const [videos, categories] = await Promise.all([
     getContentItems({
-      main_category: 'סרטונים',
+      // We don't filter by main_category 'סרטונים' anymore, we want ALL videos
+      has_video: true,
       sub_category: selectedTopic,
       limit: 50,
     }),
-    getSubCategories('סרטונים'),
+    getSubCategories('סרטונים'), // Keep sidebar showing video-specific categories for now
   ]);
 
   // Enhance videos with Vimeo IDs and thumbnails

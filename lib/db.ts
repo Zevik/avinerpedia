@@ -51,6 +51,10 @@ export async function getContentItems(filters?: ContentFilters): Promise<Content
     query = query.or(`title.ilike.%${filters.search}%,content_md.ilike.%${filters.search}%`);
   }
 
+  if (filters?.has_video) {
+    query = query.not('video_id', 'is', null).neq('video_id', '');
+  }
+
   // Filter out items without content
   // Videos and Series can have video_id instead of content_md
   if (filters?.main_category === 'מאמרים' || filters?.main_category === 'שו"ת הלכה') {
@@ -312,6 +316,10 @@ export async function getContentCount(filters?: ContentFilters): Promise<number>
 
   if (filters?.search) {
     query = query.or(`title.ilike.%${filters.search}%,content_md.ilike.%${filters.search}%`);
+  }
+
+  if (filters?.has_video) {
+    query = query.not('video_id', 'is', null).neq('video_id', '');
   }
 
   if (filters?.main_category === 'מאמרים' || filters?.main_category === 'שו"ת הלכה') {
