@@ -13,7 +13,7 @@ async function getFrenchContent() {
   const { data, error } = await supabase
     .from('content_items')
     .select('*')
-    .or('title.ilike.%Emouna%,title.ilike.%Erets%,title.ilike.%Paracha%,title.ilike.%couple%,title.ilike.%famille%,title.ilike.%Mitsva%,title.ilike.%état%,title.ilike.%éthique%,title.ilike.%amour%,title.ilike.%obligation%,title.ilike.%opérations%,title.ilike.%Mashiah%,sub_category.ilike.%Emouna%,sub_category.ilike.%Erets%,sub_category.ilike.%Paracha%,sub_category.ilike.%couple%,sub_category.ilike.%famille%')
+    .eq('main_category', 'Cours en Français')
     .order('title');
 
   if (error) {
