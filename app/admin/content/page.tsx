@@ -14,27 +14,39 @@ export default function ContentAdminPage() {
     const [filterMain, setFilterMain] = useState<string>('');
 
     // Edit state
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [tempMainId, setTempMainId] = useState<number | null>(null);
-    const [tempSubId, setTempSubId] = useState<number | null>(null);
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 50;
 
     useEffect(() => {
+        setPage(1);
         loadData();
     }, [search, filterMain]);
 
+    useEffect(() => {
+        loadData();
+    }, [page]);
+
     async function loadData() {
         setLoading(true);
-        const [cats, content] = await Promise.all([
+
+        const filters = {
+            search: search.length > 2 ? search : undefined,
+            limit: ITEMS_PER_PAGE,
+            offset: (page - 1) * ITEMS_PER_PAGE,
+            main_category: filterMain ? (filterMain as MainCategory) : undefined
+        };
+
+        const [cats, content, total] = await Promise.all([
             getCategories(),
-            getContentItems({
-                search: search.length > 2 ? search : undefined,
-                limit: 50,
-                main_category: filterMain ? (filterMain as MainCategory) : undefined
-            })
+            getContentItems(filters),
+            getContentCount(filters)
         ]);
 
         if (cats && cats.main) setCategories(cats);
         setItems(content);
+        setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
         setLoading(false);
     }
 
@@ -94,7 +106,7 @@ export default function ContentAdminPage() {
                 </div>
 
                 {/* Content Table */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                     <table className="w-full text-right">
                         <thead className="bg-gray-50 text-gray-700 font-medium">
                             <tr>
@@ -113,9 +125,9 @@ export default function ContentAdminPage() {
                                 items.map(item => (
                                     <tr key={item.id} className="hover:bg-gray-50">
                                         <td className="p-4 font-medium max-w-md truncate">
-                                            <a href={`/content/${item.id}`} target="_blank" className="hover:text-blue-600">
+                                            <Link href={`/content/${item.id}`} target="_blank" className="hover:text-blue-600 block">
                                                 {item.title}
-                                            </a>
+                                            </Link>
                                         </td>
 
                                         {editingId === item.id ? (
@@ -151,8 +163,10 @@ export default function ContentAdminPage() {
                                                     </select>
                                                 </td>
                                                 <td className="p-4">
-                                                    <button onClick={() => handleSave(item.id)} className="text-green-600 hover:bg-green-50 p-2 rounded"><Check className="w-5 h-5" /></button>
-                                                    <button onClick={() => setEditingId(null)} className="text-gray-400 hover:bg-gray-100 p-2 rounded">ביטול</button>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleSave(item.id)} className="bg-green-100 text-green-700 p-2 rounded hover:bg-green-200" title="שמור שינויים"><Check className="w-5 h-5" /></button>
+                                                        <button onClick={() => setEditingId(null)} className="bg-gray-100 text-gray-600 p-2 rounded hover:bg-gray-200" title="ביטול">ביטול</button>
+                                                    </div>
                                                 </td>
                                             </>
                                         ) : (
@@ -162,9 +176,9 @@ export default function ContentAdminPage() {
                                                 <td className="p-4">
                                                     <button
                                                         onClick={() => startEditing(item)}
-                                                        className="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm font-medium"
+                                                        className="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm font-medium border border-blue-200"
                                                     >
-                                                        ערוך
+                                                        שיוך קטגוריה
                                                     </button>
                                                 </td>
                                             </>
@@ -175,6 +189,29 @@ export default function ContentAdminPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 pb-12">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                        >
+                            הקודם
+                        </button>
+                        <span className="text-gray-600 px-4">
+                            עמוד {page} מתוך {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                        >
+                            הבא
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

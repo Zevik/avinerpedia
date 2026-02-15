@@ -292,6 +292,40 @@ export async function searchContent(query: string, limit: number = 20): Promise<
   return data || [];
 }
 
+export async function getContentCount(filters?: ContentFilters): Promise<number> {
+  let query = supabase
+    .from('content_items')
+    .select('*', { count: 'exact', head: true });
+
+  // Apply same filters as getContentItems
+  if (filters?.main_category_id) {
+    query = query.eq('main_category_id', filters.main_category_id);
+  } else if (filters?.main_category) {
+    query = query.eq('main_category', filters.main_category);
+  }
+
+  if (filters?.sub_category_id) {
+    query = query.eq('sub_category_id', filters.sub_category_id);
+  } else if (filters?.sub_category) {
+    query = query.eq('sub_category', filters.sub_category);
+  }
+
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,content_md.ilike.%${filters.search}%`);
+  }
+
+  if (filters?.main_category === 'מאמרים' || filters?.main_category === 'שו"ת הלכה') {
+    query = query.not('content_md', 'is', null).neq('content_md', '');
+  }
+
+  const { count, error } = await query;
+  if (error) {
+    console.error('Error counting content items:', error);
+    return 0;
+  }
+  return count || 0;
+}
+
 /**
  * Category Management Functions
  */
