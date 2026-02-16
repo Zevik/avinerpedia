@@ -4,9 +4,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+// Initialize client outside if keys are present, or handle inside handler
+const getSupabase = () => {
+    if (!supabaseUrl || !supabaseKey) {
+        // Fallback for build time
+        return createClient('https://placeholder.supabase.co', 'placeholder-key');
+    }
+    return createClient(supabaseUrl, supabaseKey);
+};
+
+const supabase = getSupabase();
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
