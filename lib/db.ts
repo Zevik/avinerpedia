@@ -480,7 +480,7 @@ export async function updateContentCategory(contentId: number, mainCatId: number
 
 export async function updateContentItem(
   id: number,
-  updates: Partial<Pick<ContentItem, 'title' | 'summary' | 'content_md' | 'video_id' | 'publish_date' | 'original_tags'>>
+  updates: Partial<Pick<ContentItem, 'title' | 'summary' | 'content_md' | 'video_id' | 'publish_date' | 'original_tags' | 'is_active'>>
 ) {
   const { data, error } = await supabase
     .from('content_items')

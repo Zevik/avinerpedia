@@ -12,6 +12,7 @@ export default function ContentAdminPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filterMain, setFilterMain] = useState<string>('');
+    const [includeInactive, setIncludeInactive] = useState(false);
 
     // Edit state
     // Pagination state
@@ -27,7 +28,7 @@ export default function ContentAdminPage() {
     useEffect(() => {
         setPage(1);
         loadData();
-    }, [search, filterMain]);
+    }, [search, filterMain, includeInactive]);
 
     useEffect(() => {
         loadData();
@@ -40,7 +41,8 @@ export default function ContentAdminPage() {
             search: search.length > 2 ? search : undefined,
             limit: ITEMS_PER_PAGE,
             offset: (page - 1) * ITEMS_PER_PAGE,
-            main_category: filterMain ? (filterMain as MainCategory) : undefined
+            main_category: filterMain ? (filterMain as MainCategory) : undefined,
+            include_inactive: includeInactive
         };
 
         const [cats, content, total] = await Promise.all([
@@ -108,6 +110,18 @@ export default function ContentAdminPage() {
                             ))}
                         </select>
                     </div>
+                    <div className="flex items-center gap-2 mr-auto bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                        <input
+                            type="checkbox"
+                            id="show-inactive"
+                            checked={includeInactive}
+                            onChange={e => setIncludeInactive(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="show-inactive" className="text-sm font-medium text-gray-700 cursor-pointer">
+                            הצג רשומות לא פעילות
+                        </label>
+                    </div>
                 </div>
 
                 {/* Content Table */}
@@ -116,6 +130,7 @@ export default function ContentAdminPage() {
                         <thead className="bg-gray-50 text-gray-700 font-medium">
                             <tr>
                                 <th className="p-4">כותרת</th>
+                                <th className="p-4">סטטוס</th>
                                 <th className="p-4">קטגוריה ראשית</th>
                                 <th className="p-4">תת-קטגוריה</th>
                                 <th className="p-4">פעולות</th>
@@ -123,9 +138,9 @@ export default function ContentAdminPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
-                                <tr><td colSpan={4} className="p-8 text-center">טוען נתונים...</td></tr>
+                                <tr><td colSpan={5} className="p-8 text-center">טוען נתונים...</td></tr>
                             ) : items.length === 0 ? (
-                                <tr><td colSpan={4} className="p-8 text-center text-gray-500">לא נמצאו תוצאות</td></tr>
+                                <tr><td colSpan={5} className="p-8 text-center text-gray-500">לא נמצאו תוצאות</td></tr>
                             ) : (
                                 items.map(item => (
                                     <tr key={item.id} className="hover:bg-gray-50">
@@ -133,6 +148,11 @@ export default function ContentAdminPage() {
                                             <Link href={`/content/${item.id}`} target="_blank" className="hover:text-blue-600 block">
                                                 {item.title}
                                             </Link>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {item.is_active ? 'פעיל' : 'לא פעיל'}
+                                            </span>
                                         </td>
 
                                         {editingId === item.id ? (
@@ -225,6 +245,6 @@ export default function ContentAdminPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

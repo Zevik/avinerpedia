@@ -22,7 +22,8 @@ export default function EditContentForm({ id }: EditContentFormProps) {
         content_md: '',
         video_id: '',
         publish_date: '',
-        original_tags: ''
+        original_tags: '',
+        is_active: true
     });
 
     useEffect(() => {
@@ -41,7 +42,8 @@ export default function EditContentForm({ id }: EditContentFormProps) {
                     content_md: data.content_md || '',
                     video_id: data.video_id || '',
                     publish_date: data.publish_date || '',
-                    original_tags: data.original_tags || ''
+                    original_tags: data.original_tags || '',
+                    is_active: data.is_active ?? true
                 });
             } else {
                 alert('Content item not found');
@@ -67,7 +69,8 @@ export default function EditContentForm({ id }: EditContentFormProps) {
                 content_md: formData.content_md || null,
                 video_id: formData.video_id || null,
                 publish_date: formData.publish_date || null,
-                original_tags: formData.original_tags || null
+                original_tags: formData.original_tags || null,
+                is_active: formData.is_active
             });
 
             alert('התוכן עודכן בהצלחה!');
@@ -172,6 +175,24 @@ export default function EditContentForm({ id }: EditContentFormProps) {
                             onChange={e => setFormData({ ...formData, original_tags: e.target.value })}
                             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 block">סטטוס נראות</label>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, is_active: !formData.is_active })}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-2 ring-offset-2 ${formData.is_active ? 'bg-green-600 ring-green-500' : 'bg-gray-200 ring-gray-200'}`}
+                            >
+                                <span
+                                    className={`${formData.is_active ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                />
+                            </button>
+                            <span className={`text-sm font-medium ${formData.is_active ? 'text-green-700' : 'text-gray-500'}`}>
+                                {formData.is_active ? 'פעיל (גלוי באתר)' : 'לא פעיל (מוסתר מהאתר)'}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3 border-t">
