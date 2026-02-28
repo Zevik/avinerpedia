@@ -34,6 +34,11 @@ export async function getContentItems(filters?: ContentFilters): Promise<Content
     .select('*')
     .order('created_at', { ascending: false });
 
+  // Filter by is_active unless include_inactive is true
+  if (!filters?.include_inactive) {
+    query = query.eq('is_active', true);
+  }
+
   // Support both legacy string filtering and new ID filtering
   if (filters?.main_category_id) {
     query = query.eq('main_category_id', filters.main_category_id);
@@ -300,6 +305,11 @@ export async function getContentCount(filters?: ContentFilters): Promise<number>
   let query = supabase
     .from('content_items')
     .select('*', { count: 'exact', head: true });
+
+  // Filter by is_active unless include_inactive is true
+  if (!filters?.include_inactive) {
+    query = query.eq('is_active', true);
+  }
 
   // Apply same filters as getContentItems
   if (filters?.main_category_id) {

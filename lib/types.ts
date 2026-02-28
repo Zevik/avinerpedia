@@ -27,6 +27,7 @@ export interface ContentItem {
   summary: string | null;
   original_tags: string | null;
   content_md: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -57,6 +58,7 @@ export interface ContentFilters {
   limit?: number;
   offset?: number;
   has_video?: boolean;
+  include_inactive?: boolean;
 }
 
 // Type for series grouping (by sub_category)
