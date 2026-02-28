@@ -59,6 +59,7 @@ interface ContentRecord {
     publish_date: string | null;
     summary: string | null;
     content_md: string;
+    is_active: boolean;
 }
 
 function detectVideo(content: string, frontmatter: any): string | null {
@@ -168,7 +169,8 @@ async function importFromWiki() {
                     video_id: videoId,
                     publish_date: frontmatter.date || null,
                     summary: summary.length > 3 ? summary : null,
-                    content_md: content.trim()
+                    content_md: content.trim(),
+                    is_active: true
                 });
 
             } catch (err) {
