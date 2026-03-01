@@ -68,12 +68,11 @@ export async function getContentItems(filters?: ContentFilters): Promise<Content
   }
   // For other categories (videos/series), we don't filter - they can have video_id
 
-  if (filters?.limit) {
-    query = query.limit(filters.limit);
-  }
+  const limit = filters?.limit || 50;
+  const offset = filters?.offset || 0;
 
-  if (filters?.offset) {
-    query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
+  if (filters?.offset !== undefined || filters?.limit !== undefined) {
+    query = query.range(offset, offset + limit - 1);
   }
 
   const { data, error } = await query;

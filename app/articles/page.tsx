@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
-import Link from 'next/link';
-import { Calendar, ArrowLeft } from 'lucide-react';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { getContentItems, getSubCategories } from '@/lib/db';
+import { InfiniteContentList } from '@/components/InfiniteContentList';
+import type { ContentFilters } from '@/lib/types';
 
 interface ArticlesPageProps {
   searchParams: Promise<{ topic?: string }>;
@@ -13,13 +13,15 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
   const params = await searchParams;
   const selectedTopic = params.topic;
 
-  // Fetch articles and categories
+  const filters: ContentFilters = {
+    main_category: 'מאמרים',
+    sub_category: selectedTopic,
+    limit: 50,
+  };
+
+  // Fetch initial articles and categories
   const [articles, categories] = await Promise.all([
-    getContentItems({
-      main_category: 'מאמרים',
-      sub_category: selectedTopic,
-      limit: 50,
-    }),
+    getContentItems(filters),
     getSubCategories('מאמרים'),
   ]);
 
@@ -50,68 +52,14 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
               </div>
             )}
 
-            {articles.length > 0 ? (
-              <div className="space-y-6 max-w-4xl">
-                {articles.map((article) => (
-                  <ArticleCard key={article.id} article={article} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">
-                  לא נמצאו מאמרים
-                </p>
-              </div>
-            )}
+            <InfiniteContentList
+              initialItems={articles}
+              filters={filters}
+              type="article"
+            />
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function ArticleCard({ article }: { article: any }) {
-  // Helper to check if summary is valid content and not metadata
-  const isValidSummary = (text: string) => {
-    if (!text) return false;
-    return !text.includes('catid=');
-  };
-
-  return (
-    <Link
-      href={`/content/${article.id}`}
-      className="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6"
-    >
-      <h2 className="text-2xl font-bold mb-3 hover:text-primary transition-colors">
-        {article.title}
-      </h2>
-
-      {article.summary && isValidSummary(article.summary) && (
-        <p className="text-muted-foreground mb-4 line-clamp-3">
-          {article.summary}
-        </p>
-      )}
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 space-x-reverse text-sm text-muted-foreground">
-          {article.publish_date && (
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date(article.publish_date).toLocaleDateString('he-IL')}</span>
-            </div>
-          )}
-          {article.sub_category && (
-            <span className="px-2 py-1 bg-secondary rounded-full text-xs">
-              {article.sub_category}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2 space-x-reverse text-primary font-semibold">
-          <span>קרא עוד</span>
-          <ArrowLeft className="w-4 h-4" />
-        </div>
-      </div>
-    </Link>
   );
 }

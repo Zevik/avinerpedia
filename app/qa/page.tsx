@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
 import { FilterSidebar } from '@/components/FilterSidebar';
-import { QAListItem } from '@/components/QAListItem';
 import { getContentItems, getSubCategories } from '@/lib/db';
+import { InfiniteContentList } from '@/components/InfiniteContentList';
+import type { ContentFilters } from '@/lib/types';
 
 interface QAPageProps {
   searchParams: Promise<{ topic?: string }>;
@@ -12,13 +13,15 @@ export default async function QAPage({ searchParams }: QAPageProps) {
   const params = await searchParams;
   const selectedTopic = params.topic;
 
+  const filters: ContentFilters = {
+    main_category: 'שו"ת הלכה',
+    sub_category: selectedTopic,
+    limit: 50,
+  };
+
   // Fetch Q&A items and categories
   const [qaItems, categories] = await Promise.all([
-    getContentItems({
-      main_category: 'שו"ת הלכה',
-      sub_category: selectedTopic,
-      limit: 50,
-    }),
+    getContentItems(filters),
     getSubCategories('שו"ת הלכה'),
   ]);
 
@@ -49,19 +52,11 @@ export default async function QAPage({ searchParams }: QAPageProps) {
               </div>
             )}
 
-            {qaItems.length > 0 ? (
-              <div className="space-y-4 max-w-4xl">
-                {qaItems.map((qa) => (
-                  <QAListItem key={qa.id} item={qa} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">
-                  לא נמצאו שאלות ותשובות
-                </p>
-              </div>
-            )}
+            <InfiniteContentList
+              initialItems={qaItems}
+              filters={filters}
+              type="qa"
+            />
           </div>
         </div>
       </div>

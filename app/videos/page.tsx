@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
 import { FilterSidebar } from '@/components/FilterSidebar';
-import { VideoCard } from '@/components/VideoCard';
 import { getContentItems, getSubCategories } from '@/lib/db';
-import { getVimeoId } from '@/lib/video';
+import { InfiniteContentList } from '@/components/InfiniteContentList';
+import type { ContentFilters } from '@/lib/types';
 
 interface VideosPageProps {
   searchParams: Promise<{ topic?: string }>;
@@ -13,35 +13,18 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
   const params = await searchParams;
   const selectedTopic = params.topic;
 
-  // Fetch videos (all items with video_id) and categories
+  const filters: ContentFilters = {
+    main_category: 'סרטונים',
+    sub_category_id: selectedTopic ? parseInt(selectedTopic) : undefined,
+    has_video: true,
+    limit: 50,
+  };
+
+  // Fetch initial videos and categories
   const [videos, categories] = await Promise.all([
-    getContentItems({
-      // We don't filter by main_category 'סרטונים' anymore, we want ALL videos
-      has_video: true,
-      sub_category: selectedTopic,
-      limit: 5000,
-    }),
-    getSubCategories('סרטונים'), // Keep sidebar showing video-specific categories for now
+    getContentItems(filters),
+    getSubCategories('סרטונים'),
   ]);
-
-  // Enhance videos with Vimeo IDs and thumbnails
-  // OPTIMIZATION: Only enhance the first 50 items to avoid Vercel timeouts with 4000+ items
-  const enhancedVideosHead = await Promise.all(
-    videos.slice(0, 50).map(async (video) => {
-      if (video.video_id && video.video_id.includes('Meir:')) {
-        const meirId = video.video_id.replace('Meir:', '').split('&')[0];
-        const vimeoId = await getVimeoId(meirId);
-        return {
-          ...video,
-          vimeo_id: vimeoId,
-          thumbnail: vimeoId ? `https://vumbnail.com/${vimeoId}.jpg` : null
-        };
-      }
-      return video;
-    })
-  );
-
-  const enhancedVideos = [...enhancedVideosHead, ...videos.slice(50)];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
@@ -62,27 +45,11 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
 
           {/* Content Grid */}
           <div className="flex-1">
-            {selectedTopic && (
-              <div className="mb-6">
-                <h2 className="text-2xl font-semibold text-muted-foreground">
-                  {selectedTopic}
-                </h2>
-              </div>
-            )}
-
-            {videos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {enhancedVideos.map((video) => (
-                  <VideoCard key={video.id} item={video} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16">
-                <p className="text-xl text-muted-foreground">
-                  לא נמצאו סרטונים
-                </p>
-              </div>
-            )}
+            <InfiniteContentList
+              initialItems={videos}
+              filters={filters}
+              type="video"
+            />
           </div>
         </div>
       </div>
