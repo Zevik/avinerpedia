@@ -1,0 +1,9 @@
+[dotenv@17.3.1] injecting env (4) from .env.local -- tip: 🤖 agentic secret storage: https://dotenvx.com/as2
+Total items: 1000
+Series items (ID 1): 230
+Video items (ID 4): 181
+Items matching QA pattern: 13
+Items matching Article pattern (non-QA, non-series, non-video): 576
+
+Potential Q&A updates (need to move to ID 2): 0
+Potential Article updates (need to move to ID 3): 40

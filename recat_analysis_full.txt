@@ -1,0 +1,57 @@
+[dotenv@17.3.1] injecting env (4) from .env.local -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+🔍 Fetching all items for analysis...
+........
+Found 7863 total items.
+
+Results:
+Series items: 450
+Video items: 1599
+Matches QA pattern: 2215
+Matches Article pattern (non-QA): 3599
+
+Potential Q&A updates (need to move to ID 2): 50
+Potential Article updates (need to move to ID 3): 488
+
+Sample Q&A to move to ID 2:
+[
+  {
+    "id": 2108,
+    "title": "הכרת טובה לצה''ל",
+    "current": "מאמרים",
+    "currentId": 3
+  },
+  {
+    "id": 5738,
+    "title": "עשרת הדברות לשואל רב ברדיו (א)",
+    "current": "מאמרים",
+    "currentId": 3
+  },
+  {
+    "id": 5992,
+    "title": "פרשת דברים- לקראת הכניסה לארץ (מאמר)",
+    "current": "מאמרים",
+    "currentId": 3
+  }
+]
+
+Sample Articles to move to ID 3:
+[
+  {
+    "id": 2221,
+    "title": "הלכות ראש השנה לחייל",
+    "current": "שו\"ת הלכה",
+    "currentId": 2
+  },
+  {
+    "id": 3343,
+    "title": "יחוד",
+    "current": "שו\"ת הלכה",
+    "currentId": 2
+  },
+  {
+    "id": 15,
+    "title": "1+1=1",
+    "current": "Cours en Français",
+    "currentId": 230
+  }
+]
