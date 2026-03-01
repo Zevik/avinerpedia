@@ -45,30 +45,21 @@ async function main() {
         else console.log('  ✅ Cleared Q&A content items sub-categories');
     }
 
-    // 3. MERGE FOR "סרטונים" (Videos)
-    console.log('🎥 Processing Video Topics (סרטונים - אקטואליה)...');
-    const videoMainId = 4; // As seen in our check
-    const targetSubId = 25; // "אקטואליה"
+    // 3. CLEANUP FOR "סרטונים" (Videos)
+    console.log('🎥 Processing Videos (סרטונים)...');
+    const { data: videoCat } = await supabase.from('categories').select('id').eq('name', 'סרטונים').eq('type', 'main').single();
 
-    // Update content items containing "אקטואליה" in sub_category
-    const { error: upError } = await supabase.from('content_items')
-        .update({ sub_category: 'אקטואליה', sub_category_id: targetSubId })
-        .eq('main_category_id', videoMainId)
-        .like('sub_category', '%אקטואליה%');
+    if (videoCat) {
+        // Delete sub-categories
+        const { error: delError } = await supabase.from('categories').delete().eq('parent_id', videoCat.id).eq('type', 'sub');
+        if (delError) console.error('Error deleting Video sub-categories:', delError);
+        else console.log('  ✅ Deleted Video sub-categories');
 
-    if (upError) console.error('Error merging Video topics:', upError);
-    else console.log('  ✅ Merged Video "אקטואליה" topics');
-
-    // Delete redundant sub-categories
-    const { error: delError } = await supabase.from('categories')
-        .delete()
-        .eq('parent_id', videoMainId)
-        .eq('type', 'sub')
-        .like('name', '%אקטואליה%')
-        .neq('id', targetSubId);
-
-    if (delError) console.error('Error deleting redundant Video sub-categories:', delError);
-    else console.log('  ✅ Deleted redundant Video sub-categories');
+        // Update content items
+        const { error: upError } = await supabase.from('content_items').update({ sub_category: null, sub_category_id: null }).eq('main_category_id', videoCat.id);
+        if (upError) console.error('Error clearing Video content items sub-categories:', upError);
+        else console.log('  ✅ Cleared Video content items sub-categories');
+    }
 
     console.log('\n✨ cleanup complete!');
 }
