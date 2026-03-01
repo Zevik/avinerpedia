@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
 import { FilterSidebar } from '@/components/FilterSidebar';
-import { getContentItems, getSubCategories } from '@/lib/db';
+import { getContentItems, getVideoSubCategories } from '@/lib/db';
 import { InfiniteContentList } from '@/components/InfiniteContentList';
 import type { ContentFilters } from '@/lib/types';
 
@@ -14,8 +14,7 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
   const selectedTopic = params.topic;
 
   const filters: ContentFilters = {
-    main_category: 'סרטונים',
-    sub_category_id: selectedTopic ? parseInt(selectedTopic) : undefined,
+    sub_category: selectedTopic,
     has_video: true,
     limit: 50,
   };
@@ -23,7 +22,7 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
   // Fetch initial videos and categories
   const [videos, categories] = await Promise.all([
     getContentItems(filters),
-    getSubCategories('סרטונים'),
+    getVideoSubCategories(),
   ]);
 
   return (

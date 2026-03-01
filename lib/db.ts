@@ -237,6 +237,26 @@ export async function getSubCategories(mainCategory: MainCategory): Promise<stri
 }
 
 /**
+ * Get unique sub-categories for items that have a video
+ */
+export async function getVideoSubCategories(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('content_items')
+    .select('sub_category')
+    .not('video_id', 'is', null)
+    .neq('video_id', '')
+    .not('sub_category', 'is', null);
+
+  if (error) {
+    console.error('Error fetching video sub-categories:', error);
+    return [];
+  }
+
+  const unique = [...new Set(data.map(item => item.sub_category))].filter(Boolean) as string[];
+  return unique.sort();
+}
+
+/**
  * Wiki related functions (restored for backward compatibility and specialized fetching)
  */
 
