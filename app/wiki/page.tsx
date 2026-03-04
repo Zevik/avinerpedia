@@ -87,7 +87,7 @@ export default async function WikiPage({ searchParams }: WikiPageProps) {
                                 {posts.map((post: any) => (
                                     <Link
                                         key={post.id}
-                                        href={`/wiki/${post.slug}`}
+                                        href={`/content/${post.id}`}
                                         className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
                                     >
                                         <div className="flex items-start gap-3">
