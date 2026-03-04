@@ -10,7 +10,7 @@ export default async function Home() {
     getContentItems({ main_category: 'סדרות', limit: 6 }),
     getContentItems({ main_category: 'שו"ת הלכה', limit: 8 }),
     getContentItems({ main_category: 'מאמרים', limit: 8 }),
-    getContentItems({ main_category: 'סרטונים', limit: 8 }),
+    getContentItems({ has_video: true, limit: 8 }),
   ]);
 
   return (
