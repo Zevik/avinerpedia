@@ -32,7 +32,12 @@ npm install
 
 ### 2. הגדר Supabase
 
-צור פרויקט חדש ב-[Supabase](https://supabase.com) והפעל את הסקריפט מ-`../schema.sql` בעורך ה-SQL.
+> **חשבון Supabase של הפרויקט:** `zevik.contact@gmail.com`
+> Project ID: `oufpplkyijyloacrdrgq` ([דשבורד](https://supabase.com/dashboard/project/oufpplkyijyloacrdrgq))
+
+1. הרץ את [`supabase/schema.sql`](supabase/schema.sql) בעורך ה-SQL (על סכמת `public` ריקה).
+2. ייבא את התוכן: `npx tsx scripts/import-from-wiki.ts`
+3. קשר קטגוריות ובטל פריטים ריקים (בעורך ה-SQL): `select * from public.sync_content_categories();`
 
 ### 3. הגדר משתני סביבה
 

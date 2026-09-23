@@ -40,3 +40,6 @@ find*.js
 *.csv
 yaml*.txt
 yaml*.json
+# Test output
+/playwright-report/
+/test-results/
