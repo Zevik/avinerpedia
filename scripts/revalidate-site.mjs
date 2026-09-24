@@ -23,4 +23,5 @@ if (!key) {
 
 const res = await fetch(`${site}/api/revalidate`, { method: 'POST', headers: { Authorization: `Bearer ${key}` } });
 console.log(`${site}: ${res.status} ${await res.text()}`);
-process.exit(res.ok ? 0 : 1);
+// exitCode, not exit(): exiting while fetch's socket closes trips a libuv assertion on Windows.
+process.exitCode = res.ok ? 0 : 1;

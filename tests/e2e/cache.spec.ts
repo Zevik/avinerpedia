@@ -9,11 +9,19 @@ test('revalidate endpoint refuses callers that are not admins', async ({ request
   expect((await request.get('/api/revalidate')).status()).toBe(405);
 });
 
-test('content pages are served with a day-long shared cache', async ({ request }) => {
+test('content pages are served from the cache', async ({ request }) => {
   test.skip(!process.env.E2E_BASE_URL && !process.env.E2E_PROD, 'next dev never caches');
+  await request.get('/content/104'); // warm
   const res = await request.get('/content/104');
   expect(res.status()).toBe(200);
-  expect(res.headers()['cache-control']).toContain('s-maxage=86400');
+  const h = res.headers();
+  if (h['x-vercel-cache']) {
+    // Vercel keeps s-maxage for its CDN and sends browsers max-age=0.
+    expect(['HIT', 'STALE', 'PRERENDER', 'REVALIDATED']).toContain(h['x-vercel-cache']);
+  } else {
+    expect(h['cache-control']).toContain('s-maxage=86400');
+    expect(h['x-nextjs-cache']).toBe('HIT');
+  }
 });
 
 test('a hidden item is still not found when served from the cache', async ({ page }) => {
