@@ -4,6 +4,9 @@ import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';
 import { ContentRenderer } from '@/components/ContentRenderer';
 import { getVimeoId } from '@/lib/video';
+import { getContentTopics, getSeriesNavigation } from '@/lib/taxonomy';
+import { SeriesNav } from '@/components/SeriesNav';
+import { TopicChips } from '@/components/TopicChips';
 
 interface ContentPageProps {
   params: Promise<{ id: string }>;
@@ -18,11 +21,12 @@ export default async function ContentPage({ params }: ContentPageProps) {
   }
 
   // Resolve Vimeo ID if it's a Machon Meir video
-  let vimeoId = null;
-  if (item.video_id && item.video_id.includes('Meir:')) {
-    const meirId = item.video_id.replace('Meir:', '').split('&')[0];
-    vimeoId = await getVimeoId(meirId);
-  }
+  const meirId = item.video_id?.includes('Meir:') ? item.video_id.replace('Meir:', '').split('&')[0] : null;
+  const [vimeoId, seriesNav, topics] = await Promise.all([
+    meirId ? getVimeoId(meirId) : null,
+    getSeriesNavigation(item),
+    getContentTopics(item.id),
+  ]);
 
   const renderByCategory = () => {
     // If item has video_id, show video layout (for videos and video-based series)
@@ -46,7 +50,9 @@ export default async function ContentPage({ params }: ContentPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
+      {seriesNav && <SeriesNav {...seriesNav} />}
       {renderByCategory()}
+      <TopicChips topics={topics} />
     </div>
   );
 }
@@ -143,7 +149,7 @@ function stripVideoContent(content: string): string {
 
   return content
     // Remove Machon Meir tags (more flexible regex to catch IDs with parameters)
-    .replace(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi, '')
+    .replace(/<machonMeeir(?:France|FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:France|FR|IL|EN)?>/gi, '')
     // Remove video_id fields
     .replace(/video_id:\s*"?([\w-]+)"?/gi, '')
     // Remove standalone YouTube/Vimeo links

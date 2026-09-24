@@ -15,6 +15,7 @@ export function Navbar() {
     { href: '/qa', label: 'שו״ת' },
     { href: '/articles', label: 'מאמרים' },
     { href: '/series', label: 'סדרות' },
+    { href: '/topics', label: 'נושאים' },
     { href: '/french', label: 'Cours en Français' },
   ];
 

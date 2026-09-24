@@ -1,17 +1,25 @@
 import Link from 'next/link';
 import { BookOpen, MessageSquare, FileText, Video, ArrowLeft } from 'lucide-react';
 import { getContentItems } from '@/lib/db';
+import { getAllSeries } from '@/lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Fetch content for each category in parallel
-  const [seriesItems, qaItems, articlesItems, videosItems] = await Promise.all([
-    getContentItems({ main_category: 'סדרות', limit: 6 }),
+  const [allSeries, qaItems, articlesItems, videosItems] = await Promise.all([
+    getAllSeries(),
     getContentItems({ main_category: 'שו"ת הלכה', limit: 8 }),
     getContentItems({ main_category: 'מאמרים', limit: 8 }),
     getContentItems({ has_video: true, limit: 8 }),
   ]);
+
+  // Largest series first, shown as cards that open the series page.
+  const seriesItems = allSeries.slice(0, 8).map((s) => ({
+    id: s.id,
+    title: s.name,
+    summary: `${s.episode_count} שיעורים`,
+  }));
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-secondary/20" dir="rtl">
@@ -37,6 +45,7 @@ export default async function Home() {
           icon={<BookOpen className="w-8 h-8" />}
           items={seriesItems}
           viewAllHref="/series"
+          itemHref={(id) => `/series/${id}`}
           color="blue"
         />
 
@@ -77,9 +86,10 @@ interface CategorySectionProps {
   items: any[];
   viewAllHref: string;
   color: 'blue' | 'green' | 'purple' | 'red';
+  itemHref?: (id: number) => string;
 }
 
-function CategorySection({ title, icon, items, viewAllHref, color }: CategorySectionProps) {
+function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (id) => `/content/${id}` }: CategorySectionProps) {
   const colorClasses = {
     blue: {
       border: 'border-blue-600',
@@ -136,7 +146,7 @@ function CategorySection({ title, icon, items, viewAllHref, color }: CategorySec
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/content/${item.id}`}
+              href={itemHref(item.id)}
               className="group block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
             >
               <div className={`h-2 w-full ${colors.bg}`}></div>

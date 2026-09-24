@@ -29,6 +29,33 @@ export interface ContentItem {
   content_md: string | null;
   is_active: boolean;
   created_at: string;
+  // Taxonomy from the source wiki (supabase/migrations/002_taxonomy.sql)
+  source_page_id?: number | null;
+  content_type?: 'video' | 'article' | 'qa' | 'series' | 'french' | null;
+  root_topic?: string | null;
+  series_id?: number | null;
+  series_order?: number | null;
+}
+
+export interface Series {
+  id: number;
+  name: string;
+  detected_by: string;
+  episode_count: number;
+}
+
+export interface Topic {
+  id: number;
+  name: string;
+  depth: number;
+  item_count: number;
+}
+
+/** A topic with its place in the tree and the number of items under it (incl. sub-topics). */
+export interface TopicNode extends Topic {
+  parentIds: number[];
+  childIds: number[];
+  totalCount: number;
 }
 
 export interface VideoItem extends ContentItem {

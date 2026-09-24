@@ -19,7 +19,7 @@ export async function ContentRenderer({ content, className = '' }: ContentRender
   // 1. Resolve Machon Meir tags to clean embeds first
   // We need to do this asynchronously
   let processedContent = content;
-  const meirMatches = Array.from(content.matchAll(/<machonMeeir(?:FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:FR|IL|EN)?>/gi));
+  const meirMatches = Array.from(content.matchAll(/<machonMeeir(?:France|FR|IL|EN)?>(\d+).*?<\/machonMeeir(?:France|FR|IL|EN)?>/gi));
 
   for (const match of meirMatches) {
     const [fullTag, id] = match;
