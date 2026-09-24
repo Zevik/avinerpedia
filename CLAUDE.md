@@ -187,6 +187,9 @@ Into a new project, `admin_users` rows reference `auth.users`, which is not in t
    node scripts/source/apply-enrichment.mjs --apply  # backup to support/derived/backup/, then write
    ```
    Then run `select * from public.sync_content_categories();` in the SQL Editor, and `npm run revalidate`.
+3. **Items that show no content**: `docs/empty-items-review.csv` (one row per item: proposed `action`, your `decision`) → `node scripts/source/apply-empty-items-review.mjs` (dry run; `--show <id>` previews a converted page) / `--apply` (backup, then hide or fill; recomputes `filter_node_counts`), then `npx tsx scripts/source/build-legacy-redirects.ts` and `npm run revalidate`. First run (2026-09-25): of 40 active items that rendered nothing, 31 hidden (junk/test/navigation pages, videos with no id anywhere, pointer stubs, Meir ids from an old numbering that point to different lessons) and 9 filled from the source's current text (Q&A collections such as שמונה עשרה, מרן הרב קוק, whose DB copy was only a "הפניה" stub).
+
+Shared script modules in `scripts/source/`: `wikitext-to-markdown.mjs` (source wikitext → the site's Markdown: `{{שות}}` → bold title once per run + `ש:`/`ת:`, headings, bold, lists, links; old-wiki links become site-relative so the legacy redirects resolve them; unknown templates are reported — tested in `tests/unit/wikitext.test.ts`; meant for the content refresh too), `csv.mjs` (`parseCsv`), `filter-counts.mjs` (`writeFilterCounts`: rebuild `filter_node_counts` after hiding/unhiding items).
 
 Gotchas:
 - **`import-from-wiki.ts` overwrites `main_category`/`sub_category` with old heuristics** (it put 1,745 articles into Q&A because their text contained `ש:`). Re-run the enrichment right after any re-import.
@@ -218,7 +221,7 @@ Gotchas:
 ## Roadmap / pending
 
 - **Admin taxonomy editing** (next): content type selector, series + episode number, topic multi-select in the edit form (keeping `main_category`/`sub_category` in sync); replace the legacy categories screen with topic-tree and series management.
-- **Content refresh**: 2,045 pages were edited on the source after the MDX export (2026-02-14), and 246 items are empty in the DB though the source has text. Needs a wikitext → Markdown conversion from `support/avinerpedia.xml`.
+- **Content refresh**: 2,045 pages were edited on the source after the MDX export (2026-02-14), and 246 items are empty in the DB though the source has text. `scripts/source/wikitext-to-markdown.mjs` does the conversion (used for the 9 filled items above); what's left is a script that compares every item with its source text and refreshes the changed ones, with a review list like `docs/empty-items-review.csv`.
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
 - **Missing pages**: 6 source pages (titles with `\`) are not in the DB.
 - **YouTube validation**: done once with `scripts/check-dead-videos.mjs`; re-run periodically (videos keep disappearing). Meir/Maale videos are not checked.

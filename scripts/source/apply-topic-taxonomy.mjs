@@ -8,6 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { parseCsv } from './csv.mjs';
+import { writeFilterCounts } from './filter-counts.mjs';
 
 config({ path: '.env.local', quiet: true });
 const APPLY = process.argv.includes('--apply');
@@ -21,26 +23,7 @@ const tree = JSON.parse(fs.readFileSync('docs/topic-taxonomy-tree.json', 'utf8')
 const { records, topics } = JSON.parse(fs.readFileSync('support/derived/taxonomy.json', 'utf8'));
 const topicParents = new Map(topics.map((t) => [t.name, t.parents]));
 
-function parseCsv(text) {
-  const rows = [];
-  let row = [], cell = '', quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
-      else if (c === '"') quoted = false;
-      else cell += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',') { row.push(cell); cell = ''; }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(cell); rows.push(row); row = []; cell = '';
-    } else cell += c;
-  }
-  if (cell || row.length) { row.push(cell); rows.push(row); }
-  return rows.filter((r) => r.some(Boolean));
-}
-const [, ...csvRows] = parseCsv(fs.readFileSync('docs/topic-taxonomy-mapping.csv', 'utf8').replace(/^﻿/, ''));
+const [, ...csvRows] = parseCsv(fs.readFileSync('docs/topic-taxonomy-mapping.csv', 'utf8'));
 // source topic -> { kind, target }
 const mapping = new Map(csvRows.map(([name, , kind, target]) => [name, { kind, target }]));
 
@@ -165,36 +148,6 @@ if (!APPLY) {
 }
 
 // ---------------------------------------------------------------- write
-/**
- * filter_node_counts from the DB's current links (active items only), same result as
- * refresh_filter_node_counts() in migration 003 but without the API statement timeout.
- */
-async function writeCounts() {
-  const active = await fetchAll('content_items', 'id, main_category, video_id, is_active');
-  const info = new Map(active.filter((i) => i.is_active).map((i) => [i.id, i]));
-  const counts = new Map();
-  const bump = (node, cat) => { const k = `${node}|${cat}`; counts.set(k, (counts.get(k) || 0) + 1); };
-  const allLinks = [];
-  for (let from = 0; ; from += 1000) {
-    const data = await check('links read', supabase.from('content_filter_nodes').select('content_id, node_id').order('content_id').order('node_id').range(from, from + 999));
-    allLinks.push(...data);
-    if (data.length < 1000) break;
-  }
-  for (const l of allLinks) {
-    const item = info.get(l.content_id);
-    if (!item) continue;
-    bump(l.node_id, item.main_category);
-    if (item.video_id) bump(l.node_id, '__has_video'); // /videos lists every item with a video
-  }
-  const rows = [...counts].map(([k, item_count]) => {
-    const [node_id, main_category] = k.split('|');
-    return { node_id: Number(node_id), main_category, item_count };
-  });
-  await check('clear counts', supabase.from('filter_node_counts').delete().gt('node_id', 0));
-  for (let i = 0; i < rows.length; i += 1000) await check('counts', supabase.from('filter_node_counts').insert(rows.slice(i, i + 1000)));
-  console.log(`filter_node_counts: ${rows.length}`);
-}
-
 async function check(label, promise) {
   const { data, error } = await promise;
   if (error) throw new Error(`${label}: ${error.message}`);
@@ -269,5 +222,5 @@ console.log(`content_items updated: ${updates.length - failed} | failed: ${faile
 const stale = (await fetchAll('filter_nodes', 'id, path')).filter((n) => !idByPath.has(n.path));
 if (stale.length) await check('stale nodes', supabase.from('filter_nodes').delete().in('id', stale.map((n) => n.id)));
 
-await writeCounts();
+await writeFilterCounts(supabase);
 console.log('\nThen run in the SQL Editor: select * from public.sync_content_categories();  (sub_category changed)');
