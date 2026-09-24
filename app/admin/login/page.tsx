@@ -63,41 +63,11 @@ export default function AdminLogin() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/login`,
-        },
-      });
-
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
-      }
-
-      setMessage('✅ Check your email to confirm registration. An admin will review your request.');
-      setEmail('');
-      setPassword('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Admin Panel</h1>
-        <p className="text-center text-gray-600 mb-8">אקדם מומלץ של אבינרפדיה</p>
+        <p className="text-center text-gray-600 mb-8">ממשק ניהול אבינרפדיה</p>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -151,25 +121,8 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">או</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSignUp}
-          disabled={loading}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
-        >
-          {loading ? 'Creating account...' : 'Create New Account'}
-        </button>
-
-        <p className="text-center text-gray-600 text-xs mt-6">
-          Request account above, then admin will approve your access.
+        <p className="text-center text-gray-600 text-xs">
+          הגישה לממשק הניהול מיועדת למנהלים בלבד. חשבונות חדשים נוצרים על ידי מנהל המערכת.
         </p>
       </div>
     </div>

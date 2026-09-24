@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 גישה ישירה לטבלאות ב-Supabase (למתקדמים)
               </p>
               <a
-                href="https://supabase.com/dashboard/project/gmxnfgbillsvscqouhke/editor"
+                href="https://supabase.com/dashboard/project/oufpplkyijyloacrdrgq/editor"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
