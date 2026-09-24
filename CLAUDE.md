@@ -118,6 +118,16 @@ Content changes every few days, so the public site is cached and a flood of requ
 - **On-demand purge: `POST /api/revalidate`** (`revalidateTag('content')` + `revalidatePath('/', 'layout')`). Accepts `Authorization: Bearer <admin session token>` (checked with `is_admin()`) or the service role key. Every admin write in `lib/db.ts` ends with `refreshPublicSite()` (`lib/revalidate.ts`), so saves show immediately. **After a script writes to the DB, run `npm run revalidate`** (otherwise changes show within a day; a redeploy doesn't clear the Data Cache).
 - Tests: `tests/e2e/cache.spec.ts` (endpoint refuses non-admins; cache header on content pages outside `next dev`).
 
+**Vercel Firewall** (set in the dashboard: Project → Firewall → Rules; the Vercel MCP connector can't read or write the firewall config — 404 "Seawall Config not found"). Custom rules, all fixed window 60 s per IP, 429 when exceeded:
+
+| Rule | Paths | Limit/min |
+|---|---|---|
+| Search rate limit | `/search`, `/api/search` | 120 |
+| Revalidate endpoint rate limit | `/api/revalidate` | 20 |
+| General per-IP rate limit | everything | 1,000 |
+
+Verified 2026-09-24: revalidate 20×401 then 429; search 120×200 then 429 (other pages unaffected). A page view is 25–100 requests (Link prefetches; `/topics` alone prefetches 84), so the general limit also bounds shared school IPs. Vercel's automatic mitigation is separate: ~30 concurrent requests from one IP got a "Vercel Security Checkpoint" challenge (403, `X-Vercel-Mitigated: challenge`) for ~9 minutes — browsers pass it, curl doesn't. **The E2E suite against the live site makes ~2,000 requests/min and trips the general limit** (429s on `_rsc` requests); run it with `--workers=1` or raise the limit. Don't load-test the live site with parallel curl.
+
 ## Backups
 
 `.github/workflows/backup.yml` runs every Sunday 00:00 UTC (and on demand: Actions → Weekly DB backup → Run workflow): `pg_dump` of the `public` schema (schema + data; not `auth`), sanity checks (size, `content_items` row count), encrypted with `gpg` AES256, uploaded as the artifact `avinerpedia-db-YYYY-MM-DD` (kept 90 days). The repo is public, so the dump must stay encrypted. GitHub emails the repo owner when the job fails; scheduled workflows are disabled after 60 days without repo activity.
