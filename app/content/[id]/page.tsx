@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { displayTitle } from '@/lib/utils';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 // Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
   if (!item || !item.is_active) return { title: 'הדף לא נמצא | אבינרפדיה', robots: { index: false } };
 
   return pageMetadata({
-    title: `${item.title} - הרב שלמה אבינר | אבינרפדיה`,
+    title: `${displayTitle(item.title)} - הרב שלמה אבינר | אבינרפדיה`,
     description: describe(item.summary, item.content_md),
     path: `/content/${item.id}`,
     image: await videoThumbnail(item.video_id),
@@ -100,7 +101,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src={`https://www.youtube.com/embed/${videoId}`}
-              title={item.title}
+              title={displayTitle(item.title)}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -128,7 +129,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src={`https://player.vimeo.com/video/${vimeoId}`}
-              title={item.title}
+              title={displayTitle(item.title)}
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
             />
@@ -158,7 +159,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
 
       {/* Video Info */}
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">{item.title}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">{displayTitle(item.title)}</h1>
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
           {item.publish_date && (
@@ -220,7 +221,7 @@ function QAContent({ item }: { item: any }) {
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">
-            {item.title}
+            {displayTitle(item.title)}
           </h1>
 
           {/* Metadata */}
@@ -259,7 +260,7 @@ function QAContent({ item }: { item: any }) {
           <div className="text-sm font-semibold text-primary mb-2">שאלה</div>
           <div className="bg-primary/5 border-r-4 border-primary rounded-lg p-6">
             <h1 className="text-2xl md:text-3xl font-bold leading-relaxed">
-              {item.title}
+              {displayTitle(item.title)}
             </h1>
           </div>
         </div>
@@ -302,7 +303,7 @@ function ArticleContent({ item }: { item: any }) {
         {/* Article Header */}
         <header className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            {item.title}
+            {displayTitle(item.title)}
           </h1>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTitle } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
 
 interface Episode {
@@ -39,7 +40,7 @@ export function SeriesNav({ series, order, prev, next }: SeriesNavProps) {
                 <ArrowRight className="w-4 h-4 flex-shrink-0" />
                 <span className="line-clamp-1">
                   <span className="text-muted-foreground">הקודם: </span>
-                  {prev.title}
+                  {displayTitle(prev.title)}
                 </span>
               </Link>
             ) : (
@@ -52,7 +53,7 @@ export function SeriesNav({ series, order, prev, next }: SeriesNavProps) {
               >
                 <span className="line-clamp-1">
                   <span className="text-muted-foreground">הבא: </span>
-                  {next.title}
+                  {displayTitle(next.title)}
                 </span>
                 <ArrowLeft className="w-4 h-4 flex-shrink-0" />
               </Link>

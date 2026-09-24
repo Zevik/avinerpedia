@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { cardSummary } from '../../lib/utils';
+import { cardSummary, displayTitle } from '../../lib/utils';
+
+describe('displayTitle', () => {
+  it('drops the "(מאמר)" suffix, keeps other parentheses', () => {
+    expect(displayTitle('גבעת האולפנה היא שלנו (מאמר)')).toBe('גבעת האולפנה היא שלנו');
+    expect(displayTitle('פרשת וירא: מעלת הכנסת אורחים (מאמר))')).toBe('פרשת וירא: מעלת הכנסת אורחים');
+    expect(displayTitle('כפירה (שו"ת)')).toBe('כפירה (שו"ת)');
+    expect(displayTitle(null)).toBe('');
+  });
+});
 import { cardThumbnail } from '../../lib/video';
 
 describe('cardSummary', () => {

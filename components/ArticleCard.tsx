@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, ArrowLeft, Play } from 'lucide-react';
-import { cardSummary } from '@/lib/utils';
+import { cardSummary, displayTitle } from '@/lib/utils';
 import { cardThumbnail } from '@/lib/video';
 
 export function ArticleCard({ article }: { article: any }) {
@@ -15,7 +15,7 @@ export function ArticleCard({ article }: { article: any }) {
         >
             {thumbnail && (
                 <div className="relative w-full sm:w-56 flex-shrink-0 aspect-video overflow-hidden rounded-lg bg-muted">
-                    <Image src={thumbnail} alt={article.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, 224px" />
+                    <Image src={thumbnail} alt={displayTitle(article.title)} fill className="object-cover" sizes="(max-width: 640px) 100vw, 224px" />
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow">
                             <Play className="w-6 h-6 text-primary mr-0.5" fill="currentColor" />
@@ -26,7 +26,7 @@ export function ArticleCard({ article }: { article: any }) {
 
             <div className="flex-1 min-w-0 flex flex-col">
                 <h2 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
-                    {article.title}
+                    {displayTitle(article.title)}
                 </h2>
 
                 {summary && (

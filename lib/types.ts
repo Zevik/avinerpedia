@@ -83,6 +83,8 @@ export interface ContentFilters {
   limit?: number;
   offset?: number;
   has_video?: boolean;
+  /** Leave out series episodes (they live on /series); used with has_video on /videos. */
+  exclude_series?: boolean;
   include_inactive?: boolean;
   /** Curated filter tree node (supabase/migrations/003_filter_tree.sql); includes descendants. */
   node_id?: number;

@@ -13,7 +13,8 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
       title="סרטונים"
       basePath="/videos"
       scope="__has_video"
-      baseFilters={{ has_video: true }}
+      // Series episodes are on /series, not here (counts: scripts/source/filter-counts.mjs).
+      baseFilters={{ has_video: true, exclude_series: true }}
       type="video"
       searchParams={await searchParams}
     />

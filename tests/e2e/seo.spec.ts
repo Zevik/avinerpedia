@@ -26,6 +26,17 @@ test('text article uses the default share image', async ({ page }) => {
   expect(await meta(page, 'property', 'og:image')).toMatch(/\/og-default\.jpg$/);
 });
 
+test('article titles are shown without the "(מאמר)" suffix', async ({ page }) => {
+  await page.goto('/articles');
+  const titles = await page.locator('a[href^="/content/"] h2').allTextContents();
+  expect(titles.length).toBeGreaterThan(5);
+  expect(titles.filter((t) => t.includes('(מאמר)'))).toEqual([]);
+  await page.locator('a[href^="/content/"]').first().click();
+  await expect(page).toHaveURL(/\/content\/\d+$/, { timeout: 30_000 });
+  await expect(page.getByRole('heading', { level: 1 })).not.toContainText('(מאמר)');
+  await expect(page).not.toHaveTitle(/\(מאמר\)/);
+});
+
 test('series page title and description', async ({ page }) => {
   await page.goto('/series');
   const card = page.locator('a[href^="/series/"]').first();

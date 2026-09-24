@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTitle } from '@/lib/utils';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import type { ContentItem } from '@/lib/types';
@@ -27,7 +28,7 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
         {thumbnailUrl ? (
           <Image
             src={thumbnailUrl}
-            alt={item.title}
+            alt={displayTitle(item.title)}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -51,7 +52,7 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
 
       {/* Title */}
       <h3 className="mt-3 mb-2 font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-        {item.title}
+        {displayTitle(item.title)}
       </h3>
 
       {/* Sub-category tag, pinned to the bottom so tags line up across a row */}

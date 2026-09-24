@@ -77,11 +77,12 @@ begin
   where ci.is_active
   group by cfn.node_id, ci.main_category
   union all
-  -- /videos lists every active item with a video, whatever its main_category.
+  -- /videos lists every active item with a video, whatever its main_category, except
+  -- series episodes (they are on /series). Same rule as scripts/source/filter-counts.mjs.
   select cfn.node_id, '__has_video', count(*)
   from content_filter_nodes cfn
   join content_items ci on ci.id = cfn.content_id
-  where ci.is_active and coalesce(ci.video_id, '') <> ''
+  where ci.is_active and coalesce(ci.video_id, '') <> '' and ci.series_id is null
   group by cfn.node_id;
   get diagnostics v_rows = row_count;
   return v_rows;

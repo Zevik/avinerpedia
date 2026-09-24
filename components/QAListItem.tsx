@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTitle } from '@/lib/utils';
 import Image from 'next/image';
 import { MessageCircle, Play } from 'lucide-react';
 import type { ContentItem } from '@/lib/types';
@@ -21,7 +22,7 @@ export function QAListItem({ item, className = '' }: QAListItemProps) {
       <div className="flex items-start space-x-3 space-x-reverse">
         {thumbnail ? (
           <div className="relative w-28 flex-shrink-0 aspect-video overflow-hidden rounded-md bg-muted">
-            <Image src={thumbnail} alt={item.title} fill className="object-cover" sizes="112px" />
+            <Image src={thumbnail} alt={displayTitle(item.title)} fill className="object-cover" sizes="112px" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Play className="w-6 h-6 text-white drop-shadow" fill="currentColor" />
             </div>
@@ -33,7 +34,7 @@ export function QAListItem({ item, className = '' }: QAListItemProps) {
         )}
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-2">
-            {item.title}
+            {displayTitle(item.title)}
           </h3>
           {item.sub_category && (
             <span className="inline-block mt-2 text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">

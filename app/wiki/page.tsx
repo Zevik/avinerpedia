@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { displayTitle } from '@/lib/utils';
 import Link from 'next/link';
 import { Book, Search, Filter } from 'lucide-react';
 import { getWikiPosts, getWikiCategories } from '@/lib/db';
@@ -94,7 +95,7 @@ export default async function WikiPage({ searchParams }: WikiPageProps) {
                                                 <Book className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <h2 className="text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors uppercase">{post.title}</h2>
+                                                <h2 className="text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors uppercase">{displayTitle(post.title)}</h2>
                                                 <div className="text-xs text-slate-400">
                                                     {new Date(post.created_at).toLocaleDateString('he-IL')}
                                                 </div>

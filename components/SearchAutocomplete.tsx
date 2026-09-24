@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Loader2, FileText, Video, BookOpen, MessageSquare } from 'lucide-react';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, displayTitle } from '@/lib/utils';
 
 interface SearchResult {
     id: number;
@@ -124,7 +124,7 @@ export function SearchAutocomplete() {
                                             {getIcon(result.main_category)}
                                         </div>
                                         <div>
-                                            <h4 className="font-medium text-gray-900 line-clamp-1">{result.title}</h4>
+                                            <h4 className="font-medium text-gray-900 line-clamp-1">{displayTitle(result.title)}</h4>
                                             <p className="text-xs text-muted-foreground mt-0.5">
                                                 {result.main_category}
                                                 {result.sub_category && ` • ${result.sub_category}`}

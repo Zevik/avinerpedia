@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { displayTitle } from '@/lib/utils';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 // Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
@@ -71,7 +72,7 @@ export default async function SeriesDetailPage({ params }: SeriesDetailPageProps
                   {ep.series_order ?? i + 1}
                 </span>
                 <span className="flex-1 min-w-0 font-medium group-hover:text-primary transition-colors">
-                  {ep.title}
+                  {displayTitle(ep.title)}
                 </span>
                 {ep.video_id ? (
                   <PlayCircle className="w-5 h-5 text-muted-foreground flex-shrink-0" aria-label="וידאו" />

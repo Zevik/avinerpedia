@@ -29,6 +29,14 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
+ * A title as shown to visitors: without the source wiki's "(מאמר)" suffix. Stored titles
+ * keep it: they are unique in the DB (77 would collide without it) and match the source.
+ */
+export function displayTitle(title: string | null | undefined): string {
+  return (title || '').replace(/\s*\(מאמר\)\)?/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
+/**
  * A summary fit to show on a card, or null. Some imported summaries are leftovers of
  * Machon Meir embeds ("8519&catid=4072"), a bare YouTube id, or wiki markup.
  */

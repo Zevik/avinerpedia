@@ -19,7 +19,7 @@ export async function writeFilterCounts(supabase) {
     }
   };
 
-  const items = await readAll('content_items', () => supabase.from('content_items').select('id, main_category, video_id, is_active').order('id'));
+  const items = await readAll('content_items', () => supabase.from('content_items').select('id, main_category, video_id, series_id, is_active').order('id'));
   const info = new Map(items.filter((i) => i.is_active).map((i) => [i.id, i]));
   const links = await readAll('links read', () => supabase.from('content_filter_nodes').select('content_id, node_id').order('content_id').order('node_id'));
 
@@ -29,7 +29,8 @@ export async function writeFilterCounts(supabase) {
     const item = info.get(l.content_id);
     if (!item) continue;
     bump(l.node_id, item.main_category);
-    if (item.video_id) bump(l.node_id, '__has_video'); // /videos lists every item with a video
+    // /videos lists every item with a video except series episodes (those are on /series).
+    if (item.video_id && !item.series_id) bump(l.node_id, '__has_video');
   }
   const rows = [...counts].map(([k, item_count]) => {
     const [node_id, main_category] = k.split('|');

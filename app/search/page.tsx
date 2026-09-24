@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { displayTitle } from '@/lib/utils';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -118,7 +119,7 @@ function ArticleSearchResult({ article }: { article: any }) {
       className="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6"
     >
       <h3 className="text-xl font-bold mb-2 hover:text-primary transition-colors">
-        {article.title}
+        {displayTitle(article.title)}
       </h3>
       {article.summary && (
         <p className="text-muted-foreground line-clamp-2">

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { displayTitle } from '@/lib/utils';
 // Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
 export const revalidate = 86400;
 import Link from 'next/link';
@@ -115,7 +116,7 @@ export default async function FrenchPage() {
                       className="group block p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg hover:shadow-md hover:border-primary/50 transition-all"
                     >
                       <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors mb-2">
-                        {item.title}
+                        {displayTitle(item.title)}
                       </h3>
 
                       {item.sub_category && (
@@ -152,7 +153,7 @@ export default async function FrenchPage() {
                     className="group block p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg hover:shadow-md hover:border-primary/50 transition-all"
                   >
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                      {item.title}
+                      {displayTitle(item.title)}
                     </h3>
                   </Link>
                 ))}

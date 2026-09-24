@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, MessageSquare, FileText, Video, ArrowLeft, Play } from 'lucide-react';
-import { cardSummary } from '@/lib/utils';
+import { cardSummary, displayTitle } from '@/lib/utils';
 import { cardThumbnail } from '@/lib/video';
 import { getContentItems } from '@/lib/db';
 import { getAllSeries } from '@/lib/taxonomy';
@@ -22,7 +22,7 @@ export default async function Home() {
     getAllSeries(),
     getContentItems({ main_category: 'שו"ת הלכה', limit: 8 }),
     getContentItems({ main_category: 'מאמרים', limit: 8 }),
-    getContentItems({ has_video: true, limit: 8 }),
+    getContentItems({ has_video: true, exclude_series: true, limit: 8 }),
   ]);
 
   // Largest series first, shown as cards that open the series page.
@@ -166,7 +166,7 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
             >
               {item.thumbnail ? (
                 <div className="relative aspect-video bg-muted">
-                  <Image src={item.thumbnail} alt={item.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                  <Image src={item.thumbnail} alt={displayTitle(item.title)} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow">
                       <Play className={`w-6 h-6 ${colors.text} mr-0.5`} fill="currentColor" />
@@ -179,7 +179,7 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
               {/* Column layout so the topic tag sits at the bottom of every card in the row. */}
               <div className="p-6 flex flex-col flex-1">
                 <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-${color}-600 transition-colors">
-                  {item.title}
+                  {displayTitle(item.title)}
                 </h3>
                 {item.summary && (
                   <p className="text-sm text-gray-600 line-clamp-3 mb-3">
