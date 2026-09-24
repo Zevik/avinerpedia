@@ -1,5 +1,8 @@
+import { cache } from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
+import { describe, pageMetadata, youtubeThumbnail } from '@/lib/seo';
 import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';
 import { ContentRenderer } from '@/components/ContentRenderer';
@@ -12,9 +15,26 @@ interface ContentPageProps {
   params: Promise<{ id: string }>;
 }
 
+// Shared by generateMetadata and the page, so the item is fetched once per request.
+const getItem = cache((id: string) => getContentItemById(parseInt(id, 10)));
+
+export async function generateMetadata({ params }: ContentPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getItem(id);
+  if (!item || !item.is_active) return { title: 'הדף לא נמצא | אבינרפדיה', robots: { index: false } };
+
+  return pageMetadata({
+    title: `${item.title} - הרב שלמה אבינר | אבינרפדיה`,
+    description: describe(item.summary, item.content_md),
+    path: `/content/${item.id}`,
+    image: youtubeThumbnail(item.video_id),
+    type: 'article',
+  });
+}
+
 export default async function ContentPage({ params }: ContentPageProps) {
   const { id } = await params;
-  const item = await getContentItemById(parseInt(id, 10));
+  const item = await getItem(id);
 
   // Hidden items (redirects, dead-video-only pages) stay reachable in /admin but not here.
   if (!item || !item.is_active) {

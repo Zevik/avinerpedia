@@ -99,6 +99,16 @@ UI:
 
 Queries for the taxonomy live in `lib/taxonomy.ts`; the rest in `lib/db.ts`.
 
+## SEO and sharing
+
+- **Every page builds its metadata with `pageMetadata()` from `lib/seo.ts`** (title, description, canonical, Open Graph, Twitter). Don't hand-write `openGraph`: Next.js replaces nested metadata objects instead of merging them, so a page-level `openGraph` without `images` silently drops the default share image.
+- Titles: content `[Title] - הרב שלמה אבינר | אבינרפדיה`, series `סדרת [name] - שיעורי הרב שלמה אבינר`, topics `[name] - שיעורים ומאמרים | הרב שלמה אבינר`. Descriptions come from `describe()` (summary, else cleaned body, ≤160 chars).
+- Canonicals drop query strings (`?from=`, `?page=`, `?topic=` all canonicalize to the base path). `/search` is `noindex, follow`. Hidden (inactive) and missing items return not-found metadata with `noindex`.
+- Share images: YouTube items use `img.youtube.com/vi/<id>/hqdefault.jpg`; everything else uses `public/og-default.jpg` (1200×630, ~60KB — WhatsApp may skip images over ~300KB). Regenerate it with `node scripts/make-og-image.mjs`.
+- `app/sitemap.ts`: all active content items, series, topics with items, and hubs (~8,100 URLs), revalidated daily. `app/robots.ts`: allow all, disallow `/admin` and `/api/`, points to the sitemap.
+- The site URL comes from `NEXT_PUBLIC_SITE_URL` (optional; defaults to `https://avinerpedia.vercel.app`). Set it if a custom domain is added, so canonicals and the sitemap use it.
+- `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getTopicTree`).
+
 ## Content and data pipeline
 
 1. **Content**: `content/wiki/*.mdx` (7,863 files exported from the wiki) → `npx tsx scripts/import-from-wiki.ts` → `content_items`.
@@ -147,4 +157,5 @@ Gotchas:
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
 - **Missing pages**: 6 source pages (titles with `\`) are not in the DB.
 - **YouTube validation**: done once with `scripts/check-dead-videos.mjs`; re-run periodically (videos keep disappearing). Meir/Maale videos are not checked.
+- **Search Console**: submit `https://avinerpedia.vercel.app/sitemap.xml` in Google Search Console (and Bing Webmaster Tools) after verifying the site.
 - **Cleanups**: `/wiki` (an older all-content listing via `getWikiPosts`, not linked from the navbar) and `/admin/posts` (a redirect to `/admin/content`) are leftovers; `getSeriesGroups` in `lib/db.ts` is unused; the `next-mdx-remote` dependency is unused (`gray-matter` is still used by the import script and unit tests); `@supabase/auth-helpers-nextjs` is deprecated in favor of `@supabase/ssr`.

@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { supabase } from './supabase';
 import type { ContentItem, Series, Topic, TopicNode } from './types';
 
@@ -119,8 +120,9 @@ async function fetchAllRows<T>(table: string, columns: string): Promise<T[]> {
 /**
  * The whole topic tree (~900 topics), with each node's total item count
  * including its sub-topics. A topic can have several parents.
+ * Cached per request: topic pages need it for both metadata and rendering.
  */
-export async function getTopicTree(): Promise<Map<number, TopicNode>> {
+export const getTopicTree = cache(async (): Promise<Map<number, TopicNode>> => {
   const [topics, edges] = await Promise.all([
     fetchAllRows<Topic>('topics', 'id, name, depth, item_count'),
     fetchAllRows<{ topic_id: number; parent_id: number }>('topic_parents', 'topic_id, parent_id'),
@@ -150,7 +152,7 @@ export async function getTopicTree(): Promise<Map<number, TopicNode>> {
     }
   }
   return nodes;
-}
+});
 
 /**
  * Breadcrumb from a root down to the topic. Topics can have several parents, so the

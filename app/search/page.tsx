@@ -1,5 +1,14 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "חיפוש | אבינרפדיה",
+  description: "חיפוש בכל שיעורי הרב שלמה אבינר.",
+  path: '/search',
+  // Result pages are endless near-duplicates; keep them out of the index but follow links.
+  noindex: true,
+});
 import Link from 'next/link';
 import { Search as SearchIcon } from 'lucide-react';
 import { VideoCard } from '@/components/VideoCard';

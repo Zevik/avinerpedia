@@ -4,6 +4,13 @@ import { getContentItems } from '@/lib/db';
 import { getAllSeries } from '@/lib/taxonomy';
 
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "אבינרפדיה - כל שיעורי הרב שלמה אבינר",
+  description: "ארכיון שיעורי הרב שלמה אבינר שליט\"א: אלפי סרטונים, מאמרים, שאלות ותשובות וסדרות לימוד, מסודרים לפי נושאים.",
+  path: '/',
+});
 
 export default async function Home() {
   // Fetch content for each category in parallel

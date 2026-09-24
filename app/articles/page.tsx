@@ -1,5 +1,12 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "מאמרים - הרב שלמה אבינר | אבינרפדיה",
+  description: "אלפי מאמרים של הרב שלמה אבינר באמונה, הלכה, חינוך, זוגיות, מדינת ישראל ועוד, עם סינון לפי נושא.",
+  path: '/articles',
+});
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { getContentItems, getSubCategories } from '@/lib/db';
 import { InfiniteContentList } from '@/components/InfiniteContentList';

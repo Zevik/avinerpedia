@@ -1,5 +1,8 @@
+import { cache } from 'react';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
+import { pageMetadata, youtubeThumbnail } from '@/lib/seo';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, PlayCircle, FileText } from 'lucide-react';
 import { getSeriesWithEpisodes } from '@/lib/taxonomy';
@@ -8,9 +11,25 @@ interface SeriesDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
+const getSeries = cache((id: string) => getSeriesWithEpisodes(Number(id)));
+
+export async function generateMetadata({ params }: SeriesDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getSeries(id);
+  if (!data) return { title: 'הדף לא נמצא | אבינרפדיה', robots: { index: false } };
+
+  const { series, episodes } = data;
+  return pageMetadata({
+    title: `סדרת ${series.name} - שיעורי הרב שלמה אבינר`,
+    description: `כל ${episodes.length} שיעורי סדרת ${series.name} מאת הרב שלמה אבינר, מסודרים לפי פרקים.`,
+    path: `/series/${series.id}`,
+    image: youtubeThumbnail(episodes.find((e) => e.video_id)?.video_id),
+  });
+}
+
 export default async function SeriesDetailPage({ params }: SeriesDetailPageProps) {
   const { id } = await params;
-  const data = await getSeriesWithEpisodes(Number(id));
+  const data = await getSeries(id);
   if (!data) notFound();
 
   const { series, episodes } = data;

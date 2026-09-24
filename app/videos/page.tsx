@@ -1,5 +1,12 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "סרטונים - שיעורי וידאו של הרב שלמה אבינר | אבינרפדיה",
+  description: "אלפי שיעורי וידאו של הרב שלמה אבינר בכל נושאי התורה, ההלכה, האמונה והמדינה, עם סינון לפי נושא.",
+  path: '/videos',
+});
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { getContentItems, getVideoSubCategories } from '@/lib/db';
 import { InfiniteContentList } from '@/components/InfiniteContentList';

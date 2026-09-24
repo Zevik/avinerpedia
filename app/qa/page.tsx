@@ -1,5 +1,12 @@
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "שו\"ת הלכה - שאלות ותשובות עם הרב שלמה אבינר | אבינרפדיה",
+  description: "שאלות ותשובות בהלכה ובאמונה עם הרב שלמה אבינר, מסודרות לפי נושאים: אורח חיים, יורה דעה, אבן העזר, חושן משפט ועוד.",
+  path: '/qa',
+});
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { getContentItems, getSubCategories } from '@/lib/db';
 import { InfiniteContentList } from '@/components/InfiniteContentList';

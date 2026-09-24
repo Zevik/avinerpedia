@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Heebo } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
+import { pageMetadata, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 const heebo = Heebo({
   subsets: ['hebrew', 'latin'],
@@ -9,9 +10,11 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'אבינרפדיה - ארכיון תוכן יהודי של הרב שלמה אבינר',
-  description: 'אלפי סרטונים, מאמרים, שאלות ותשובות וסדרות לימוד מאת הרב שלמה אבינר',
-  keywords: ['הרב שלמו אבינר', 'אבינרפדיה', 'תורה', 'הלכה', 'שאלות ותשובות', 'סרטונים'],
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  keywords: ['הרב שלמה אבינר', 'אבינרפדיה', 'תורה', 'הלכה', 'שאלות ותשובות', 'סרטונים', 'סדרות לימוד'],
+  // Site-wide defaults (no canonical: each page sets its own).
+  ...pageMetadata({ title: 'אבינרפדיה - כל שיעורי הרב שלמה אבינר' }),
 };
 
 export default function RootLayout({

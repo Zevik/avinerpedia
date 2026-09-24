@@ -3,11 +3,13 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { BookOpen, Video, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'שיעורי הרב אבינר בצרפתית | אבינרפדיה',
+export const metadata: Metadata = pageMetadata({
+  title: 'שיעורי הרב אבינר בצרפתית | Cours du Rav Aviner en français',
   description: 'Les cours du Rav Chlomo Aviner en français - Emouna, Erets Israel, La Paracha de la semaine',
-};
+  path: '/french',
+});
 
 async function getFrenchContent() {
   const { data, error } = await supabase

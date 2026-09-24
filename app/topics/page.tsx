@@ -1,4 +1,11 @@
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "נושאים - שיעורים ומאמרים לפי נושא | הרב שלמה אבינר",
+  description: "כל התכנים של הרב שלמה אבינר מסודרים לפי נושאים: הלכה, אמונה, תורה, מדינת ישראל, חינוך, זוגיות ומשפחה, מועדים ועוד.",
+  path: '/topics',
+});
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getTopicTree } from '@/lib/taxonomy';

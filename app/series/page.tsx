@@ -1,4 +1,11 @@
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
+
+export const metadata = pageMetadata({
+  title: "סדרות לימוד - שיעורי הרב שלמה אבינר | אבינרפדיה",
+  description: "סדרות שיעורים של הרב שלמה אבינר לפי הסדר: אורות, אורות התחיה, עין איה, כוזרי, שמונה פרקים לרמב\"ם ועוד.",
+  path: '/series',
+});
 import { SeriesCard } from '@/components/SeriesCard';
 import { getAllSeries } from '@/lib/taxonomy';
 

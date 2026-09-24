@@ -1,5 +1,7 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
+import { pageMetadata } from '@/lib/seo';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { ArticleCard } from '@/components/ArticleCard';
@@ -9,6 +11,19 @@ import type { TopicNode } from '@/lib/types';
 interface TopicPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ page?: string; from?: string }>;
+}
+
+export async function generateMetadata({ params }: Pick<TopicPageProps, 'params'>): Promise<Metadata> {
+  const { id } = await params;
+  const topic = (await getTopicTree()).get(Number(id));
+  if (!topic) return { title: 'הדף לא נמצא | אבינרפדיה', robots: { index: false } };
+
+  return pageMetadata({
+    title: `${topic.name} - שיעורים ומאמרים | הרב שלמה אבינר`,
+    description: `${topic.totalCount} שיעורים, מאמרים ושאלות ותשובות בנושא ${topic.name} מאת הרב שלמה אבינר.`,
+    // Canonical without ?from= / ?page=, which only change the breadcrumb and paging.
+    path: `/topics/${topic.id}`,
+  });
 }
 
 export default async function TopicPage({ params, searchParams }: TopicPageProps) {
