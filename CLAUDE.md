@@ -124,9 +124,9 @@ Content changes every few days, so the public site is cached and a flood of requ
 |---|---|---|
 | Search rate limit | `/search`, `/api/search` | 120 |
 | Revalidate endpoint rate limit | `/api/revalidate` | 20 |
-| General per-IP rate limit | everything | 1,000 |
+| General per-IP rate limit | everything | 3,000 |
 
-Verified 2026-09-24: revalidate 20×401 then 429; search 120×200 then 429 (other pages unaffected). A page view is 25–100 requests (Link prefetches; `/topics` alone prefetches 84), so the general limit also bounds shared school IPs. Vercel's automatic mitigation is separate: ~30 concurrent requests from one IP got a "Vercel Security Checkpoint" challenge (403, `X-Vercel-Mitigated: challenge`) for ~9 minutes — browsers pass it, curl doesn't. **The E2E suite against the live site makes ~2,000 requests/min and trips the general limit** (429s on `_rsc` requests); run it with `--workers=1` or raise the limit. Don't load-test the live site with parallel curl.
+Verified 2026-09-24: revalidate 20×401 then 429; search 120×200 then 429 (other pages unaffected). A page view is 25–100 requests (Link prefetches; `/topics` alone prefetches 84), and schools share one IP, so the general limit needs headroom: at 1,000 it blocked the E2E suite (~2,000 requests/min from one IP); at 3,000 the suite passes. Vercel's automatic mitigation is separate: ~30 concurrent requests from one IP got a "Vercel Security Checkpoint" challenge (403, `X-Vercel-Mitigated: challenge`) for ~9 minutes — browsers pass it, curl doesn't. Don't load-test the live site with parallel curl.
 
 ## Backups
 
