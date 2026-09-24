@@ -1,11 +1,17 @@
 // Replaces the Supabase env vars in the Vercel project with the values from .env.local.
 // Usage (after `npx vercel login` and `npx vercel link --project avinerpedia`):
 //   node scripts/push-vercel-env.mjs
+// Then verify with `npx vercel env ls` and redeploy.
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 const KEYS = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
-const TARGETS = ['production', 'preview', 'development'];
+// Preview needs an explicit (empty = all branches) git-branch argument, or the CLI prompts for one.
+const TARGETS = [
+  ['production'],
+  ['preview', ''],
+  ['development'],
+];
 
 const env = Object.fromEntries(
   fs
@@ -16,19 +22,38 @@ const env = Object.fromEntries(
     .map((m) => [m[1], m[2].trim()]),
 );
 
+function vercel(args, input) {
+  // With shell: true (needed for npx on Windows) an empty argument must be quoted to survive.
+  const quoted = process.platform === 'win32' ? args.map((a) => (a === '' ? '""' : a)) : args;
+  return spawnSync('npx', ['vercel', ...quoted], {
+    input,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+  });
+}
+
+const failures = [];
 for (const key of KEYS) {
   if (!env[key]) {
     console.error(`Missing ${key} in .env.local`);
     process.exit(1);
   }
-  for (const target of TARGETS) {
-    try {
-      execSync(`npx vercel env rm ${key} ${target} -y`, { stdio: 'ignore' });
-    } catch {
-      // Not set for this target yet.
+  for (const [target, ...extra] of TARGETS) {
+    // Remove the old value; "not found" is fine.
+    vercel(['env', 'rm', key, target, ...extra, '--yes']);
+
+    const res = vercel(['env', 'add', key, target, ...extra], env[key]);
+    if (res.status === 0) {
+      console.log(`✓ ${key} → ${target}`);
+    } else {
+      console.error(`✗ ${key} → ${target}\n${(res.stderr || res.stdout || '').trim()}\n`);
+      failures.push(`${key} → ${target}`);
     }
-    execSync(`npx vercel env add ${key} ${target}`, { input: env[key], stdio: ['pipe', 'ignore', 'inherit'] });
-    console.log(`✓ ${key} → ${target}`);
   }
 }
-console.log('\nDone. Redeploy for the new values to take effect: npx vercel --prod');
+
+if (failures.length) {
+  console.error(`\n${failures.length} failed:\n  ${failures.join('\n  ')}`);
+  process.exit(1);
+}
+console.log('\nAll set. Check with `npx vercel env ls`, then redeploy.');
