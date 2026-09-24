@@ -1,16 +1,15 @@
-// Replaces the Supabase env vars in the Vercel project with the values from .env.local.
+// Replaces the Supabase env vars in the Vercel project with the values from .env.local,
+// then verifies with `vercel env ls` that every variable exists in every target.
 // Usage (after `npx vercel login` and `npx vercel link --project avinerpedia`):
 //   node scripts/push-vercel-env.mjs
-// Then verify with `npx vercel env ls` and redeploy.
 import fs from 'fs';
 import { spawnSync } from 'child_process';
 
-const KEYS = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
-// Preview needs an explicit (empty = all branches) git-branch argument, or the CLI prompts for one.
-const TARGETS = [
-  ['production'],
-  ['preview', ''],
-  ['development'],
+// Secrets (sensitive) can't target Development on Vercel, so the service key skips it.
+const VARS = [
+  { key: 'NEXT_PUBLIC_SUPABASE_URL', targets: ['production', 'preview', 'development'], sensitive: false },
+  { key: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', targets: ['production', 'preview', 'development'], sensitive: false },
+  { key: 'SUPABASE_SERVICE_ROLE_KEY', targets: ['production', 'preview'], sensitive: true },
 ];
 
 const env = Object.fromEntries(
@@ -22,38 +21,41 @@ const env = Object.fromEntries(
     .map((m) => [m[1], m[2].trim()]),
 );
 
-function vercel(args, input) {
-  // With shell: true (needed for npx on Windows) an empty argument must be quoted to survive.
-  const quoted = process.platform === 'win32' ? args.map((a) => (a === '' ? '""' : a)) : args;
-  return spawnSync('npx', ['vercel', ...quoted], {
-    input,
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
-  });
+// Values go through stdin, never the command line, so a single command string is safe here.
+function vercel(command, input) {
+  return spawnSync(`npx vercel ${command}`, { input, encoding: 'utf8', shell: true });
 }
 
-const failures = [];
-for (const key of KEYS) {
+for (const { key, targets, sensitive } of VARS) {
   if (!env[key]) {
     console.error(`Missing ${key} in .env.local`);
     process.exit(1);
   }
-  for (const [target, ...extra] of TARGETS) {
-    // Remove the old value; "not found" is fine.
-    vercel(['env', 'rm', key, target, ...extra, '--yes']);
-
-    const res = vercel(['env', 'add', key, target, ...extra], env[key]);
-    if (res.status === 0) {
-      console.log(`✓ ${key} → ${target}`);
-    } else {
-      console.error(`✗ ${key} → ${target}\n${(res.stderr || res.stdout || '').trim()}\n`);
-      failures.push(`${key} → ${target}`);
-    }
+  for (const target of targets) {
+    const flags = `--force --yes --non-interactive ${sensitive ? '--sensitive' : '--no-sensitive'}`;
+    const res = vercel(`env add ${key} ${target} ${flags}`, env[key]);
+    const output = `${res.stdout}\n${res.stderr}`.trim();
+    console.log(`${res.status === 0 ? '·' : '✗'} ${key} → ${target}`);
+    if (res.status !== 0) console.error(output);
   }
 }
 
-if (failures.length) {
-  console.error(`\n${failures.length} failed:\n  ${failures.join('\n  ')}`);
+// Don't trust exit codes alone: confirm every variable is actually listed for every target.
+const list = vercel('env ls');
+const listing = `${list.stdout}\n${list.stderr}`;
+const missing = [];
+for (const { key, targets } of VARS) {
+  for (const target of targets) {
+    const found = listing
+      .split(/\r?\n/)
+      .some((line) => line.trim().startsWith(`${key} `) && line.toLowerCase().includes(target));
+    if (!found) missing.push(`${key} → ${target}`);
+  }
+}
+
+if (missing.length) {
+  console.error(`\n✗ Missing after push (${missing.length}):\n  ${missing.join('\n  ')}`);
+  console.error('\nFull `vercel env ls` output:\n' + listing);
   process.exit(1);
 }
-console.log('\nAll set. Check with `npx vercel env ls`, then redeploy.');
+console.log('\n✓ Verified: all variables are set in Vercel. Redeploy to use them.');
