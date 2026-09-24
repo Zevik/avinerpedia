@@ -7,7 +7,8 @@ import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';
 import { ContentRenderer } from '@/components/ContentRenderer';
 import { getVimeoId, meirLessonUrl } from '@/lib/video';
-import { getContentTopics, getSeriesNavigation } from '@/lib/taxonomy';
+import { getSeriesNavigation } from '@/lib/taxonomy';
+import { getContentNodes } from '@/lib/filters';
 import { SeriesNav } from '@/components/SeriesNav';
 import { TopicChips } from '@/components/TopicChips';
 
@@ -46,7 +47,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
   const [vimeoId, seriesNav, topics] = await Promise.all([
     meirId ? getVimeoId(meirId) : null,
     getSeriesNavigation(item),
-    getContentTopics(item.id),
+    getContentNodes(item.id, item.primary_node_id),
   ]);
 
   const renderByCategory = () => {
@@ -73,7 +74,7 @@ export default async function ContentPage({ params }: ContentPageProps) {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
       {seriesNav && <SeriesNav {...seriesNav} />}
       {renderByCategory()}
-      <TopicChips topics={topics} />
+      <TopicChips topics={topics} tags={item.original_tags ? item.original_tags.split(' | ').filter(Boolean) : []} />
     </div>
   );
 }
@@ -111,7 +112,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
-                צפה בסרטון במעלה
+                צפו בסרטון במעלה
               </a>
             </div>
           </div>
@@ -139,7 +140,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
-                צפה בשיעור במכון מאיר
+                צפו בשיעור במכון מאיר
               </a>
             </div>
           </div>

@@ -39,7 +39,7 @@ export function ArticleCard({ article }: { article: any }) {
                 </div>
 
                 <div className="flex items-center space-x-2 space-x-reverse text-primary font-semibold">
-                    <span>קרא עוד</span>
+                    <span>קראו עוד</span>
                     <ArrowLeft className="w-4 h-4" />
                 </div>
             </div>

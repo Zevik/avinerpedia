@@ -28,7 +28,7 @@ export default function NotFound() {
             הדף לא נמצא
           </h2>
           <p className="text-gray-600 mb-6">
-            מצטערים, הדף שחיפשת אינו קיים או הועבר למקום אחר
+            מצטערים, הדף שחיפשתם אינו קיים או הועבר למקום אחר
           </p>
 
           {/* Action Buttons */}

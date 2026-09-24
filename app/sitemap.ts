@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { SITE_URL } from '@/lib/seo';
-import { getTopicTree } from '@/lib/taxonomy';
+import { flattenTree, getFilterTree, nodeHref } from '@/lib/filters';
 
 // Rebuilt at most once a day; ~8,500 URLs, well under the 50,000-per-sitemap limit.
 export const revalidate = 86400;
@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       (q) => q.eq('is_active', true),
     ),
     fetchAll<{ id: number }>('series', 'id'),
-    getTopicTree(),
+    getFilterTree('all'),
   ]);
 
   const seriesPages: MetadataRoute.Sitemap = series.map((s) => ({
@@ -54,13 +54,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const topicPages: MetadataRoute.Sitemap = [...tree.values()]
-    .filter((t) => t.totalCount > 0)
-    .map((t) => ({
-      url: url(`/topics/${t.id}`),
-      changeFrequency: 'weekly',
-      priority: t.parentIds.length === 0 ? 0.7 : 0.5,
-    }));
+  // Curated topic pages (/topics/מועדים/חנוכה); core topics rank higher.
+  const topicPages: MetadataRoute.Sitemap = flattenTree(tree).map((n) => ({
+    url: url(nodeHref(n.path)),
+    changeFrequency: 'weekly',
+    priority: n.depth === 0 ? 0.7 : 0.5,
+  }));
 
   const contentPages: MetadataRoute.Sitemap = items.map((i) => ({
     url: url(`/content/${i.id}`),

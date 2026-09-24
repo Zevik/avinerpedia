@@ -36,14 +36,15 @@ test('series page title and description', async ({ page }) => {
   expect(await meta(page, 'name', 'description')).toContain(`סדרת ${name}`);
 });
 
-test('topic page title, canonical without query string', async ({ page }) => {
+test('topic page title and canonical (name-based URL, no query string)', async ({ page }) => {
   await page.goto('/topics');
-  const chip = page.locator('a[href*="?from="]').first();
+  const chip = page.locator('section div a[href^="/topics/"]').first(); // a sub-topic chip
   const name = (await chip.textContent())?.trim();
-  await chip.click();
-  await expect(page).toHaveURL(/\/topics\/\d+\?from=\d+$/, { timeout: 30_000 });
+  const href = await chip.getAttribute('href');
+  await page.goto(`${href}?page=2`);
   await expect(page).toHaveTitle(`${name} - שיעורים ומאמרים | הרב שלמה אבינר`);
-  expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/\/topics\/\d+$/);
+  const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+  expect(new URL(canonical!).pathname).toBe(href);
 });
 
 test('hub pages have their own titles; search is noindex', async ({ page }) => {
@@ -63,7 +64,8 @@ test('sitemap.xml lists content, series, topics and hubs', async ({ request }) =
   const urls = xml.match(/<loc>/g)?.length ?? 0;
   expect(urls).toBeGreaterThan(7000);
   expect(xml).toMatch(/<loc>[^<]*\/series\/\d+<\/loc>/);
-  expect(xml).toMatch(/<loc>[^<]*\/topics\/\d+<\/loc>/);
+  expect(xml).toMatch(/<loc>[^<]*\/topics\/%D7[^<]*<\/loc>/); // name-based topic URLs
+  expect(xml).not.toMatch(/<loc>[^<]*\/topics\/\d+<\/loc>/);
   expect(xml).toMatch(/<loc>[^<]*\/content\/104<\/loc>/);
   expect(xml).not.toMatch(/\/content\/7838</); // hidden item
 });

@@ -47,7 +47,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="text-center py-16">
             <SearchIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <p className="text-xl text-muted-foreground">
-              הזן מילת חיפוש למציאת תוכן
+              הזינו מילת חיפוש למציאת תוכן
             </p>
           </div>
         ) : results.length === 0 ? (

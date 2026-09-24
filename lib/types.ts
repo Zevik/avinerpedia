@@ -35,6 +35,10 @@ export interface ContentItem {
   root_topic?: string | null;
   series_id?: number | null;
   series_order?: number | null;
+  // Curated filter tree (supabase/migrations/003_filter_tree.sql)
+  primary_node_id?: number | null;
+  sa_section?: string | null;
+  source_collection?: string | null;
 }
 
 export interface Series {
@@ -51,12 +55,6 @@ export interface Topic {
   item_count: number;
 }
 
-/** A topic with its place in the tree and the number of items under it (incl. sub-topics). */
-export interface TopicNode extends Topic {
-  parentIds: number[];
-  childIds: number[];
-  totalCount: number;
-}
 
 export interface VideoItem extends ContentItem {
   main_category: 'סרטונים';

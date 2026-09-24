@@ -143,7 +143,7 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
           href={viewAllHref}
           className={`flex items-center gap-2 px-6 py-3 rounded-full border-2 ${colors.border} ${colors.text} ${colors.hover} transition-all duration-300 font-semibold`}
         >
-          <span>צפה בהכל</span>
+          <span>צפו בהכל</span>
           <ArrowLeft className="w-4 h-4" />
         </Link>
       </div>

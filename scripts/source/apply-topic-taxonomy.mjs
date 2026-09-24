@@ -111,10 +111,12 @@ const titleSamples = []; // shown with --show-title, to review the keyword fallb
 const classified = new Map(); // source_page_id -> { nodes:Set, primary, sa, source }
 for (const r of records) {
   const nodes = new Set();
+  const tags = []; // specific-question topics: shown as tags, not filters
   let source = null;
   for (const t of r.topics) {
     const m = mapping.get(t);
     if (!m) continue;
+    if (m.kind === 'תגית') tags.push(t);
     if (NODE_KINDS.has(m.kind) && isNodePath(m.target)) nodes.add(m.target);
     if (m.kind === 'אוסף/מכל' && m.target.startsWith('מקור: ')) source ??= m.target.slice('מקור: '.length);
   }
@@ -133,7 +135,7 @@ for (const r of records) {
     ? primaryTopic.target
     : [...nodes].sort((a, b) => b.split(SEP).length - a.split(SEP).length)[0] || null;
 
-  classified.set(r.source_page_id, { nodes, primary, sa: saSection(r.topics), source });
+  classified.set(r.source_page_id, { nodes, primary, sa: saSection(r.topics), source, tags });
 }
 
 const withAncestors = (paths) => {
@@ -207,7 +209,7 @@ async function fetchAll(table, columns) {
   }
 }
 
-const items = await fetchAll('content_items', 'id, source_page_id, sub_category, primary_node_id, sa_section, source_collection');
+const items = await fetchAll('content_items', 'id, source_page_id, sub_category, primary_node_id, sa_section, source_collection, original_tags');
 const backupDir = 'support/derived/backup';
 fs.mkdirSync(backupDir, { recursive: true });
 const backupFile = path.join(backupDir, `filter-tree-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
@@ -240,6 +242,7 @@ for (const item of items) {
     primary_node_id: primaryId ?? null,
     sa_section: c?.sa ?? null,
     source_collection: c?.source ?? null,
+    original_tags: c?.tags.length ? c.tags.join(' | ') : null,
     // Cards show sub_category; use the curated leaf name instead of the raw topic.
     ...(c?.primary ? { sub_category: c.primary.split(SEP).pop() } : {}),
   };

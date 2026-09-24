@@ -94,9 +94,9 @@ UI:
 |---|---|
 | `/series` | All series (from `series`) |
 | `/series/[id]` | Episodes by `series_order` |
-| `/content/[id]` | Item; `SeriesNav` (episode N of M, prev/next) if it has `series_id`; `TopicChips` at the bottom |
-| `/topics` | Root topics with sub-topic chips; standalone topics below |
-| `/topics/[id]` | Breadcrumb, sub-topics with totals, paginated tagged items. `?from=<parentId>` picks which parent the breadcrumb follows |
+| `/content/[id]` | Item; `SeriesNav` (episode N of M, prev/next) if it has `series_id`; `TopicChips` at the bottom: curated nodes (most specific, primary first) and the item's question-tags (`original_tags`, linking to search) |
+| `/topics` | The 11 core topics of the curated tree, with sub-topic chips |
+| `/topics/[...path]` | Name-based URL of a curated node (`/topics/מועדים/חנוכה`, built by `nodeHref()`): breadcrumb, sub-topics with counts, paginated items (node + descendants). Old numeric `/topics/<id>` URLs (pre-curated topics) 301 to the node via `next.config.ts` redirects from `lib/topic-redirects.json` |
 | `/videos`, `/articles`, `/qa` | `FilteredContentPage` + `TopicFilter`: curated tree with counts, search inside the filter, drawer on mobile; `?topic=<node id>` (old `?topic=<name>` links resolve by name); `/qa` adds Shulchan Aruch chips (`?sa=`) |
 
 Queries for the taxonomy live in `lib/taxonomy.ts`, for the filter tree in `lib/filters.ts`; the rest in `lib/db.ts`.
@@ -116,7 +116,7 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
 - Share images: YouTube items use `img.youtube.com/vi/<id>/hqdefault.jpg`; everything else uses `public/og-default.jpg` (1200×630, ~60KB — WhatsApp may skip images over ~300KB). Regenerate it with `node scripts/make-og-image.mjs`.
 - `app/sitemap.ts`: all active content items, series, topics with items, and hubs (~8,100 URLs), revalidated daily. `app/robots.ts`: allow all, disallow `/admin` and `/api/`, points to the sitemap.
 - The site URL comes from `NEXT_PUBLIC_SITE_URL` (optional; defaults to `https://avinerpedia.vercel.app`). Set it if a custom domain is added, so canonicals and the sitemap use it.
-- `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getTopicTree`).
+- `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getFilterTree`).
 
 ## Legacy URL redirects (old shlomo-aviner.net MediaWiki)
 
@@ -129,11 +129,13 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
 | `/index.php?curid=N` | 301 → same |
 | MediaWiki redirect pages (aliases, chains resolved) | 301 → final target |
 | `/עמוד_ראשי`, `/(הרב)_אבינרפדיה-...` (old home page), bare `/index.php` | 301 → `/` |
-| `/קטגוריה:X`, `/Category:X` | 301 → `/topics/[id]`, `/series/[id]` or a hub (`/videos`, `/qa`, `/french`...) |
+| `/קטגוריה:X`, `/Category:X` | 301 → the curated node page (`/topics/הלכה/כשרות ומזון`), `/series/[id]` or a hub (`/videos`, `/qa`, `/french`...) |
 | Hidden item, deleted page, unknown title | 302 → `/search?q=<title>` |
 | Asset-like paths (`*.ico`, `*.php`...), unknown `/api/`, `/admin/`, `/_next/` | 404 |
 
 - Titles are normalized by `legacyTitleKey()` in `lib/legacy-title.ts` (underscores, entities, `''`→`"`, first-letter case, `Category:`→`קטגוריה:`), used both at build time and per request.
+- `build-legacy-redirects.ts` also writes `lib/topic-redirects.json` (old numeric topic id → curated node) and maps categories through `docs/topic-taxonomy-mapping.csv`, so **re-run it after changing the taxonomy mapping** too.
+- Redirects from inside a page don't give a real 301 here (`app/loading.tsx` streams the response first); use `next.config.ts` `redirects()` or a route handler.
 - **Regenerate the map whenever items are hidden/re-activated or re-imported** (it only maps to active items): `npx tsx scripts/source/build-legacy-redirects.ts`, then commit `lib/legacy-redirects.json`. First build: 8,519 titles/curids with 301 (8,259 direct, 260 via wiki redirects, 4 home), 124 redirect-to-deleted-page searches, 350 unmapped (hidden items, 6 missing pages, 36 non-topic categories) → search.
 - Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/302 + Location).
 

@@ -17,6 +17,26 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 interface XmlPage { id: number; ns: number; title: string; redirect: string | null }
 const xml: XmlPage[] = JSON.parse(fs.readFileSync('support/derived/xml_pages.json', 'utf8'));
 
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [], cell = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter((r) => r.some(Boolean));
+}
+
 async function fetchAll<T>(table: string, columns: string): Promise<T[]> {
   const rows: T[] = [];
   for (let from = 0; ; from += 1000) {
@@ -36,8 +56,22 @@ const [items, topics, series] = await Promise.all([
 
 // ---------------------------------------------------------------- page -> new path
 const contentBySourceId = new Map(items.filter((i) => i.source_page_id && i.is_active).map((i) => [i.source_page_id!, `/content/${i.id}`]));
-const topicByName = new Map(topics.map((t) => [t.name, `/topics/${t.id}`]));
 const seriesByName = new Map(series.map((s) => [s.name, `/series/${s.id}`]));
+
+// Source topic -> curated node page, from the editable mapping (docs/topic-taxonomy-mapping.csv).
+const NODE_KINDS = new Set(['נושא סינון', 'מקופל', 'מקופל (מועמד לתת-נושא)', 'תגית', 'פרשת השבוע', 'כפילות/שגיאת כתיב', 'נתיב משורשר']);
+const nodeHref = (p: string) => '/topics/' + p.split(' › ').map(encodeURIComponent).join('/');
+const topicByName = new Map<string, string>();
+for (const [name, , kind, target] of parseCsv(fs.readFileSync('docs/topic-taxonomy-mapping.csv', 'utf8').replace(/^﻿/, '')).slice(1)) {
+  if (kind === 'סדרה/ספר' && seriesByName.has(target)) topicByName.set(name, seriesByName.get(target)!);
+  else if (NODE_KINDS.has(kind) && target && !target.startsWith('(') && !target.startsWith('→') && !target.includes(':')) topicByName.set(name, nodeHref(target));
+}
+
+// Old numeric topic pages (/topics/<topics.id>, before the curated tree) -> the new page.
+const topicRedirects: Record<string, string> = {};
+for (const t of topics) topicRedirects[String(t.id)] = topicByName.get(t.name) ?? '/topics';
+fs.writeFileSync(path.join('lib', 'topic-redirects.json'), JSON.stringify(topicRedirects));
+console.log(`topic-redirects: ${topics.length} old topic ids (${Object.values(topicRedirects).filter((v) => v !== '/topics').length} to a specific node)`);
 
 // Same category -> topic rules as build-taxonomy.mjs.
 const HUB_CATEGORIES: Record<string, string> = {
@@ -52,7 +86,7 @@ const SUFFIX = /\s*\((וידאו|מאמרים|מאמר|שו"ת|שו"תים|סד�
 function categoryPath(name: string): string | undefined {
   if (HUB_CATEGORIES[name]) return HUB_CATEGORIES[name];
   const stripped = name.replace(SUFFIX, '').trim();
-  return seriesByName.get(stripped) ?? seriesByName.get(name) ?? topicByName.get(TOPIC_ALIASES[stripped] || stripped);
+  return seriesByName.get(stripped) ?? seriesByName.get(name) ?? topicByName.get(TOPIC_ALIASES[stripped] || stripped) ?? topicByName.get(name);
 }
 
 // The old home page ("עמוד ראשי") redirects to "(הרב) אבינרפדיה- ..." index pages.

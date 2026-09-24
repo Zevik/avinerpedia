@@ -53,7 +53,8 @@ test.describe('legacy MediaWiki URLs', () => {
   test('category page -> 301 to its topic page', async ({ request }) => {
     const { status, location } = await hit(request, underscored(categoryTitle));
     expect(status).toBe(301);
-    expect(pathOf(location)).toBe(categoryPath);
+    // Topic URLs are name-based and stored percent-encoded; pathOf() decodes.
+    expect(pathOf(location)).toBe(decodeURIComponent(categoryPath));
   });
 
   test('unknown title -> 302 to search with the decoded title', async ({ request }) => {

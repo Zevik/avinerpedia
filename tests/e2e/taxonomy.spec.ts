@@ -49,37 +49,49 @@ test('episode page has series navigation to the next episode', async ({ page }) 
   expect(errors).toEqual([]);
 });
 
-test('topics index -> topic page with breadcrumb and items', async ({ page }) => {
+test('topics index -> core topic -> sub-topic, with name-based URLs and breadcrumb', async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto('/topics');
-  const branch = page.locator('h2').first();
-  const rootName = (await branch.textContent())?.trim();
-  await branch.click();
-  await expect(page).toHaveURL(/\/topics\/\d+$/, { timeout: 30_000 });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(rootName!);
+  const core = page.locator('section h2').first();
+  const coreName = (await core.textContent())!.trim();
+  await core.click();
+  await expect(page).toHaveURL(new RegExp(`/topics/${encodeURIComponent(coreName)}$`), { timeout: 30_000 });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(coreName);
 
-  // Drill into the first sub-topic; the breadcrumb must lead back to the root.
-  await page.getByRole('heading', { name: 'תתי-נושאים' }).locator('..').locator('a').first().click();
-  // Wait for the sub-topic URL; the root's /topics/<id> would match a looser pattern immediately.
-  await expect(page).toHaveURL(/\/topics\/\d+\?from=\d+$/, { timeout: 30_000 });
-  await expect(page.getByRole('navigation', { name: 'פירורי לחם' })).toContainText(rootName!);
+  // Drill into the first sub-topic: /topics/<core>/<sub>, breadcrumb back to the core.
+  const sub = page.getByRole('heading', { name: 'תתי-נושאים' }).locator('..').locator('a').first();
+  const subName = (await sub.locator('span').first().textContent())!.trim();
+  await sub.click();
+  await expect(page).toHaveURL(new RegExp(`/topics/${encodeURIComponent(coreName)}/${encodeURIComponent(subName)}$`), { timeout: 30_000 });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(subName);
+  await expect(page.getByRole('navigation', { name: 'פירורי לחם' })).toContainText(coreName);
   expect(errors).toEqual([]);
 });
 
-test('item on a topic page links back to that topic', async ({ page }) => {
+test('item on a topic page links back into that topic', async ({ page }) => {
   const errors = trackErrors(page);
-  // Start from a topic with direct items, so the opened item is guaranteed to be tagged with it.
   await page.goto('/topics');
-  await page.locator('section a[href^="/topics/"]').first().click();
-  await expect(page).toHaveURL(/\/topics\/\d+$/, { timeout: 30_000 });
+  await page.locator('section div a[href^="/topics/"]').first().click(); // a sub-topic chip
+  await expect(page).toHaveURL(/\/topics\/[^/]+\/[^/]+$/, { timeout: 30_000 });
   const topicPath = new URL(page.url()).pathname;
-  const topicName = (await page.getByRole('heading', { level: 1 }).textContent())?.trim();
 
   await page.locator('a[href^="/content/"]').first().click();
   await expect(page).toHaveURL(/\/content\/\d+$/, { timeout: 30_000 });
-  const chip = page.locator(`a[href="${topicPath}"]`);
-  await expect(chip).toHaveText(topicName!);
+  // The item is filed under this topic or one of its sub-topics.
+  const chip = page.locator(`a[href^="${topicPath}"]`).first();
+  await expect(chip).toBeVisible();
   await chip.click();
-  await expect(page).toHaveURL(new RegExp(`${topicPath}$`), { timeout: 30_000 });
+  await expect(page).toHaveURL(new RegExp(`^[^?]*${topicPath}`), { timeout: 30_000 });
   expect(errors).toEqual([]);
+});
+
+test('old numeric topic URLs redirect permanently to the curated node', async ({ request }) => {
+  const res = await request.get('/topics/5', { maxRedirects: 0 });
+  expect(res.status()).toBe(301);
+  expect(decodeURIComponent(res.headers()['location'])).toMatch(/\/topics\/הלכה$/);
+});
+
+test('unknown topic path shows the not-found page', async ({ page }) => {
+  await page.goto('/topics/' + encodeURIComponent('אין נושא כזה'));
+  await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
 });
