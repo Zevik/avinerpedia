@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Avinerpedia database schema
 -- Reconstructed from lib/types.ts, lib/db.ts, app/**, scripts/import-from-wiki.ts
--- and scripts/setup-categories-db.sql / add-is-active-column.sql.
+-- and the category / is_active setup scripts they replaced.
 --
 -- Run once in the Supabase SQL Editor on an empty `public` schema.
 -- Then:  npx tsx scripts/import-from-wiki.ts
@@ -123,7 +123,7 @@ create policy "admin_users: read own row" on public.admin_users  for select
 -- ----------------------------------------------------------------------------
 -- Run after each import: builds sub-categories from content_items, links the
 -- *_category_id columns, and deactivates items with neither text nor video
--- (same logic as scripts/setup-categories-db.sql + add-is-active-column.sql).
+-- (replaces the old category-setup and is_active scripts).
 -- ----------------------------------------------------------------------------
 create or replace function public.sync_content_categories()
 returns table (main_linked bigint, sub_categories bigint, sub_linked bigint, deactivated bigint)
