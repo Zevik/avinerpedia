@@ -21,7 +21,7 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
   return (
     <Link
       href={`/content/${item.id}`}
-      className={`video-card block group ${className}`}
+      className={`video-card flex flex-col group ${className}`}
     >
       <div className="relative overflow-hidden rounded-lg bg-muted aspect-video">
         {thumbnailUrl ? (
@@ -50,13 +50,13 @@ export function VideoCard({ item, className = '' }: VideoCardProps) {
       </div>
 
       {/* Title */}
-      <h3 className="mt-3 font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+      <h3 className="mt-3 mb-2 font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
         {item.title}
       </h3>
 
-      {/* Sub-category tag */}
+      {/* Sub-category tag, pinned to the bottom so tags line up across a row */}
       {item.sub_category && (
-        <span className="inline-block mt-2 text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+        <span className="mt-auto self-start text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
           {item.sub_category}
         </span>
       )}

@@ -161,7 +161,7 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
             <Link
               key={item.id}
               href={itemHref(item.id)}
-              className="group block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              className="group flex flex-col bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
             >
               {item.thumbnail ? (
                 <div className="relative aspect-video bg-muted">
@@ -175,7 +175,8 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
               ) : (
                 <div className={`h-2 w-full ${colors.bg}`}></div>
               )}
-              <div className="p-6">
+              {/* Column layout so the topic tag sits at the bottom of every card in the row. */}
+              <div className="p-6 flex flex-col flex-1">
                 <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-${color}-600 transition-colors">
                   {item.title}
                 </h3>
@@ -185,7 +186,7 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
                   </p>
                 )}
                 {item.sub_category && (
-                  <span className={`inline-block px-3 py-1 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}>
+                  <span className={`mt-auto self-start px-3 py-1 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}>
                     {item.sub_category}
                   </span>
                 )}
