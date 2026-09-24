@@ -43,3 +43,8 @@ yaml*.json
 # Test output
 /playwright-report/
 /test-results/
+
+.env*
+
+# Raw source data (contains MediaWiki user table - never commit)
+/support/
