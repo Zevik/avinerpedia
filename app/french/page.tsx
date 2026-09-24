@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-export const dynamic = 'force-dynamic';
+// Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
+export const revalidate = 86400;
 import Link from 'next/link';
 import { BookOpen, Video, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';

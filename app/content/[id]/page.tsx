@@ -1,7 +1,12 @@
 import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-export const dynamic = 'force-dynamic';
+// Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
+export const revalidate = 86400;
+// No pages at build time; each one is rendered on its first visit, then served from the cache.
+export async function generateStaticParams() {
+  return [];
+}
 import { describe, pageMetadata, videoThumbnail } from '@/lib/seo';
 import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';

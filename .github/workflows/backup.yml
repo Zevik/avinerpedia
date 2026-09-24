@@ -1,0 +1,77 @@
+# Weekly database backup: pg_dump of the public schema, encrypted, kept as a workflow
+# artifact for 90 days. The repo is public, so the dump is encrypted before upload
+# (artifacts of public repos can be downloaded by any signed-in GitHub user).
+#
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_DB_URL     Supabase "Session pooler" connection string, with the password
+#   BACKUP_PASSPHRASE   passphrase for the encryption; keep a copy outside GitHub
+# Restore: see "Backups" in CLAUDE.md.
+name: Weekly DB backup
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Sundays 00:00 UTC (02:00-03:00 in Israel)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        run: |
+          [ -n "$SUPABASE_DB_URL" ] || { echo "::error::Secret SUPABASE_DB_URL is not set"; exit 1; }
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Secret BACKUP_PASSPHRASE is not set"; exit 1; }
+
+      # pg_dump must be at least the server's major version (Supabase runs 15 or 17).
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump
+        run: |
+          stamp=$(date -u +%Y-%m-%d)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
+            --schema=public --no-owner --no-privileges --format=custom \
+            --file="avinerpedia-$stamp.dump"
+
+      - name: Check the dump
+        run: |
+          f="avinerpedia-$STAMP.dump"
+          size=$(stat -c %s "$f")
+          items=$(/usr/lib/postgresql/17/bin/psql "$SUPABASE_DB_URL" -Atc "select count(*) from public.content_items")
+          echo "dump size: $size bytes, content_items rows: $items"
+          /usr/lib/postgresql/17/bin/pg_restore --list "$f" | grep -q "TABLE DATA public content_items" \
+            || { echo "::error::content_items data missing from the dump"; exit 1; }
+          [ "$size" -gt 1000000 ] || { echo "::error::Dump is suspiciously small"; exit 1; }
+          [ "$items" -gt 5000 ] || { echo "::error::content_items has only $items rows"; exit 1; }
+
+      - name: Encrypt
+        run: |
+          f="avinerpedia-$STAMP.dump"
+          printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 --output "$f.gpg" "$f"
+          rm -f "$f"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: avinerpedia-db-${{ env.STAMP }}
+          path: avinerpedia-${{ env.STAMP }}.dump.gpg
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error

@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { pageMetadata } from '@/lib/seo';
 import { FilteredContentPage } from '@/components/FilteredContentPage';
 

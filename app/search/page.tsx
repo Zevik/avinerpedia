@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-export const dynamic = 'force-dynamic';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({

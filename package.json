@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "test:all": "npm run typecheck && npm run test && npm run test:e2e"
+    "test:all": "npm run typecheck && npm run test && npm run test:e2e",
+    "revalidate": "node scripts/revalidate-site.mjs"
   },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",

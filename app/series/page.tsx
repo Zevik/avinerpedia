@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
+export const revalidate = 86400;
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({

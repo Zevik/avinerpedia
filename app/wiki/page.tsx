@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Book, Search, Filter } from 'lucide-react';
 import { getWikiPosts, getWikiCategories } from '@/lib/db';

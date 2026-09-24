@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { refreshPublicSite } from './revalidate';
 import { ContentItem, ContentFilters, Category } from './types';
 
 /**
@@ -319,6 +320,9 @@ export async function getContentCount(filters?: ContentFilters): Promise<number>
 
 /**
  * Category Management Functions
+ *
+ * Admin writes (browser only). Each one ends with refreshPublicSite(), which purges the
+ * cached public site so the change shows immediately.
  */
 
 export async function createCategory(category: { name: string, type: 'main' | 'sub', parent_id?: number | null }) {
@@ -329,6 +333,7 @@ export async function createCategory(category: { name: string, type: 'main' | 's
     .single();
 
   if (error) throw error;
+  await refreshPublicSite();
   return data;
 }
 
@@ -359,6 +364,7 @@ export async function updateCategory(id: number, updates: { name?: string, paren
     }
   }
 
+  await refreshPublicSite();
   return data;
 }
 
@@ -369,6 +375,7 @@ export async function deleteCategory(id: number) {
     .eq('id', id);
 
   if (error) throw error;
+  await refreshPublicSite();
   return true;
 }
 
@@ -421,6 +428,7 @@ export async function mergeCategories(sourceId: number, targetId: number) {
 
   if (deleteError) throw deleteError;
 
+  await refreshPublicSite();
   return true;
 }
 
@@ -448,6 +456,7 @@ export async function updateContentCategory(contentId: number, mainCatId: number
     .single();
 
   if (error) throw error;
+  await refreshPublicSite();
   return data;
 }
 
@@ -463,6 +472,7 @@ export async function updateContentItem(
     .single();
 
   if (error) throw error;
+  await refreshPublicSite();
   return data;
 }
 

@@ -31,6 +31,7 @@ npm run typecheck    # tsc --noEmit
 npm test             # Vitest: validates content/wiki (every file parses, has a title)
 npm run test:e2e     # Playwright: all public pages, series/topic flows, admin guards
 npm run test:all     # typecheck + unit + e2e — run before every commit
+npm run revalidate   # purge the cached live site after a script wrote to the DB
 ```
 
 Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first; locally on Windows, prefetched `/series/[id]` client navigations can stall). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored).
@@ -108,6 +109,28 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
 - **`docs/topic-taxonomy-mapping.csv` is the editable source of truth** (one row per source topic → node). Regenerate the draft with `node scripts/source/draft-topic-taxonomy.mjs` (tree definition inside), then apply with `node scripts/source/apply-topic-taxonomy.mjs` (dry run; `--show-title` lists title-based guesses) and `--apply` (backup first; rewrites links, counts, `sub_category` = curated leaf name). Items get nodes from their topics, else their series, else strict title keywords (parashot only as "פרשת X" / "X ע\"ה"), else Q&A → הלכה; ~97% coverage.
 - After an apply, run `select * from public.sync_content_categories();` in the SQL Editor (legacy `categories` follow `sub_category`).
 
+## Caching (and load protection)
+
+Content changes every few days, so the public site is cached and a flood of requests should not reach Supabase:
+
+- **Every server-side Supabase read goes through Next's Data Cache** (`lib/supabase.ts` passes a `fetch` with `next: { revalidate: 86400, tags: ['content'] }`; constants in `lib/cache.ts`). This covers all pages, including dynamic ones (`/videos?topic=`, `/topics/...?page=`, search, `/api/search`). The browser client (admin) is not cached.
+- **Pages without query parameters are ISR** (`export const revalidate = 86400`): `/`, `/series`, `/topics`, `/french`, and `/content/[id]`, `/series/[id]` (with an empty `generateStaticParams`, rendered on first visit). They are served from Vercel's CDN (`s-maxage=86400`). Don't add `force-dynamic` back; pages that read `searchParams` are dynamic on their own.
+- **On-demand purge: `POST /api/revalidate`** (`revalidateTag('content')` + `revalidatePath('/', 'layout')`). Accepts `Authorization: Bearer <admin session token>` (checked with `is_admin()`) or the service role key. Every admin write in `lib/db.ts` ends with `refreshPublicSite()` (`lib/revalidate.ts`), so saves show immediately. **After a script writes to the DB, run `npm run revalidate`** (otherwise changes show within a day; a redeploy doesn't clear the Data Cache).
+- Tests: `tests/e2e/cache.spec.ts` (endpoint refuses non-admins; cache header on content pages outside `next dev`).
+
+## Backups
+
+`.github/workflows/backup.yml` runs every Sunday 00:00 UTC (and on demand: Actions → Weekly DB backup → Run workflow): `pg_dump` of the `public` schema (schema + data; not `auth`), sanity checks (size, `content_items` row count), encrypted with `gpg` AES256, uploaded as the artifact `avinerpedia-db-YYYY-MM-DD` (kept 90 days). The repo is public, so the dump must stay encrypted. GitHub emails the repo owner when the job fails; scheduled workflows are disabled after 60 days without repo activity.
+
+Secrets (repo Settings → Secrets and variables → Actions): `SUPABASE_DB_URL` (Supabase → Connect → **Session pooler** URI — the direct `db.<ref>.supabase.co` host is IPv6-only and unreachable from GitHub runners; URL-encode special characters in the password) and `BACKUP_PASSPHRASE` (keep a copy outside GitHub; without it the backups are unreadable).
+
+Restore (into this or a new project):
+```bash
+gpg --decrypt --output avinerpedia.dump avinerpedia-YYYY-MM-DD.dump.gpg
+pg_restore --no-owner --no-privileges --clean --if-exists -d "<session pooler URI>" avinerpedia.dump
+```
+Into a new project, `admin_users` rows reference `auth.users`, which is not in the dump: recreate the admins (see Admin). Then `npm run revalidate`.
+
 ## SEO and sharing
 
 - **Every page builds its metadata with `pageMetadata()` from `lib/seo.ts`** (title, description, canonical, Open Graph, Twitter). Don't hand-write `openGraph`: Next.js replaces nested metadata objects instead of merging them, so a page-level `openGraph` without `images` silently drops the default share image.
@@ -153,7 +176,7 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
    node scripts/source/apply-enrichment.mjs          # dry run
    node scripts/source/apply-enrichment.mjs --apply  # backup to support/derived/backup/, then write
    ```
-   Then run `select * from public.sync_content_categories();` in the SQL Editor.
+   Then run `select * from public.sync_content_categories();` in the SQL Editor, and `npm run revalidate`.
 
 Gotchas:
 - **`import-from-wiki.ts` overwrites `main_category`/`sub_category` with old heuristics** (it put 1,745 articles into Q&A because their text contained `ש:`). Re-run the enrichment right after any re-import.
