@@ -109,6 +109,27 @@ Queries for the taxonomy live in `lib/taxonomy.ts`; the rest in `lib/db.ts`.
 - The site URL comes from `NEXT_PUBLIC_SITE_URL` (optional; defaults to `https://avinerpedia.vercel.app`). Set it if a custom domain is added, so canonicals and the sitemap use it.
 - `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getTopicTree`).
 
+## Legacy URL redirects (old shlomo-aviner.net MediaWiki)
+
+`app/[...legacy]/route.ts` catches every path no other route matches and resolves it with `lib/legacy.ts` against `lib/legacy-redirects.json` (an in-memory map, no DB query):
+
+| Old URL | Result |
+|---|---|
+| `/Title_With_Underscores` (percent-encoded Hebrew; titles may contain `/`) | 301 → `/content/[id]` |
+| `/index.php?title=X`, `/w/index.php?title=X` | 301 → same |
+| `/index.php?curid=N` | 301 → same |
+| MediaWiki redirect pages (aliases, chains resolved) | 301 → final target |
+| `/עמוד_ראשי`, `/(הרב)_אבינרפדיה-...` (old home page), bare `/index.php` | 301 → `/` |
+| `/קטגוריה:X`, `/Category:X` | 301 → `/topics/[id]`, `/series/[id]` or a hub (`/videos`, `/qa`, `/french`...) |
+| Hidden item, deleted page, unknown title | 302 → `/search?q=<title>` |
+| Asset-like paths (`*.ico`, `*.php`...), unknown `/api/`, `/admin/`, `/_next/` | 404 |
+
+- Titles are normalized by `legacyTitleKey()` in `lib/legacy-title.ts` (underscores, entities, `''`→`"`, first-letter case, `Category:`→`קטגוריה:`), used both at build time and per request.
+- **Regenerate the map whenever items are hidden/re-activated or re-imported** (it only maps to active items): `npx tsx scripts/source/build-legacy-redirects.ts`, then commit `lib/legacy-redirects.json`. First build: 8,519 titles/curids with 301 (8,259 direct, 260 via wiki redirects, 4 home), 124 redirect-to-deleted-page searches, 350 unmapped (hidden items, 6 missing pages, 36 non-topic categories) → search.
+- Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/302 + Location).
+
+**Domain switch checklist** (shlomo-aviner.net → this app): add the domain (apex + `www`) to the Vercel project and point DNS at Vercel; set `NEXT_PUBLIC_SITE_URL` to the new origin and redeploy (canonicals, sitemap, robots); make the custom domain primary so `*.vercel.app` redirects to it; in Search Console verify the domain property and submit the new sitemap (same domain, so no Change of Address); spot-check a few old URLs from Search Console's top pages.
+
 ## Content and data pipeline
 
 1. **Content**: `content/wiki/*.mdx` (7,863 files exported from the wiki) → `npx tsx scripts/import-from-wiki.ts` → `content_items`.

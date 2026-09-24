@@ -82,6 +82,7 @@ select * from public.sync_content_categories();
 | סקריפט | תפקיד |
 |---|---|
 | `scripts/check-dead-videos.mjs` | בדיקת סרטוני YouTube שהוסרו/פרטיים: החלפה לסרטון חלופי, הסרת הנגן מפריטים עם טקסט, והסתרת פריטים שאין בהם דבר מלבד קישור מת (`--apply` לכתיבה, עם גיבוי) |
+| `scripts/source/build-legacy-redirects.ts` | בניית מפת ההפניות (301) מכתובות הוויקי הישן לכתובות החדשות (`lib/legacy-redirects.json`); להריץ עם `npx tsx` אחרי כל שינוי בפריטים פעילים |
 | `scripts/push-vercel-env.mjs` | העברת משתני Supabase מ-`.env.local` ל-Vercel (אחרי `npx vercel link --project avinerpedia`) |
 
 ## בדיקות

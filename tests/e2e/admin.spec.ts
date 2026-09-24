@@ -14,7 +14,7 @@ test('login page offers sign-in only (no public sign-up)', async ({ page }) => {
   await expect(page.getByRole('button', { name: /create|sign up|הרשמה/i })).toHaveCount(0);
 });
 
-test('the removed categories API is gone', async ({ request }) => {
-  const res = await request.post('/api/admin/categories', { data: {} });
+test('the removed categories API is gone (not captured by the legacy redirects)', async ({ request }) => {
+  const res = await request.get('/api/admin/categories', { maxRedirects: 0 });
   expect(res.status()).toBe(404);
 });
