@@ -29,11 +29,12 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
- * A title as shown to visitors: without the source wiki's "(מאמר)" suffix. Stored titles
- * keep it: they are unique in the DB (77 would collide without it) and match the source.
+ * A title as shown to visitors: without the source wiki's "(מאמר)" / "(וידאו)" type suffixes.
+ * Stored titles keep them: they are unique in the DB (many would collide without them) and
+ * match the source. Other parentheses, such as "(וידאו קצר)" or "(שו"ת)", stay.
  */
 export function displayTitle(title: string | null | undefined): string {
-  return (title || '').replace(/\s*\(מאמר\)\)?/g, '').replace(/\s{2,}/g, ' ').trim();
+  return (title || '').replace(/\s*\((?:מאמר|וידאו)\)\)?/g, '').replace(/\s{2,}/g, ' ').trim();
 }
 
 /**

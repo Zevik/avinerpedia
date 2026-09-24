@@ -1,10 +1,11 @@
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 import { FilteredContentPage } from '@/components/FilteredContentPage';
 
 export const metadata = pageMetadata({
   title: "שו\"ת הלכה - שאלות ותשובות עם הרב שלמה אבינר | אבינרפדיה",
   description: "שאלות ותשובות בהלכה ובאמונה עם הרב שלמה אבינר, מסודרות לפי נושאים: אורח חיים, יורה דעה, אבן העזר, חושן משפט ועוד.",
   path: '/qa',
+  image: OG_IMAGES.qa,
 });
 
 export default async function QAPage({ searchParams }: { searchParams: Promise<{ topic?: string; sa?: string }> }) {

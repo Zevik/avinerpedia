@@ -1,11 +1,12 @@
 // Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
 export const revalidate = 86400;
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
   title: "סדרות לימוד - שיעורי הרב שלמה אבינר | אבינרפדיה",
   description: "סדרות שיעורים של הרב שלמה אבינר לפי הסדר: אורות, אורות התחיה, עין איה, כוזרי, שמונה פרקים לרמב\"ם ועוד.",
   path: '/series',
+  image: OG_IMAGES.series,
 });
 import { SeriesCard } from '@/components/SeriesCard';
 import { getAllSeries } from '@/lib/taxonomy';

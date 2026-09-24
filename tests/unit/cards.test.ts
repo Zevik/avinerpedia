@@ -6,6 +6,9 @@ describe('displayTitle', () => {
     expect(displayTitle('גבעת האולפנה היא שלנו (מאמר)')).toBe('גבעת האולפנה היא שלנו');
     expect(displayTitle('פרשת וירא: מעלת הכנסת אורחים (מאמר))')).toBe('פרשת וירא: מעלת הכנסת אורחים');
     expect(displayTitle('כפירה (שו"ת)')).toBe('כפירה (שו"ת)');
+    expect(displayTitle('תפילה בישיבה (וידאו)')).toBe('תפילה בישיבה');
+    expect(displayTitle('תפילה(וידאו)')).toBe('תפילה');
+    expect(displayTitle('תפילה במניין - למי יש עדיפות? (וידאו קצר)')).toBe('תפילה במניין - למי יש עדיפות? (וידאו קצר)');
     expect(displayTitle(null)).toBe('');
   });
 });

@@ -1,10 +1,11 @@
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 import { FilteredContentPage } from '@/components/FilteredContentPage';
 
 export const metadata = pageMetadata({
   title: "סרטונים - שיעורי וידאו של הרב שלמה אבינר | אבינרפדיה",
   description: "אלפי שיעורי וידאו של הרב שלמה אבינר בכל נושאי התורה, ההלכה, האמונה והמדינה, עם סינון לפי נושא.",
   path: '/videos',
+  image: OG_IMAGES.videos,
 });
 
 export default async function VideosPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {

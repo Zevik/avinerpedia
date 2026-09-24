@@ -7,11 +7,32 @@ import { getVimeoId } from './video';
  * sets `openGraph` without `images` would lose the default share image.
  */
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://avinerpedia.vercel.app').replace(/\/$/, '');
+/**
+ * Origin for canonicals, og:url/og:image and the sitemap. On Vercel it is the project's
+ * production domain (VERCEL_PROJECT_PRODUCTION_URL: the custom domain once one is attached to
+ * the project, else *.vercel.app), so share previews never point at a domain that doesn't
+ * serve this app yet — setting NEXT_PUBLIC_SITE_URL to shlomo-aviner.net while it still served
+ * the old wiki made WhatsApp preview the old site. NEXT_PUBLIC_SITE_URL is for other hosts.
+ */
+const vercelProductionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+export const SITE_URL = (
+  vercelProductionHost ? `https://${vercelProductionHost}` : process.env.NEXT_PUBLIC_SITE_URL || 'https://avinerpedia.vercel.app'
+).replace(/\/$/, '');
 export const SITE_NAME = 'אבינרפדיה';
 export const DEFAULT_DESCRIPTION =
   'ארכיון שיעורי הרב שלמה אבינר שליט"א: אלפי סרטונים, מאמרים, שאלות ותשובות וסדרות לימוד, מסודרים לפי נושאים.';
-export const DEFAULT_OG_IMAGE = { url: '/og-default.jpg', width: 1200, height: 630, alt: 'אבינרפדיה - שיעורי הרב שלמה אבינר' };
+
+/** Share images (public/, made by scripts/make-og-image.mjs): the site default and one per menu section. */
+const ogImage = (file: string, alt: string) => ({ url: `/${file}`, width: 1200, height: 630, alt });
+export const DEFAULT_OG_IMAGE = ogImage('og-default.jpg', 'אבינרפדיה - שיעורי הרב שלמה אבינר');
+export const OG_IMAGES = {
+  videos: ogImage('og-videos.jpg', 'סרטונים - שיעורי וידאו של הרב שלמה אבינר'),
+  articles: ogImage('og-articles.jpg', 'מאמרים של הרב שלמה אבינר'),
+  qa: ogImage('og-qa.jpg', 'שו"ת הלכה - שאלות ותשובות עם הרב שלמה אבינר'),
+  series: ogImage('og-series.jpg', 'סדרות לימוד - שיעורי הרב שלמה אבינר'),
+  topics: ogImage('og-topics.jpg', 'נושאים - תכני הרב שלמה אבינר לפי נושא'),
+  french: ogImage('og-french.jpg', 'Cours du Rav Aviner en français'),
+};
 
 interface PageMetadataInput {
   title: string;

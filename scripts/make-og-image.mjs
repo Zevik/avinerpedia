@@ -1,9 +1,27 @@
-// Renders the default Open Graph / WhatsApp share image to public/og-default.jpg (1200x630).
-// JPEG keeps it well under ~300KB, above which WhatsApp may skip the preview image.
-// Usage: node scripts/make-og-image.mjs   (needs network for the Heebo web font)
+// Renders the Open Graph / WhatsApp share images to public/ (1200x630): the site default
+// (home page and anything without its own image) and one per menu section, so sharing a
+// hub page shows what it is rather than a specific item. Used via lib/seo.ts (OG_IMAGES).
+// JPEG keeps them well under ~300KB, above which WhatsApp may skip the preview image.
+// Usage: node scripts/make-og-image.mjs [domain]   (needs network for the Heebo web font)
+//   domain: shown at the bottom (default avinerpedia.vercel.app; re-run after a domain switch)
 import { chromium } from '@playwright/test';
 
-const html = `<!doctype html>
+const domain = process.argv[2] || 'avinerpedia.vercel.app';
+const SITE_BADGE = 'ארכיון התורה של הרב שלמה אבינר שליט"א';
+const SECTION_BADGE = 'אבינרפדיה · ארכיון התורה של הרב שלמה אבינר';
+
+const IMAGES = [
+  { file: 'og-default.jpg', badge: SITE_BADGE, h1: 'אבינרפדיה', h2: 'כל שיעורי הרב שלמה אבינר', line: 'סרטונים · מאמרים · שאלות ותשובות · סדרות לימוד' },
+  { file: 'og-videos.jpg', badge: SECTION_BADGE, h1: 'סרטונים', h2: 'שיעורי וידאו של הרב שלמה אבינר', line: 'אלפי שיעורים בכל נושאי התורה · סינון לפי נושא' },
+  { file: 'og-articles.jpg', badge: SECTION_BADGE, h1: 'מאמרים', h2: 'מאמרי הרב שלמה אבינר', line: 'אמונה · הלכה · חינוך · זוגיות ומשפחה · מדינת ישראל' },
+  { file: 'og-qa.jpg', badge: SECTION_BADGE, h1: 'שו"ת הלכה', h2: 'שאלות ותשובות עם הרב שלמה אבינר', line: 'אורח חיים · יורה דעה · אבן העזר · חושן משפט' },
+  { file: 'og-series.jpg', badge: SECTION_BADGE, h1: 'סדרות לימוד', h2: 'שיעורי הרב שלמה אבינר לפי הסדר', line: 'אורות · אורות התחיה · עין איה · כוזרי ועוד' },
+  { file: 'og-topics.jpg', badge: SECTION_BADGE, h1: 'נושאים', h2: 'כל התכנים לפי נושא', line: 'הלכה · אמונה · מועדים · תפילה · חינוך · ועוד' },
+  { file: 'og-french.jpg', badge: SECTION_BADGE, h1: 'Cours en français', h1Size: 118, h1Dir: 'ltr', h2: 'שיעורי הרב שלמה אבינר בצרפתית', line: 'Emouna · Erets Israël · La Paracha de la semaine' },
+];
+
+const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const html = ({ badge, h1, h1Size = 150, h1Dir = 'rtl', h2, line }) => `<!doctype html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -27,7 +45,7 @@ const html = `<!doctype html>
     display: inline-block; font-size: 30px; font-weight: 700; color: #bfdbfe;
     border: 2px solid rgba(191,219,254,0.5); border-radius: 999px; padding: 6px 28px; margin-bottom: 36px;
   }
-  h1 { font-size: 150px; font-weight: 900; line-height: 1; letter-spacing: -2px; }
+  h1 { font-size: ${h1Size}px; font-weight: 900; line-height: 1; letter-spacing: -2px; direction: ${h1Dir}; text-align: right; }
   h2 { font-size: 58px; font-weight: 700; margin-top: 24px; color: #e0e7ff; }
   .types { font-size: 36px; margin-top: 44px; color: #c7d2fe; }
   .url { position: absolute; bottom: 44px; left: 96px; z-index: 1; font-size: 28px; color: #a5b4fc; direction: ltr; }
@@ -35,19 +53,21 @@ const html = `<!doctype html>
 </head>
 <body>
   <div class="content">
-    <div class="badge">ארכיון התורה של הרב שלמה אבינר שליט"א</div>
-    <h1>אבינרפדיה</h1>
-    <h2>כל שיעורי הרב שלמה אבינר</h2>
-    <div class="types">סרטונים · מאמרים · שאלות ותשובות · סדרות לימוד</div>
+    <div class="badge">${escape(badge)}</div>
+    <h1>${escape(h1)}</h1>
+    <h2>${escape(h2)}</h2>
+    <div class="types">${escape(line)}</div>
   </div>
-  <div class="url">avinerpedia.vercel.app</div>
+  <div class="url">${escape(domain)}</div>
 </body>
 </html>`;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-await page.setContent(html, { waitUntil: 'networkidle' });
-await page.evaluate(() => document.fonts.ready);
-await page.screenshot({ path: 'public/og-default.jpg', type: 'jpeg', quality: 88 });
+for (const image of IMAGES) {
+  await page.setContent(html(image), { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: `public/${image.file}`, type: 'jpeg', quality: 88 });
+  console.log(`wrote public/${image.file}`);
+}
 await browser.close();
-console.log('wrote public/og-default.jpg');

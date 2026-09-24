@@ -3,12 +3,13 @@ export const revalidate = 86400;
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getFilterTree, nodeHref } from '@/lib/filters';
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
   title: 'נושאים - שיעורים ומאמרים לפי נושא | הרב שלמה אבינר',
   description: 'כל התכנים של הרב שלמה אבינר מסודרים לפי נושאים: הלכה, אמונה, תורה, מדינת ישראל וצה"ל, חינוך, זוגיות ומשפחה, מועדים ועוד.',
   path: '/topics',
+  image: OG_IMAGES.topics,
 });
 
 export default async function TopicsPage() {

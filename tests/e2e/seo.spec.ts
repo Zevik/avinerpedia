@@ -58,6 +58,25 @@ test('topic page title and canonical (name-based URL, no query string)', async (
   expect(new URL(canonical!).pathname).toBe(href);
 });
 
+test('home and menu pages share their own image, served from this site', async ({ page, request }) => {
+  const hubs: [string, string][] = [
+    ['/', 'og-default.jpg'], ['/videos', 'og-videos.jpg'], ['/articles', 'og-articles.jpg'], ['/qa', 'og-qa.jpg'],
+    ['/series', 'og-series.jpg'], ['/topics', 'og-topics.jpg'], ['/french', 'og-french.jpg'],
+  ];
+  for (const [path, file] of hubs) {
+    await page.goto(path);
+    const image = (await meta(page, 'property', 'og:image'))!;
+    const url = (await meta(page, 'property', 'og:url'))!;
+    expect(image, path).toMatch(new RegExp(`/${file.replace('.', '\\.')}$`));
+    // og:url and og:image must be on a host that serves this app (not a domain still on the old wiki).
+    expect(new URL(image).host, path).toBe(new URL(url).host);
+    const img = await request.get(image, { maxRedirects: 0 });
+    expect(img.status(), image).toBe(200);
+    expect(img.headers()['content-type'], image).toContain('image/jpeg');
+    expect((await request.get(url, { maxRedirects: 0 })).status(), url).toBe(200);
+  }
+});
+
 test('hub pages have their own titles; search is noindex', async ({ page }) => {
   await page.goto('/videos');
   await expect(page).toHaveTitle(/^סרטונים/);

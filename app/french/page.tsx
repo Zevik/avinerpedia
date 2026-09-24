@@ -5,12 +5,13 @@ export const revalidate = 86400;
 import Link from 'next/link';
 import { BookOpen, Video, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
   title: 'שיעורי הרב אבינר בצרפתית | Cours du Rav Aviner en français',
   description: 'Les cours du Rav Chlomo Aviner en français - Emouna, Erets Israel, La Paracha de la semaine',
   path: '/french',
+  image: OG_IMAGES.french,
 });
 
 async function getFrenchContent() {

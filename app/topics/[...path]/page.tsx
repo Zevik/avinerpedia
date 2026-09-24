@@ -5,7 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { ArticleCard } from '@/components/ArticleCard';
 import { getContentItems } from '@/lib/db';
 import { findNodeBySegments, getFilterTree, nodeHref } from '@/lib/filters';
-import { pageMetadata } from '@/lib/seo';
+import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
 const PAGE_SIZE = 30;
 
@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: Pick<TopicPageProps, 'params'
     title: `${node.name} - שיעורים ומאמרים | הרב שלמה אבינר`,
     description: `${node.count} שיעורים, מאמרים ושאלות ותשובות בנושא ${chain.map((n) => n.name).join(' › ')} מאת הרב שלמה אבינר.`,
     path: nodeHref(node.path),
+    image: OG_IMAGES.topics,
   });
 }
 
