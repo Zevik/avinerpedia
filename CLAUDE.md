@@ -33,7 +33,7 @@ npm run test:e2e     # Playwright: all public pages, series/topic flows, admin g
 npm run test:all     # typecheck + unit + e2e — run before every commit
 ```
 
-Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first). Output goes to `playwright-report/` and `test-results/` (gitignored).
+Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first; on Windows `next start` can leave prefetched `/series/[id]` navigations stuck — not reproducible on Vercel). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. Output goes to `playwright-report/` and `test-results/` (gitignored).
 
 ## Environment variables
 
@@ -53,6 +53,7 @@ Schema lives in `supabase/` and is applied by hand in the Supabase SQL Editor (t
 
 1. `supabase/schema.sql` — base tables, indexes, RLS, functions (run once on an empty `public` schema)
 2. `supabase/migrations/002_taxonomy.sql` — topics, series and their links (idempotent)
+3. `supabase/migrations/003_filter_tree.sql` — the curated filter tree (idempotent)
 
 ### Tables
 
@@ -62,6 +63,7 @@ Schema lives in `supabase/` and is applied by hand in the Supabase SQL Editor (t
 - **`content_topics`** — item ↔ topic links, `is_primary` marks the most specific topic.
 - **`series`** — `name`, `detected_by` (`category` / `title_pattern` / `category+title` / `title_prefix`), `episode_count`.
 - **`admin_users`** — `user_id` (→ `auth.users`), `role` (`admin` / `editor`).
+- **`filter_nodes`** (003) — the curated filter tree: `path` ("מועדים › חנוכה › הלכות חנוכה"), `parent_id`, `depth`, `sort_order`. **`content_filter_nodes`** links each item to its nodes *and their ancestors* (so a core topic matches everything beneath it). **`filter_node_counts`** holds active-item counts per node per page (`main_category`, or `__has_video` for /videos). `content_items` gained `primary_node_id`, `sa_section` (Shulchan Aruch section, Q&A axis) and `source_collection` (e.g. ישיבת עטרת ירושלים — a source, not a topic).
 
 There are no views.
 
@@ -95,9 +97,16 @@ UI:
 | `/content/[id]` | Item; `SeriesNav` (episode N of M, prev/next) if it has `series_id`; `TopicChips` at the bottom |
 | `/topics` | Root topics with sub-topic chips; standalone topics below |
 | `/topics/[id]` | Breadcrumb, sub-topics with totals, paginated tagged items. `?from=<parentId>` picks which parent the breadcrumb follows |
-| `/videos`, `/articles`, `/qa` | Filter by `main_category` + `sub_category` (legacy `categories` model) |
+| `/videos`, `/articles`, `/qa` | `FilteredContentPage` + `TopicFilter`: curated tree with counts, search inside the filter, drawer on mobile; `?topic=<node id>` (old `?topic=<name>` links resolve by name); `/qa` adds Shulchan Aruch chips (`?sa=`) |
 
-Queries for the taxonomy live in `lib/taxonomy.ts`; the rest in `lib/db.ts`.
+Queries for the taxonomy live in `lib/taxonomy.ts`, for the filter tree in `lib/filters.ts`; the rest in `lib/db.ts`.
+
+### Curated filter tree (topics for filtering)
+
+The raw 914 `topics` (many are single questions, typos, concatenated paths) stay as tags; filtering uses the curated tree designed in `docs/TOPIC_TAXONOMY_DRAFT.md`: 11 core topics (הלכה, מועדים, אמונה, תורה ולימוד, תפילה, מדינת ישראל וצה"ל, אקטואליה ותרבות, מוסר ומידות, זוגיות ומשפחה, חינוך, אישים) → sub-topics → a third level ("הלכות X", or פרשת השבוע › חומש › פרשה). Series are their own entity; sources (ישיבת עטרת ירושלים, שו"ת סמס...) are `source_collection` metadata.
+
+- **`docs/topic-taxonomy-mapping.csv` is the editable source of truth** (one row per source topic → node). Regenerate the draft with `node scripts/source/draft-topic-taxonomy.mjs` (tree definition inside), then apply with `node scripts/source/apply-topic-taxonomy.mjs` (dry run; `--show-title` lists title-based guesses) and `--apply` (backup first; rewrites links, counts, `sub_category` = curated leaf name). Items get nodes from their topics, else their series, else strict title keywords (parashot only as "פרשת X" / "X ע\"ה"), else Q&A → הלכה; ~97% coverage.
+- After an apply, run `select * from public.sync_content_categories();` in the SQL Editor (legacy `categories` follow `sub_category`).
 
 ## SEO and sharing
 

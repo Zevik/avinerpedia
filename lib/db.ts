@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { ContentItem, ContentFilters, MainCategory, Category } from './types';
+import { ContentItem, ContentFilters, Category } from './types';
 
 /**
  * Fetch content items with optional filtering
@@ -29,10 +29,19 @@ export async function getCategories() {
  * Filter items by category ID
  */
 export async function getContentItems(filters?: ContentFilters): Promise<ContentItem[]> {
+  // A curated-tree node filters through content_filter_nodes (which already includes each
+  // item's ancestor nodes, so a core topic matches everything beneath it).
   let query = supabase
     .from('content_items')
-    .select('*')
+    .select(filters?.node_id ? '*, content_filter_nodes!inner(node_id)' : '*')
     .order('created_at', { ascending: false });
+
+  if (filters?.node_id) {
+    query = query.eq('content_filter_nodes.node_id', filters.node_id);
+  }
+  if (filters?.sa_section) {
+    query = query.eq('sa_section', filters.sa_section);
+  }
 
   // Filter by is_active unless include_inactive is true
   if (!filters?.include_inactive) {
@@ -82,7 +91,7 @@ export async function getContentItems(filters?: ContentFilters): Promise<Content
     throw error;
   }
 
-  return data || [];
+  return (data || []) as unknown as ContentItem[];
 }
 
 /**
@@ -193,70 +202,6 @@ export async function getLatestQA(limit: number = 10): Promise<ContentItem[]> {
 }
 
 /**
- * Get unique sub-categories for filtering
- */
-export async function getSubCategories(mainCategory: MainCategory): Promise<string[]> {
-  // Try to get from categories table first (cleaner source)
-  const { data: catData, error: catError } = await supabase
-    .from('categories')
-    .select('name, parent_id')
-    .eq('type', 'sub');
-
-  if (!catError && catData && catData.length > 0) {
-    // We need to filter by main_category, but sub-cats link to parent ID, not name.
-    // So we first find the main category ID.
-    const { data: mainCat } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('name', mainCategory)
-      .eq('type', 'main')
-      .single();
-
-    if (mainCat) {
-      return catData
-        .filter(c => c.parent_id === mainCat.id)
-        .map(c => c.name)
-        .sort();
-    }
-  }
-
-  // Fallback to existing logic if categories table is empty or main cat not found
-  const { data, error } = await supabase
-    .from('content_items')
-    .select('sub_category')
-    .eq('main_category', mainCategory)
-    .not('sub_category', 'is', null);
-
-  if (error) {
-    console.error('Error fetching sub-categories:', error);
-    return [];
-  }
-
-  const unique = [...new Set(data.map(item => item.sub_category))].filter(Boolean) as string[];
-  return unique.sort();
-}
-
-/**
- * Get unique sub-categories for items that have a video
- */
-export async function getVideoSubCategories(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('content_items')
-    .select('sub_category')
-    .not('video_id', 'is', null)
-    .neq('video_id', '')
-    .not('sub_category', 'is', null);
-
-  if (error) {
-    console.error('Error fetching video sub-categories:', error);
-    return [];
-  }
-
-  const unique = [...new Set(data.map(item => item.sub_category))].filter(Boolean) as string[];
-  return unique.sort();
-}
-
-/**
  * Wiki related functions (restored for backward compatibility and specialized fetching)
  */
 
@@ -325,7 +270,14 @@ export async function searchContent(query: string, limit: number = 20): Promise<
 export async function getContentCount(filters?: ContentFilters): Promise<number> {
   let query = supabase
     .from('content_items')
-    .select('*', { count: 'exact', head: true });
+    .select(filters?.node_id ? '*, content_filter_nodes!inner(node_id)' : '*', { count: 'exact', head: true });
+
+  if (filters?.node_id) {
+    query = query.eq('content_filter_nodes.node_id', filters.node_id);
+  }
+  if (filters?.sa_section) {
+    query = query.eq('sa_section', filters.sa_section);
+  }
 
   // Filter by is_active unless include_inactive is true
   if (!filters?.include_inactive) {

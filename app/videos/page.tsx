@@ -1,66 +1,22 @@
-import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
 import { pageMetadata } from '@/lib/seo';
+import { FilteredContentPage } from '@/components/FilteredContentPage';
 
 export const metadata = pageMetadata({
   title: "סרטונים - שיעורי וידאו של הרב שלמה אבינר | אבינרפדיה",
   description: "אלפי שיעורי וידאו של הרב שלמה אבינר בכל נושאי התורה, ההלכה, האמונה והמדינה, עם סינון לפי נושא.",
   path: '/videos',
 });
-import { FilterSidebar } from '@/components/FilterSidebar';
-import { getContentItems, getVideoSubCategories } from '@/lib/db';
-import { InfiniteContentList } from '@/components/InfiniteContentList';
-import type { ContentFilters } from '@/lib/types';
 
-interface VideosPageProps {
-  searchParams: Promise<{ topic?: string }>;
-}
-
-export default async function VideosPage({ searchParams }: VideosPageProps) {
-  const params = await searchParams;
-  const selectedTopic = params.topic;
-
-  const filters: ContentFilters = {
-    sub_category: selectedTopic,
-    has_video: true,
-    limit: 50,
-  };
-
-  // Fetch initial videos and categories
-  const [videos, categories] = await Promise.all([
-    getContentItems(filters),
-    getVideoSubCategories(),
-  ]);
-
+export default async function VideosPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold mb-8">סרטונים</h1>
-
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <Suspense fallback={<div>טוען...</div>}>
-              <FilterSidebar
-                categories={categories}
-                currentCategory={selectedTopic}
-                basePath="/videos"
-              />
-            </Suspense>
-          </div>
-
-          {/* Content Grid */}
-          <div className="flex-1">
-            {/* key: the list keeps its items in state, so remount it when the topic changes. */}
-            <InfiniteContentList
-              key={selectedTopic ?? 'all'}
-              initialItems={videos}
-              filters={filters}
-              type="video"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <FilteredContentPage
+      title="סרטונים"
+      basePath="/videos"
+      scope="__has_video"
+      baseFilters={{ has_video: true }}
+      type="video"
+      searchParams={await searchParams}
+    />
   );
 }

@@ -86,6 +86,22 @@ export interface ContentFilters {
   offset?: number;
   has_video?: boolean;
   include_inactive?: boolean;
+  /** Curated filter tree node (supabase/migrations/003_filter_tree.sql); includes descendants. */
+  node_id?: number;
+  /** Q&A Shulchan Aruch section (אורח חיים / יורה דעה / אבן העזר / חושן משפט). */
+  sa_section?: string;
+}
+
+/** A node of the curated filter tree with its active item count for the current page. */
+export interface FilterNode {
+  id: number;
+  path: string;
+  name: string;
+  parent_id: number | null;
+  depth: number;
+  sort_order: number;
+  count: number;
+  children: FilterNode[];
 }
 
 // Type for series grouping (by sub_category)
