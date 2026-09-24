@@ -21,25 +21,22 @@ export function meirLessonUrl(meirId: string): string {
 }
 
 /**
+ * Thumbnail for list cards (sync, client-safe): YouTube, or the Vimeo thumbnail of a
+ * Machon Meir lesson. null for Maale and Meir lessons without a known Vimeo video.
+ */
+export function cardThumbnail(videoId: string | null | undefined): string | null {
+    if (!videoId) return null;
+    if (videoId.startsWith('Meir:')) {
+        const vimeoId = vimeoByMeirId[videoId.slice('Meir:'.length).split('&')[0]];
+        return vimeoId ? `https://vumbnail.com/${vimeoId}.jpg` : null;
+    }
+    if (videoId.includes('Maale:')) return null;
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+}
+
+/**
  * Gets a thumbnail URL for a given video provider and ID.
  */
 export async function getVideoThumbnail(videoId: string): Promise<string | null> {
-    if (!videoId) return null;
-
-    if (videoId.includes('Meir:')) {
-        const meirId = videoId.replace('Meir:', '').split('&')[0];
-        const vimeoId = await getVimeoId(meirId);
-        if (vimeoId) {
-            return `https://vumbnail.com/${vimeoId}.jpg`;
-        }
-        return null;
-    }
-
-    if (videoId.includes('Maale:')) {
-        // Maale doesn't have a predictable thumbnail URL easily accessible
-        return null;
-    }
-
-    // Assume YouTube if no prefix
-    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+    return cardThumbnail(videoId);
 }

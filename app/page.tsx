@@ -1,5 +1,8 @@
 import Link from 'next/link';
-import { BookOpen, MessageSquare, FileText, Video, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
+import { BookOpen, MessageSquare, FileText, Video, ArrowLeft, Play } from 'lucide-react';
+import { cardSummary } from '@/lib/utils';
+import { cardThumbnail } from '@/lib/video';
 import { getContentItems } from '@/lib/db';
 import { getAllSeries } from '@/lib/taxonomy';
 
@@ -27,6 +30,10 @@ export default async function Home() {
     title: s.name,
     summary: `${s.episode_count} שיעורים`,
   }));
+
+  // Content items: a clean summary (not "8519&catid=4072" leftovers) and a video thumbnail.
+  const cards = (items: any[]) =>
+    items.map((item) => ({ ...item, summary: cardSummary(item.summary), thumbnail: cardThumbnail(item.video_id) }));
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-secondary/20" dir="rtl">
@@ -60,7 +67,7 @@ export default async function Home() {
         <CategorySection
           title="שו&quot;ת הלכה"
           icon={<MessageSquare className="w-8 h-8" />}
-          items={qaItems}
+          items={cards(qaItems)}
           viewAllHref="/qa"
           color="green"
         />
@@ -69,7 +76,7 @@ export default async function Home() {
         <CategorySection
           title="מאמרים"
           icon={<FileText className="w-8 h-8" />}
-          items={articlesItems}
+          items={cards(articlesItems)}
           viewAllHref="/articles"
           color="purple"
         />
@@ -78,7 +85,7 @@ export default async function Home() {
         <CategorySection
           title="סרטונים"
           icon={<Video className="w-8 h-8" />}
-          items={videosItems}
+          items={cards(videosItems)}
           viewAllHref="/videos"
           color="red"
         />
@@ -156,7 +163,18 @@ function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (i
               href={itemHref(item.id)}
               className="group block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
             >
-              <div className={`h-2 w-full ${colors.bg}`}></div>
+              {item.thumbnail ? (
+                <div className="relative aspect-video bg-muted">
+                  <Image src={item.thumbnail} alt={item.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow">
+                      <Play className={`w-6 h-6 ${colors.text} mr-0.5`} fill="currentColor" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`h-2 w-full ${colors.bg}`}></div>
+              )}
               <div className="p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-${color}-600 transition-colors">
                   {item.title}

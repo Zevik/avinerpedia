@@ -29,6 +29,21 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
+ * A summary fit to show on a card, or null. Some imported summaries are leftovers of
+ * Machon Meir embeds ("8519&catid=4072"), a bare YouTube id, or wiki markup.
+ */
+export function cardSummary(summary: string | null | undefined): string | null {
+  if (!summary || /catid=|cat_id=/.test(summary)) return null;
+  const text = summary
+    .replace(/^[A-Za-z0-9_-]{11}\s+/, '') // leading YouTube id
+    .replace(/={2,}/g, ' ')
+    .replace(/\\/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length >= 10 ? text : null;
+}
+
+/**
  * Get YouTube video thumbnail URL
  */
 export function getYouTubeThumbnail(videoId: string, quality: 'default' | 'medium' | 'high' | 'maxres' = 'medium'): string {

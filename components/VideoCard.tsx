@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import type { ContentItem } from '@/lib/types';
+import { cardThumbnail } from '@/lib/video';
 
 interface VideoCardProps {
   item: ContentItem;
@@ -11,15 +12,11 @@ interface VideoCardProps {
 export function VideoCard({ item, className = '' }: VideoCardProps) {
   const videoId = item.video_id;
 
-  // Determine if it's a YouTube video, Machon Meir, or Maale
-  const isYouTube = videoId && !videoId.includes('Maale:') && !videoId.includes('Meir:');
   const isMeir = videoId && videoId.includes('Meir:');
   const isMaale = videoId && videoId.includes('Maale:');
 
-  // Use pre-resolved thumbnail if available, otherwise calculate it
-  const thumbnailUrl = (item as any).thumbnail || (isYouTube
-    ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-    : null);
+  // YouTube, or the Vimeo thumbnail of a Machon Meir lesson; placeholder otherwise.
+  const thumbnailUrl = cardThumbnail(videoId);
 
   return (
     <Link
