@@ -187,6 +187,11 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
 }
 
 // Helper to remove video embeds from content since we show the main player
+/**
+ * The body under a video page's player: embeds removed (the player above shows the video).
+ * Note: other embeds can't simply be kept — on 52 pages they are dead videos that
+ * check-dead-videos replaced in video_id but left in the text.
+ */
 function stripVideoContent(content: string): string {
   if (!content) return '';
 

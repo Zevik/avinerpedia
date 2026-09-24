@@ -2,13 +2,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { getVimeoId, meirLessonUrl } from '@/lib/video';
+import { cleanContent } from '@/lib/content-clean';
 
 interface ContentRendererProps {
   content: string;
   className?: string;
 }
 
-export async function ContentRenderer({ content, className = '' }: ContentRendererProps) {
+export async function ContentRenderer({ content: rawContent, className = '' }: ContentRendererProps) {
+  // Import leftovers (CR CR LF line ends, wiki category links, wiki syntax): lib/content-clean.ts
+  const content = cleanContent(rawContent);
   // Extract YouTube video IDs from <youtube> tags
   const youtubeMatches = content.match(/<youtube>([^<]+)<\/youtube>/g);
   const youtubeIds = youtubeMatches?.map(match => {
