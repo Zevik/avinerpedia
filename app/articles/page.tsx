@@ -59,7 +59,9 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
               </div>
             )}
 
+            {/* key: the list keeps its items in state, so remount it when the topic changes. */}
             <InfiniteContentList
+              key={selectedTopic ?? 'all'}
               initialItems={articles}
               filters={filters}
               type="article"

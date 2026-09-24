@@ -51,7 +51,9 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
 
           {/* Content Grid */}
           <div className="flex-1">
+            {/* key: the list keeps its items in state, so remount it when the topic changes. */}
             <InfiniteContentList
+              key={selectedTopic ?? 'all'}
               initialItems={videos}
               filters={filters}
               type="video"

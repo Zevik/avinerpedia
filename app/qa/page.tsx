@@ -59,7 +59,9 @@ export default async function QAPage({ searchParams }: QAPageProps) {
               </div>
             )}
 
+            {/* key: the list keeps its items in state, so remount it when the topic changes. */}
             <InfiniteContentList
+              key={selectedTopic ?? 'all'}
               initialItems={qaItems}
               filters={filters}
               type="qa"
