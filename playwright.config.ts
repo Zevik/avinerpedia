@@ -9,6 +9,9 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 60_000,
   fullyParallel: true,
+  // Against the live site, stay gentle: many parallel browsers (each prefetching dozens of
+  // links) overload cold serverless functions and make navigations time out.
+  workers: REMOTE ? 2 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: REMOTE || `http://localhost:${PORT}`,
@@ -23,9 +26,8 @@ export default defineConfig({
   webServer: REMOTE
     ? undefined
     : {
-        // E2E_PROD=1 tests a local production build (npm run build first). Note: on Windows,
-        // `next start` sometimes leaves prefetched dynamic routes (e.g. /series/[id]) stuck on
-        // client navigation; the same flow works on Vercel, so prefer E2E_BASE_URL for that.
+        // E2E_PROD=1 tests a local production build (npm run build first). On Windows,
+        // `next start` can stall prefetched /series/[id] navigations; prefer E2E_BASE_URL.
         command: process.env.E2E_PROD ? `npm run start -- -p ${PORT}` : `npm run dev -- -p ${PORT}`,
         url: `http://localhost:${PORT}`,
         reuseExistingServer: true,

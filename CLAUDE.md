@@ -33,7 +33,7 @@ npm run test:e2e     # Playwright: all public pages, series/topic flows, admin g
 npm run test:all     # typecheck + unit + e2e — run before every commit
 ```
 
-Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first; on Windows `next start` can leave prefetched `/series/[id]` navigations stuck — not reproducible on Vercel). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. Output goes to `playwright-report/` and `test-results/` (gitignored).
+Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first; locally on Windows, prefetched `/series/[id]` client navigations can stall). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored).
 
 ## Environment variables
 
