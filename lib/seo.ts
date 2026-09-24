@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getVimeoId } from './video';
 
 /**
  * Shared SEO helpers. Every page builds its metadata through `pageMetadata` because
@@ -38,6 +39,15 @@ export function pageMetadata({ title, description = DEFAULT_DESCRIPTION, path, i
 export function youtubeThumbnail(videoId: string | null | undefined) {
   if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) return null;
   return { url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`, width: 480, height: 360 };
+}
+
+/** Share image for any video id: YouTube thumbnail, or the Vimeo thumbnail of a Machon Meir lesson. */
+export async function videoThumbnail(videoId: string | null | undefined) {
+  if (videoId?.startsWith('Meir:')) {
+    const vimeoId = await getVimeoId(videoId.slice('Meir:'.length));
+    return vimeoId ? { url: `https://vumbnail.com/${vimeoId}.jpg`, width: 640, height: 360 } : null;
+  }
+  return youtubeThumbnail(videoId);
 }
 
 /** Plain-text description (<= 160 chars) from a summary or markdown/HTML body. */

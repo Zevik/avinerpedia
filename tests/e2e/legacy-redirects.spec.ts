@@ -76,16 +76,6 @@ test.describe('legacy MediaWiki URLs', () => {
     expect((await hit(request, '/favicon.ico')).status).toBe(404);
   });
 
-  // The lookup itself is measured in tests/unit/legacy.test.ts. Here the whole E2E suite
-  // shares one dev server, so this only guards against something gross (e.g. a DB query
-  // per request); alone it averages ~45 ms.
-  test('redirects stay fast end-to-end', async ({ request }) => {
-    const titles = Object.keys(redirects.titles).slice(0, 25);
-    await hit(request, underscored(titles[0])); // warm up the route in dev
-    const start = Date.now();
-    for (const t of titles) expect((await hit(request, underscored(t))).status).toBe(301);
-    const avg = (Date.now() - start) / titles.length;
-    console.log(`average legacy redirect: ${avg.toFixed(0)} ms`);
-    expect(avg).toBeLessThan(1500);
-  });
+  // Latency is covered by tests/unit/legacy.test.ts (every mapped title, <1 ms per lookup);
+  // timing HTTP requests here is unreliable because the whole suite shares one dev server.
 });

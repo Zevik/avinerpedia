@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { getVimeoId } from '@/lib/video';
+import { getVimeoId, meirLessonUrl } from '@/lib/video';
 
 interface ContentRendererProps {
   content: string;
@@ -24,18 +24,19 @@ export async function ContentRenderer({ content, className = '' }: ContentRender
   for (const match of meirMatches) {
     const [fullTag, id] = match;
     const vimeoId = await getVimeoId(id);
-    const embedUrl = vimeoId
-      ? `https://player.vimeo.com/video/${vimeoId}`
-      : `https://meirtv.com/shiurim/shiur-${id}/fvp/`;
-
-    const replacement = `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
+    // Only ever embed the bare Vimeo player. Embedding the meirtv.com page itself brings
+    // its cookie banner, ads and chat widget into our site, so without a known Vimeo id
+    // we link out instead.
+    const replacement = vimeoId
+      ? `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
         <iframe
           class="absolute top-0 left-0 w-full h-full rounded-lg"
-          src="${embedUrl}"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          src="https://player.vimeo.com/video/${vimeoId}"
+          allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
         ></iframe>
-      </div>`;
+      </div>`
+      : `<p><a href="${meirLessonUrl(id)}" target="_blank" rel="noopener noreferrer">לצפייה בשיעור באתר מכון מאיר</a></p>`;
 
     processedContent = processedContent.replace(fullTag, replacement);
   }

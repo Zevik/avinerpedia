@@ -2,22 +2,22 @@
  * Utility for handling video embeds and thumbnails
  */
 
+import meirVimeo from './meir-vimeo.json';
+
+const vimeoByMeirId = meirVimeo as Record<string, string | null>;
+
 /**
- * Resolves a Machon Meir lesson ID to a Vimeo ID if possible.
- * This is done server-side to avoid CORS issues.
+ * Vimeo id of a Machon Meir lesson, from lib/meir-vimeo.json (built offline by
+ * scripts/build-meir-vimeo-map.mjs). meirtv.com is not scraped at request time: that
+ * fails from Vercel's servers. null = no known video; callers link to the lesson instead.
  */
 export async function getVimeoId(meirId: string): Promise<string | null> {
-    try {
-        const response = await fetch(`https://meirtv.com/shiurim/shiur-${meirId}/`, {
-            next: { revalidate: 86400 } // Cache for 24 hours
-        });
-        const html = await response.text();
-        const match = html.match(/player\.vimeo\.com\/video\/(\d+)/);
-        return match ? match[1] : null;
-    } catch (error) {
-        console.error('Error resolving Vimeo ID:', error);
-        return null;
-    }
+    return vimeoByMeirId[meirId.split('&')[0]] ?? null;
+}
+
+/** The lesson's page on meirtv.com, for "watch on Machon Meir" links. */
+export function meirLessonUrl(meirId: string): string {
+    return `https://meirtv.com/shiurim/shiur-${meirId.split('&')[0]}/`;
 }
 
 /**

@@ -52,6 +52,15 @@ test('home page links open a content page', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+// 7847 is a Machon Meir lesson: only the bare Vimeo player is embedded, never the meirtv.com
+// page itself (which brings its own cookie banner, ads and chat widget).
+test('Machon Meir lesson embeds only the Vimeo player', async ({ page }) => {
+  await page.goto('/content/7847');
+  await expect(page.locator('iframe[src="https://player.vimeo.com/video/232304444"]')).toHaveCount(1);
+  await expect(page.locator('iframe[src*="meirtv.com"]')).toHaveCount(0);
+  expect(await page.locator('meta[property="og:image"]').first().getAttribute('content')).toBe('https://vumbnail.com/232304444.jpg');
+});
+
 // 7838 was hidden by scripts/check-dead-videos.mjs (its only content was a removed YouTube video).
 test('hidden (inactive) item shows the not-found page', async ({ page }) => {
   await page.goto('/content/7838');

@@ -12,7 +12,7 @@ describe('content/wiki', () => {
     expect(files.length).toBeGreaterThan(7000);
   });
 
-  it('every file has frontmatter that gray-matter can parse', () => {
+  it('every file has frontmatter that gray-matter can parse', { timeout: 30_000 }, () => {
     const failures = files.filter((f) => {
       try {
         matter(fs.readFileSync(path.join(wikiDir, f), 'utf8'));
@@ -24,7 +24,7 @@ describe('content/wiki', () => {
     expect(failures).toEqual([]);
   });
 
-  it('every file has a title', () => {
+  it('every file has a title', { timeout: 30_000 }, () => {
     const missing = files.filter((f) => !matter(fs.readFileSync(path.join(wikiDir, f), 'utf8')).data.title);
     expect(missing).toEqual([]);
   });

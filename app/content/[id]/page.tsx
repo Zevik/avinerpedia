@@ -2,11 +2,11 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
-import { describe, pageMetadata, youtubeThumbnail } from '@/lib/seo';
+import { describe, pageMetadata, videoThumbnail } from '@/lib/seo';
 import { Calendar, Tag } from 'lucide-react';
 import { getContentItemById } from '@/lib/db';
 import { ContentRenderer } from '@/components/ContentRenderer';
-import { getVimeoId } from '@/lib/video';
+import { getVimeoId, meirLessonUrl } from '@/lib/video';
 import { getContentTopics, getSeriesNavigation } from '@/lib/taxonomy';
 import { SeriesNav } from '@/components/SeriesNav';
 import { TopicChips } from '@/components/TopicChips';
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: ContentPageProps): Promise<Me
     title: `${item.title} - הרב שלמה אבינר | אבינרפדיה`,
     description: describe(item.summary, item.content_md),
     path: `/content/${item.id}`,
-    image: youtubeThumbnail(item.video_id),
+    image: await videoThumbnail(item.video_id),
     type: 'article',
   });
 }
@@ -115,18 +115,33 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
               </a>
             </div>
           </div>
-        ) : isMeir ? (
+        ) : isMeir && vimeoId ? (
+          // Only the bare Vimeo player: embedding the meirtv.com page itself would bring its
+          // cookie banner, ads and chat widget into our site.
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src={vimeoId
-                ? `https://player.vimeo.com/video/${vimeoId}`
-                : `https://meirtv.com/shiurim/shiur-${videoId.replace('Meir:', '').split('&')[0]}/fvp/`
-              }
+              src={`https://player.vimeo.com/video/${vimeoId}`}
               title={item.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
             />
+          </div>
+        ) : isMeir ? (
+          <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+            <div className="text-center">
+              <p className="text-lg text-muted-foreground mb-4">
+                השיעור מתארח באתר מכון מאיר
+              </p>
+              <a
+                href={meirLessonUrl(videoId.replace('Meir:', ''))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                צפה בשיעור במכון מאיר
+              </a>
+            </div>
           </div>
         ) : (
           <div className="w-full h-96 flex items-center justify-center bg-muted">
