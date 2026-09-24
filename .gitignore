@@ -48,3 +48,6 @@ yaml*.json
 
 # Raw source data (contains MediaWiki user table - never commit)
 /support/
+
+# Review documents (the *.csv rule above is for old data dumps)
+!docs/*.csv
