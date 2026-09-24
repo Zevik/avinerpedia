@@ -81,7 +81,7 @@ select * from public.sync_content_categories();
 
 | סקריפט | תפקיד |
 |---|---|
-| `scripts/validate-youtube-videos.ts` | בדיקת סרטוני YouTube שהוסרו או הפכו לפרטיים |
+| `scripts/check-dead-videos.mjs` | בדיקת סרטוני YouTube שהוסרו/פרטיים: החלפה לסרטון חלופי, הסרת הנגן מפריטים עם טקסט, והסתרת פריטים שאין בהם דבר מלבד קישור מת (`--apply` לכתיבה, עם גיבוי) |
 | `scripts/push-vercel-env.mjs` | העברת משתני Supabase מ-`.env.local` ל-Vercel (אחרי `npx vercel link --project avinerpedia`) |
 
 ## בדיקות

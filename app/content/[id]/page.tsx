@@ -16,7 +16,8 @@ export default async function ContentPage({ params }: ContentPageProps) {
   const { id } = await params;
   const item = await getContentItemById(parseInt(id, 10));
 
-  if (!item) {
+  // Hidden items (redirects, dead-video-only pages) stay reachable in /admin but not here.
+  if (!item || !item.is_active) {
     notFound();
   }
 

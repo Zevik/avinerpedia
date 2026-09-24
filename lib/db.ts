@@ -277,6 +277,7 @@ export async function getWikiPosts(limit: number = 60, offset: number = 0, categ
   let query = supabase
     .from('content_items')
     .select('*')
+    .eq('is_active', true)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -310,6 +311,7 @@ export async function searchContent(query: string, limit: number = 20): Promise<
       type: 'websearch',
       config: 'simple',
     })
+    .eq('is_active', true)
     .limit(limit);
 
   if (error) {

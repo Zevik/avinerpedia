@@ -14,6 +14,7 @@ async function getFrenchContent() {
     .from('content_items')
     .select('*')
     .eq('main_category', 'Cours en Français')
+    .eq('is_active', true)
     .order('title');
 
   if (error) {

@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         .from('content_items')
         .select('id, title, main_category, sub_category')
         .ilike('title', `%${query}%`)
+        .eq('is_active', true)
         .limit(10);
 
     if (error) {

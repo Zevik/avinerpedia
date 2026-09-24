@@ -117,6 +117,7 @@ Gotchas:
 - **`import-from-wiki.ts` overwrites `main_category`/`sub_category` with old heuristics** (it put 1,745 articles into Q&A because their text contained `ש:`). Re-run the enrichment right after any re-import.
 - The dump's `categorylinks` table is **stale** for ~2,000 pages bot-edited in March 2026 (the wiki's job queue never ran); `build-taxonomy` merges in categories parsed from the latest wikitext.
 - 371 DB items are source-wiki redirects (aliases); they are `is_active = false`.
+- **Inactive items are hidden everywhere public**: lists, search, autocomplete, series/topic pages, and `/content/[id]` (which returns the not-found page). Only `/admin` sees them. Any new public query on `content_items` must filter `is_active = true`.
 - Category names in the source are sometimes HTML-entity-encoded, even doubly (`&amp;quot;`), and use `''` for `"`; normalize before comparing.
 - The source site is behind Cloudflare bot protection; use the dump/XML export rather than crawling.
 
@@ -124,7 +125,7 @@ Gotchas:
 
 - **RTL Hebrew**: `<html lang="he" dir="rtl">` in `app/layout.tsx`. Use `space-x-reverse` with `space-x-*`, `ArrowLeft` for "forward", `ArrowRight` for "back".
 - **Content HTML**: imported content contains raw HTML and wiki tags. `ContentRenderer` renders `<youtube>` and Machon Meir tags (`<machonMeeir>`, `…FR|IL|EN|France>`) as embeds; any unknown lowercase tag makes React log "tag is unrecognized" (the E2E tests fail on console errors). Raw `class=`/`frameborder=` attributes need React spellings if content is compiled as MDX.
-- **Video ids**: YouTube id, `Meir:<id>` (meirtv/Vimeo, resolved by `lib/video.ts`), or `Maale:<path>`. Many YouTube thumbnails 404 because videos were removed; tests ignore image failures.
+- **Video ids**: YouTube id, `Meir:<id>` (meirtv/Vimeo, resolved by `lib/video.ts`), or `Maale:<path>`. Removed/private YouTube videos: `node scripts/check-dead-videos.mjs` checks every id via YouTube oEmbed (no API key, results cached in `support/derived/youtube-status.json`) and with `--apply` switches to a working alternative id, drops the player from items that still have text, or hides items that were only a dead link (first run, 2026-09-24: 117 dead ids → 49 switched, 4 text-only, 63 hidden). Re-run it periodically. Some thumbnails still 404 for playable videos; tests ignore image failures.
 - **404s under streaming**: `app/loading.tsx` makes Next stream, so `notFound()` returns HTTP 200 with the not-found page and a `noindex` meta tag. Test for the meta tag, not the status.
 - **Supabase clients**: `lib/supabase.ts` exports one `supabase` — plain anon client on the server, cookie-based auth-helpers client in the browser (carries the admin session so `is_admin()` writes pass). A HEAD/`count` request returns success even for a missing table; probe with a real `select`.
 - **Line endings**: files are CRLF on Windows; scripted find/replace must account for `\r\n` (prefer the Edit tool).
@@ -145,5 +146,5 @@ Gotchas:
 - **Content refresh**: 2,045 pages were edited on the source after the MDX export (2026-02-14), and 246 items are empty in the DB though the source has text. Needs a wikitext → Markdown conversion from `support/avinerpedia.xml`.
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
 - **Missing pages**: 6 source pages (titles with `\`) are not in the DB.
-- **YouTube validation**: run `scripts/validate-youtube-videos.ts` to find removed/private videos (source of the thumbnail 404s).
+- **YouTube validation**: done once with `scripts/check-dead-videos.mjs`; re-run periodically (videos keep disappearing). Meir/Maale videos are not checked.
 - **Cleanups**: `/wiki` (an older all-content listing via `getWikiPosts`, not linked from the navbar) and `/admin/posts` (a redirect to `/admin/content`) are leftovers; `getSeriesGroups` in `lib/db.ts` is unused; the `next-mdx-remote` dependency is unused (`gray-matter` is still used by the import script and unit tests); `@supabase/auth-helpers-nextjs` is deprecated in favor of `@supabase/ssr`.

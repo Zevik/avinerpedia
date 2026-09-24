@@ -46,9 +46,17 @@ test('home page links open a content page', async ({ page }) => {
   const errors = trackErrors(page);
   await link.click();
   await expect(page).toHaveURL(/\/content\/\d+/, { timeout: 30_000 });
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // The first /content visit compiles the route in dev, so allow more than the default 5s.
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 30_000 });
   await expectNoErrorBoundary(page);
   expect(errors).toEqual([]);
+});
+
+// 7838 was hidden by scripts/check-dead-videos.mjs (its only content was a removed YouTube video).
+test('hidden (inactive) item shows the not-found page', async ({ page }) => {
+  await page.goto('/content/7838');
+  await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
+  await expect(page.locator('iframe[src*="I1LDD3PY9U0"]')).toHaveCount(0);
 });
 
 test('unknown content id shows the not-found page', async ({ page }) => {
