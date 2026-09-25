@@ -57,6 +57,7 @@ Schema lives in `supabase/` and is applied by hand in the Supabase SQL Editor (t
 3. `supabase/migrations/003_filter_tree.sql` — the curated filter tree (idempotent)
 4. `supabase/migrations/004_library.sql` — the content library: `sources` table + `content_items.source_id`, generated `content_items.media_types`, functions `library_match` / `library_items` / `library_facets` (idempotent); then `node scripts/source/apply-sources.mjs --apply`
 5. `supabase/migrations/005_library_sa.sql` — the Q&A Shulchan Aruch section as a library filter (`p_sa`, `sa` facet; replaces the 004 functions)
+6. `supabase/migrations/006_library_sort.sql` — library sort orders (`p_sort`: `daily` / `newest` / `series`, `p_seed`); replaces the functions again and includes 005. `getLibraryItems()` falls back to the older signatures while it isn't applied (newest-first order)
 
 ### Tables
 
@@ -113,6 +114,14 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
 - After an apply, run `select * from public.sync_content_categories();` in the SQL Editor (legacy `categories` follow `sub_category`).
 - **A topic filed under two parents**: the mapping target may name several nodes, `"path | path"` (each node has one `parent_id`, so it is two nodes with the same name). `EXTRA_NODES` in the draft script writes them; the apply script, the series rules and the title-keyword fallback link items to all of them; the legacy category redirect uses the first. Example: שמירת הלשון under both `מוסר ומידות` and `הלכה › בין אדם לחברו` (it used to be classified as a series only; `TOPICS_OVER_SERIES`).
 - **Renaming a node**: rename it in `draft-topic-taxonomy.mjs` and regenerate, then `node scripts/source/rename-filter-node.mjs "<old path>" "<new path>" --apply` **before** `apply-topic-taxonomy.mjs --apply` — the apply upserts by path, so without the in-place rename the node gets a new id and `?topic=<id>` links break. Done for מועדים → חגים ומועדים (2026-09-25). The new site hasn't launched, so its own interim URLs (like `/topics/מועדים`) get no redirects.
+
+### Daily shuffle ("מומלץ היום")
+
+Browsing without a search shows a different selection every day but a fixed order all day: `library_items(p_sort => 'daily', p_seed)` orders by `md5(id || seed)` and the app passes `dailySeed()` (`lib/daily.ts`: today's date in Israel), so pages stay cacheable (the Data Cache key includes the seed) and paging never repeats an item. Used by the library, `/videos` `/articles` `/qa`, topic pages and the home page rows (the series row shuffles the series list with `seededShuffle()`; the home page ISR is `revalidate = 3600` so it turns over within an hour of midnight). Not used: a search (relevance), series episodes (`type=series` → episode order; the series pages are unchanged). Visitors can pick "הכי חדש" (`?sort=newest`: publish_date, else the source page id) — `SortToggle`.
+
+### Home page
+
+Compact hero with the search box (→ `/library?q=`), quick tiles (הלכה, אמונה, חגים ומועדים, זוגיות ומשפחה → `/library?topic=`; שו"ת סמס → `?source=shut-sms`; סדרות לימוד → `/series`), then horizontally scrolling rows (`components/home/ContentRow.tsx`: swipe on mobile, arrows on desktop): פנינים מהארכיון (daily, all types), סדרות לימוד מומלצות (daily), שיעורי וידאו (daily), שו"תים ומאמרים אחרונים (newest). Navbar links share one style; the current section has `aria-current="page"` and a light pill.
 
 ### Library axes: media types and sources
 

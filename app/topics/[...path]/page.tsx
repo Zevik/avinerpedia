@@ -3,16 +3,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronLeft, Library } from 'lucide-react';
 import { LibraryCard } from '@/components/library/LibraryCard';
-import { getContentItems } from '@/lib/db';
-import { getSources, libraryHref } from '@/lib/library';
+import { SortToggle } from '@/components/library/SortToggle';
+import { effectiveSort, getLibraryItems, getSources, libraryHref, LIBRARY_PAGE_SIZE } from '@/lib/library';
 import { findNodeBySegments, getFilterTree, nodeHref } from '@/lib/filters';
 import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
-const PAGE_SIZE = 30;
 
 interface TopicPageProps {
   params: Promise<{ path: string[] }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }
 
 const decode = (s: string) => {
@@ -49,14 +48,19 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
   const node = chain.at(-1);
   if (!node) notFound();
 
-  const page = Math.max(1, Number((await searchParams).page) || 1);
-  const [items, sources] = await Promise.all([
-    getContentItems({ node_id: node.id, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
-    getSources(),
-  ]);
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  // Daily shuffle by default ("מומלץ היום", lib/daily.ts), or newest first.
+  const state = { topic: node.id, sort: sp.sort === 'newest' ? ('newest' as const) : undefined, page };
+  const [{ items, total }, sources] = await Promise.all([getLibraryItems(state), getSources()]);
   const sourceName = new Map(sources.map((s) => [s.id, s.name]));
-  const pages = Math.ceil(node.count / PAGE_SIZE);
-  const pageHref = (p: number) => `${nodeHref(node.path)}${p > 1 ? `?page=${p}` : ''}`;
+  const pages = Math.ceil(total / LIBRARY_PAGE_SIZE);
+  const pageHref = (p: number, sort = state.sort) => {
+    const q = new URLSearchParams();
+    if (sort) q.set('sort', sort);
+    if (p > 1) q.set('page', String(p));
+    return q.size ? `${nodeHref(node.path)}?${q}` : nodeHref(node.path);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-8">
@@ -103,7 +107,10 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 
         {items.length > 0 && (
           <section>
-            {node.children.length > 0 && <h2 className="text-xl font-bold mb-4">כל התכנים בנושא {node.name}</h2>}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              {node.children.length > 0 ? <h2 className="text-xl font-bold">כל התכנים בנושא {node.name}</h2> : <span />}
+              <SortToggle sort={effectiveSort(state)} defaultLabel="מומלץ היום" defaultHref={pageHref(1, undefined)} newestHref={pageHref(1, 'newest')} />
+            </div>
             <ul className="space-y-3">
               {items.map((item) => (
                 <li key={item.id}>

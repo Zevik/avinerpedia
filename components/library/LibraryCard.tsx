@@ -1,21 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FileText, ListVideo, MessageCircle, Play, PlayCircle } from 'lucide-react';
+import { Play } from 'lucide-react';
+import { kindOf } from './kind';
 import type { ContentItem } from '@/lib/types';
-
-/** What a card needs: a library result, or a plain content item (topic pages). */
-type CardItem = Pick<ContentItem, 'id' | 'title' | 'summary' | 'video_id' | 'sub_category'> & { media_types?: string[] | null };
 import { cardSummary, displayTitle } from '@/lib/utils';
 import { cardThumbnail } from '@/lib/video';
 
-/** The item's kind as shown on its card (colors match the home page sections). */
-function kindOf(types: string[]) {
-  if (types.includes('qa') && types.includes('video')) return { label: 'שו"ת בווידאו', Icon: MessageCircle, cls: 'bg-green-50 text-green-700' };
-  if (types.includes('qa')) return { label: 'שו"ת', Icon: MessageCircle, cls: 'bg-green-50 text-green-700' };
-  if (types.includes('series')) return { label: 'שיעור בסדרה', Icon: ListVideo, cls: 'bg-blue-50 text-blue-700' };
-  if (types.includes('video')) return { label: 'וידאו', Icon: PlayCircle, cls: 'bg-red-50 text-red-700' };
-  return { label: 'מאמר', Icon: FileText, cls: 'bg-purple-50 text-purple-700' };
-}
+/** What a card needs: a library result, or a plain content item (topic pages). */
+type CardItem = Pick<ContentItem, 'id' | 'title' | 'summary' | 'video_id' | 'sub_category'> & { media_types?: string[] | null };
 
 export function LibraryCard({ item, sourceName }: { item: CardItem; sourceName?: string }) {
   const kind = kindOf(item.media_types || []);

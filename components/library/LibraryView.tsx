@@ -2,11 +2,12 @@ import Link from 'next/link';
 import { Search, X } from 'lucide-react';
 import { findNodePath, getFilterTree, resolveTopicParam, SA_SECTIONS } from '@/lib/filters';
 import {
-  getLibraryFacets, getLibraryItems, getSources, libraryHref, LIBRARY_PAGE_SIZE, MEDIA_TYPES, parseLibraryState,
+  effectiveSort, getLibraryFacets, getLibraryItems, getSources, libraryHref, LIBRARY_PAGE_SIZE, MEDIA_TYPES, parseLibraryState,
   treeWithCounts, withChange, type LibraryState, type MediaType,
 } from '@/lib/library';
 import { LibraryCard } from './LibraryCard';
 import { LibraryFilters } from './LibraryFilters';
+import { SortToggle } from './SortToggle';
 
 interface LibraryViewProps {
   heading: string;
@@ -25,7 +26,8 @@ export async function LibraryView({ heading, searchParams, fixedType }: LibraryV
   const [sources, tree] = await Promise.all([getSources(), getFilterTree('all')]);
   const source = sources.find((s) => s.slug === parsed.source);
   const node = resolveTopicParam(tree, parsed.topicParam);
-  const state: LibraryState = { q: parsed.q, type: parsed.type, topic: node?.id, source: source?.slug, sa: parsed.sa, page: parsed.page };
+  const state: LibraryState = { q: parsed.q, type: parsed.type, topic: node?.id, source: source?.slug, sa: parsed.sa, sort: parsed.sort, page: parsed.page };
+  const sort = effectiveSort(state);
 
   const [{ items, total }, facets] = await Promise.all([getLibraryItems(state, source?.id), getLibraryFacets(state, source?.id)]);
   const topicPath = node ? findNodePath(tree, node.id) : [];
@@ -100,6 +102,14 @@ export async function LibraryView({ heading, searchParams, fixedType }: LibraryV
           />
 
           <section aria-label="תוצאות" className="flex-1 min-w-0">
+            <div className="mb-3 flex justify-end">
+              <SortToggle
+                sort={sort}
+                defaultLabel={state.type === 'series' ? 'לפי סדר הסדרה' : 'מומלץ היום'}
+                defaultHref={libraryHref({ ...state, sort: undefined, page: 1 })}
+                newestHref={libraryHref({ ...state, sort: 'newest', page: 1 })}
+              />
+            </div>
             {items.length > 0 ? (
               <ul className="space-y-3">
                 {items.map((item) => (

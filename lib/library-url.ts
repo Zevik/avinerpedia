@@ -25,7 +25,21 @@ export interface LibraryState {
   source?: string;
   /** Shulchan Aruch section (Q&A only). */
   sa?: string;
+  /**
+   * 'newest' when the visitor asked for it. Otherwise the default: relevance when searching,
+   * episode order for series, else the daily shuffle ("מומלץ היום", lib/daily.ts).
+   */
+  sort?: 'newest';
   page: number;
+}
+
+export type LibrarySort = 'relevance' | 'series' | 'daily' | 'newest';
+
+/** The order a state is shown in. */
+export function effectiveSort(state: Pick<LibraryState, 'q' | 'type' | 'sort'>): LibrarySort {
+  if (state.q) return 'relevance';
+  if (state.sort === 'newest') return 'newest';
+  return state.type === 'series' ? 'series' : 'daily';
 }
 
 /** URL of a library state: the type's own page when it has one, else /library. */
@@ -37,6 +51,7 @@ export function libraryHref(state: Omit<LibraryState, 'page'> & { page?: number 
   if (state.topic) params.set('topic', String(state.topic));
   if (state.source) params.set('source', state.source);
   if (state.sa && state.type === 'qa') params.set('sa', state.sa);
+  if (state.sort === 'newest') params.set('sort', 'newest');
   if (state.page && state.page > 1) params.set('page', String(state.page));
   const qs = params.toString();
   return qs ? `${path}?${qs}` : path;
@@ -58,6 +73,7 @@ export function parseLibraryState(sp: SearchParams, fixedType?: MediaType): Libr
     topicParam: first(sp.topic),
     source: first(sp.source),
     sa: type === 'qa' ? first(sp.sa) : undefined,
+    sort: first(sp.sort) === 'newest' ? 'newest' : undefined,
     page: Math.max(1, Math.min(1000, Number(first(sp.page)) || 1)),
   };
 }

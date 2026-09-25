@@ -126,6 +126,34 @@ test('old ?topic=<name> links resolve to the curated node', async ({ page }) => 
   await expect(activeChips(page)).toContainText('חנוכה', { timeout: 30_000 });
 });
 
+test('sort: "מומלץ היום" by default (a stable daily order), "הכי חדש" on request, relevance when searching', async ({ page }) => {
+  await page.goto('/library');
+  const sort = page.getByRole('navigation', { name: 'מיון' });
+  await expect(sort.getByRole('link', { name: 'מומלץ היום' })).toHaveAttribute('aria-current', 'true');
+  const first = await hrefs(page);
+  await page.goto('/library'); // same day, same order (cacheable, no repeats across pages)
+  expect(await hrefs(page)).toEqual(first);
+
+  await sort.getByRole('link', { name: 'הכי חדש' }).click();
+  await expect(page).toHaveURL(/sort=newest/, { timeout: 30_000 });
+  await expect(page.getByRole('navigation', { name: 'מיון' }).getByRole('link', { name: 'הכי חדש' })).toHaveAttribute('aria-current', 'true');
+
+  await page.goto('/library?q=' + encodeURIComponent('שבת'));
+  await expect(page.getByText('ממוין לפי רלוונטיות')).toBeVisible();
+
+  await page.goto('/library?type=series');
+  await expect(page.getByRole('navigation', { name: 'מיון' }).getByRole('link', { name: 'לפי סדר הסדרה' })).toHaveAttribute('aria-current', 'true');
+});
+
+test('paging never repeats an item (the daily order is fixed)', async ({ page }) => {
+  await page.goto('/library');
+  const one = await hrefs(page);
+  await page.goto('/library?page=2');
+  const two = await hrefs(page);
+  expect(two.length).toBeGreaterThan(0);
+  expect(two.filter((h) => one.includes(h))).toEqual([]);
+});
+
 test('paging: page 2 shows other results', async ({ page }) => {
   await page.goto('/library');
   const first = await hrefs(page);

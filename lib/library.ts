@@ -1,7 +1,8 @@
 import { cache } from 'react';
 import { supabase } from './supabase';
 import type { FilterNode } from './types';
-import { isMediaType, LIBRARY_PAGE_SIZE, type LibraryState, type MediaType } from './library-url';
+import { dailySeed } from './daily';
+import { effectiveSort, isMediaType, LIBRARY_PAGE_SIZE, type LibraryState, type MediaType } from './library-url';
 
 export * from './library-url';
 
@@ -9,7 +10,7 @@ export * from './library-url';
  * The content library (/library, and /videos /articles /qa as presets of it): all content,
  * filtered along three axes — topic (curated filter tree), media type and source — plus a
  * search box and, for Q&A, the Shulchan Aruch section. Queries run in Postgres
- * (supabase/migrations/004_library.sql, 005_library_sa.sql).
+ * (supabase/migrations/004_library.sql, 006_library_sort.sql).
  */
 
 export interface Source {
@@ -42,10 +43,10 @@ export interface LibraryItem {
   media_types: MediaType[];
 }
 
-function rpcArgs(state: LibraryState, sourceId: number | undefined) {
+function rpcArgs(state: LibraryState, sourceId: number | undefined, types?: MediaType[]) {
   return {
     p_node: state.topic ?? null,
-    p_types: state.type ? [state.type] : null,
+    p_types: types ?? (state.type ? [state.type] : null),
     p_source: sourceId ?? null,
     p_q: state.q?.trim() || null,
     // Only sent when set, so the call also works before migration 005 (no p_sa there).
@@ -53,17 +54,30 @@ function rpcArgs(state: LibraryState, sourceId: number | undefined) {
   };
 }
 
-export async function getLibraryItems(state: LibraryState, sourceId?: number): Promise<{ items: LibraryItem[]; total: number }> {
-  const { data, error } = await supabase.rpc('library_items', {
-    ...rpcArgs(state, sourceId),
-    p_limit: LIBRARY_PAGE_SIZE,
-    p_offset: (state.page - 1) * LIBRARY_PAGE_SIZE,
-  });
-  if (error) {
-    console.error('Error fetching library items:', error);
+/**
+ * One page of results. `limit`/`types` let the home page rows ask for a few items of several
+ * types (the library itself filters by one type).
+ */
+export async function getLibraryItems(
+  state: LibraryState,
+  sourceId?: number,
+  { limit = LIBRARY_PAGE_SIZE, types }: { limit?: number; types?: MediaType[] } = {},
+): Promise<{ items: LibraryItem[]; total: number }> {
+  const sort = effectiveSort(state);
+  const base = { ...rpcArgs(state, sourceId, types), p_limit: limit, p_offset: (state.page - 1) * limit };
+  let res = await supabase.rpc('library_items', { ...base, p_sort: sort === 'relevance' ? 'daily' : sort, p_seed: dailySeed() });
+  // Before migration 006 the function has no p_sort/p_seed (newest-first order then), and
+  // before 005 no p_sa: step back to the older calls rather than show an empty page.
+  if (res.error?.code === 'PGRST202') res = await supabase.rpc('library_items', base);
+  if (res.error?.code === 'PGRST202') {
+    const { p_sa: _sa, ...old } = base as typeof base & { p_sa?: string };
+    res = await supabase.rpc('library_items', old);
+  }
+  if (res.error) {
+    console.error('Error fetching library items:', res.error);
     return { items: [], total: 0 };
   }
-  const rows = (data || []) as (LibraryItem & { total: number })[];
+  const rows = (res.data || []) as (LibraryItem & { total: number })[];
   return { items: rows.map(({ total: _total, ...item }) => item), total: Number(rows[0]?.total ?? 0) };
 }
 

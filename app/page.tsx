@@ -1,14 +1,16 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { BookOpen, MessageSquare, FileText, Video, ArrowLeft, Play } from 'lucide-react';
-import { cardSummary, displayTitle } from '@/lib/utils';
-import { cardThumbnail } from '@/lib/video';
-import { getContentItems } from '@/lib/db';
+import { BookOpen, CalendarDays, Heart, MessageSquareText, Scale, Search, Sparkles } from 'lucide-react';
+import { ContentRow } from '@/components/home/ContentRow';
+import { ItemRowCard, SeriesRowCard } from '@/components/home/RowCards';
+import { dailySeed, seededShuffle } from '@/lib/daily';
+import { getFilterTree } from '@/lib/filters';
+import { getLibraryItems, getSources, libraryHref } from '@/lib/library';
+import { pageMetadata } from '@/lib/seo';
 import { getAllSeries } from '@/lib/taxonomy';
 
-// Cached for a day (lib/cache.ts); admin saves purge it via /api/revalidate.
-export const revalidate = 86400;
-import { pageMetadata } from '@/lib/seo';
+// The rows use the daily shuffle; regenerating hourly picks up the new day's order within an
+// hour of midnight (the queries themselves are cached per day).
+export const revalidate = 3600;
 
 export const metadata = pageMetadata({
   title: "אבינרפדיה - כל שיעורי הרב שלמה אבינר",
@@ -16,207 +18,104 @@ export const metadata = pageMetadata({
   path: '/',
 });
 
+/** Quick-access tiles: core topics, a source and the series. */
+const TILES = [
+  { label: 'הלכה', topic: 'הלכה', Icon: Scale, cls: 'bg-emerald-50 text-emerald-700' },
+  { label: 'אמונה', topic: 'אמונה', Icon: Sparkles, cls: 'bg-amber-50 text-amber-700' },
+  { label: 'חגים ומועדים', topic: 'חגים ומועדים', Icon: CalendarDays, cls: 'bg-orange-50 text-orange-700' },
+  { label: 'זוגיות ומשפחה', topic: 'זוגיות ומשפחה', Icon: Heart, cls: 'bg-rose-50 text-rose-700' },
+  { label: 'שו"ת סמס', source: 'shut-sms', Icon: MessageSquareText, cls: 'bg-green-50 text-green-700' },
+  { label: 'סדרות לימוד', href: '/series', Icon: BookOpen, cls: 'bg-blue-50 text-blue-700' },
+] as const;
+
 export default async function Home() {
-  // Fetch content for each category in parallel
-  const [allSeries, qaItems, articlesItems, videosItems] = await Promise.all([
+  const [tree, sources, allSeries, pearls, videos, latest] = await Promise.all([
+    getFilterTree('all'),
+    getSources(),
     getAllSeries(),
-    getContentItems({ main_category: 'שו"ת הלכה', limit: 8 }),
-    getContentItems({ main_category: 'מאמרים', limit: 8 }),
-    getContentItems({ has_video: true, exclude_series: true, limit: 8 }),
+    getLibraryItems({ page: 1 }, undefined, { limit: 12 }),
+    getLibraryItems({ type: 'video', page: 1 }, undefined, { limit: 12 }),
+    getLibraryItems({ sort: 'newest', page: 1 }, undefined, { limit: 12, types: ['qa', 'article'] }),
   ]);
+  const sourceName = new Map(sources.map((s) => [s.id, s.name]));
+  // The series in a daily order (their episodes keep theirs, on the series page).
+  const series = seededShuffle(allSeries, dailySeed()).slice(0, 10);
 
-  // Largest series first, shown as cards that open the series page.
-  const seriesItems = allSeries.slice(0, 8).map((s) => ({
-    id: s.id,
-    title: s.name,
-    summary: `${s.episode_count} שיעורים`,
-  }));
-
-  // Content items: a clean summary (not "8519&catid=4072" leftovers) and a video thumbnail.
-  const cards = (items: any[]) =>
-    items.map((item) => ({ ...item, summary: cardSummary(item.summary), thumbnail: cardThumbnail(item.video_id) }));
+  const tileHref = (tile: (typeof TILES)[number]) => {
+    if ('href' in tile) return tile.href;
+    if ('source' in tile) return libraryHref({ source: tile.source });
+    const node = tree.find((n) => n.name === tile.topic);
+    return node ? libraryHref({ topic: node.id }) : '/library';
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background to-secondary/20" dir="rtl">
-      {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900">
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-        </div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg">
-            אבינרפדיה 📚
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto leading-relaxed font-light">
+    <div className="bg-gradient-to-b from-background to-secondary/20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900">
+        <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+        <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow">אבינרפדיה</h1>
+          <p className="mt-2 text-base md:text-xl text-blue-100 font-light">
             הארכיון המקיף לשיעוריו ותורתו של הרב שלמה אבינר שליט"א
           </p>
-          {/* Search goes to the content library, which filters by topic, type and source. */}
-          <form action="/library" method="get" role="search" className="relative mt-8 max-w-xl mx-auto">
+          {/* Search goes to the content library. */}
+          <form action="/library" method="get" role="search" className="relative mt-5 max-w-2xl mx-auto">
             <label htmlFor="home-q" className="sr-only">חיפוש בספריית התכנים</label>
+            <Search className="w-5 h-5 absolute right-5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
             <input
               id="home-q"
               name="q"
               type="search"
-              placeholder="חיפוש שיעורים, מאמרים ושאלות..."
-              className="w-full rounded-full bg-white/95 text-gray-900 pr-6 pl-28 py-4 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300/50"
+              placeholder='חפשו שיעור, מאמר, שו"ת או נושא...'
+              className="w-full rounded-full bg-white text-gray-900 pr-12 pl-24 py-3.5 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300/50"
             />
-            <button type="submit" className="absolute left-2 top-1/2 -translate-y-1/2 px-5 py-2.5 rounded-full bg-blue-700 text-white font-semibold hover:bg-blue-800">
+            <button type="submit" className="absolute left-1.5 top-1/2 -translate-y-1/2 px-5 py-2 rounded-full bg-blue-700 text-white font-semibold hover:bg-blue-800">
               חיפוש
             </button>
           </form>
-          <Link href="/library" className="inline-block mt-4 text-blue-100 hover:text-white underline underline-offset-4">
-            לעיון בכל ספריית התכנים
-          </Link>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-16 space-y-20">
-        {/* Series Section */}
-        <CategorySection
-          title="סדרות לימוד"
-          icon={<BookOpen className="w-8 h-8" />}
-          items={seriesItems}
-          viewAllHref="/series"
-          itemHref={(id) => `/series/${id}`}
-          color="blue"
-        />
-
-        {/* Q&A Section */}
-        <CategorySection
-          title="שו&quot;ת הלכה"
-          icon={<MessageSquare className="w-8 h-8" />}
-          items={cards(qaItems)}
-          viewAllHref="/qa"
-          color="green"
-        />
-
-        {/* Articles Section */}
-        <CategorySection
-          title="מאמרים"
-          icon={<FileText className="w-8 h-8" />}
-          items={cards(articlesItems)}
-          viewAllHref="/articles"
-          color="purple"
-        />
-
-        {/* Videos Section */}
-        <CategorySection
-          title="סרטונים"
-          icon={<Video className="w-8 h-8" />}
-          items={cards(videosItems)}
-          viewAllHref="/videos"
-          color="red"
-        />
-      </div>
-    </main>
-  );
-}
-
-interface CategorySectionProps {
-  title: string;
-  icon: React.ReactNode;
-  items: any[];
-  viewAllHref: string;
-  color: 'blue' | 'green' | 'purple' | 'red';
-  itemHref?: (id: number) => string;
-}
-
-function CategorySection({ title, icon, items, viewAllHref, color, itemHref = (id) => `/content/${id}` }: CategorySectionProps) {
-  const colorClasses = {
-    blue: {
-      border: 'border-blue-600',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-      hover: 'hover:bg-blue-600 hover:text-white',
-      iconBg: 'bg-blue-100',
-    },
-    green: {
-      border: 'border-green-600',
-      bg: 'bg-green-50',
-      text: 'text-green-600',
-      hover: 'hover:bg-green-600 hover:text-white',
-      iconBg: 'bg-green-100',
-    },
-    purple: {
-      border: 'border-purple-600',
-      bg: 'bg-purple-50',
-      text: 'text-purple-600',
-      hover: 'hover:bg-purple-600 hover:text-white',
-      iconBg: 'bg-purple-100',
-    },
-    red: {
-      border: 'border-red-600',
-      bg: 'bg-red-50',
-      text: 'text-red-600',
-      hover: 'hover:bg-red-600 hover:text-white',
-      iconBg: 'bg-red-100',
-    },
-  };
-
-  const colors = colorClasses[color];
-
-  return (
-    <section>
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-xl ${colors.iconBg} ${colors.text}`}>
-            {icon}
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900">{title}</h2>
-        </div>
-        <Link
-          href={viewAllHref}
-          className={`flex items-center gap-2 px-6 py-3 rounded-full border-2 ${colors.border} ${colors.text} ${colors.hover} transition-all duration-300 font-semibold`}
-        >
-          <span>צפו בהכל</span>
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
-      </div>
-
-      {items.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {items.map((item) => (
+      <div className="container mx-auto px-4 py-8 md:py-10">
+        <nav aria-label="עיון מהיר" className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-8 md:mb-10">
+          {TILES.map((tile) => (
             <Link
-              key={item.id}
-              href={itemHref(item.id)}
-              className="group flex flex-col bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              prefetch={false}
+              key={tile.label}
+              href={tileHref(tile)}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow px-2 py-2.5 md:p-4 text-center"
             >
-              {item.thumbnail ? (
-                <div className="relative aspect-video bg-muted">
-                  <Image src={item.thumbnail} alt={displayTitle(item.title)} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow">
-                      <Play className={`w-6 h-6 ${colors.text} mr-0.5`} fill="currentColor" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className={`h-2 w-full ${colors.bg}`}></div>
-              )}
-              {/* Column layout so the topic tag sits at the bottom of every card in the row. */}
-              <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2 group-hover:text-${color}-600 transition-colors">
-                  {displayTitle(item.title)}
-                </h3>
-                {item.summary && (
-                  <p className="text-sm text-gray-600 line-clamp-3 mb-3">
-                    {item.summary}
-                  </p>
-                )}
-                {item.sub_category && (
-                  <span className={`mt-auto self-start px-3 py-1 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}>
-                    {item.sub_category}
-                  </span>
-                )}
-              </div>
+              <span className={`w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center ${tile.cls}`}>
+                <tile.Icon className="w-4 h-4 md:w-5 md:h-5" aria-hidden />
+              </span>
+              <span className="text-xs md:text-sm font-semibold leading-tight">{tile.label}</span>
             </Link>
           ))}
-        </div>
-      ) : (
-        <div className={`${colors.bg} border ${colors.border} rounded-2xl p-12 text-center`}>
-          <p className="text-gray-700">אין תוכן זמין כרגע בקטגוריה זו</p>
-        </div>
-      )}
-    </section>
+        </nav>
+
+        <ContentRow title="פנינים מהארכיון" subtitle="מבחר מתחלף מדי יום" allHref="/library">
+          {pearls.items.map((item) => (
+            <ItemRowCard key={item.id} item={item} sourceName={item.source_id ? sourceName.get(item.source_id) : undefined} />
+          ))}
+        </ContentRow>
+
+        <ContentRow title="סדרות לימוד מומלצות" allHref="/series">
+          {series.map((s) => (
+            <SeriesRowCard key={s.id} id={s.id} name={s.name} episodes={s.episode_count} />
+          ))}
+        </ContentRow>
+
+        <ContentRow title="שיעורי וידאו" allHref="/videos">
+          {videos.items.map((item) => (
+            <ItemRowCard key={item.id} item={item} sourceName={item.source_id ? sourceName.get(item.source_id) : undefined} />
+          ))}
+        </ContentRow>
+
+        <ContentRow title='שו"תים ומאמרים אחרונים' allHref={libraryHref({ sort: 'newest' })}>
+          {latest.items.map((item) => (
+            <ItemRowCard key={item.id} item={item} sourceName={item.source_id ? sourceName.get(item.source_id) : undefined} />
+          ))}
+        </ContentRow>
+      </div>
+    </div>
   );
 }

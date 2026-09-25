@@ -3,11 +3,19 @@
 import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const pathname = usePathname();
+  // One style for every link; the current section is marked the same way everywhere.
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/'));
+  const linkClass = (href: string) =>
+    `px-3 py-2 rounded-full text-sm lg:text-base font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+      isActive(href) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-secondary hover:text-primary'
+    }`;
 
   const navLinks = [
     { href: '/', label: 'בית' },
@@ -32,12 +40,13 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation - Center */}
-          <div className="hidden md:flex items-center space-x-8 space-x-reverse">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-foreground hover:text-primary transition-colors font-medium"
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={linkClass(link.href)}
               >
                 {link.label}
               </Link>
@@ -83,7 +92,8 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-4 py-2 hover:bg-secondary rounded-lg transition-colors"
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={`block px-4 py-2 rounded-lg transition-colors ${isActive(link.href) ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-secondary'}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
