@@ -239,7 +239,7 @@ Gotchas:
   1. Supabase → Authentication → Users → Add user (email + password, auto-confirm).
   2. SQL Editor: `insert into public.admin_users (user_id, role) select id, 'admin' from auth.users where email = '<email>';`
   3. Also turn off public sign-ups: Authentication → Sign In / Providers → Email → disable "Allow new users to sign up".
-- Pages: dashboard (counts), content list (filter, change main/sub category), content edit (title, date, summary, body or video id, tags, active), categories (legacy `categories` tree: create/rename/delete/merge).
+- Pages: dashboard (counts), content list (filter, change main/sub category, **+ הוספת פריט**), content add/edit (`components/admin/ContentForm.tsx`, one form for `/admin/content/new` and `/admin/content/edit/[id]`): title, type (מאמר / וידאו / שו"ת — sets `content_type` and `main_category`; series episodes and French lessons keep theirs), **source** (dropdown from `sources`), date, summary, **video for any type** (a YouTube URL or id, or `Meir:<id>`, normalized by `normalizeVideoInput()` with a thumbnail preview — a Q&A with a video counts as both שו"ת and וידאו in the library), body, tags, active. A duplicate title (unique) shows an error. New items have no topics yet (no topic editing in the form), categories (legacy `categories` tree: create/rename/delete/merge).
 
 ## Roadmap / pending
 

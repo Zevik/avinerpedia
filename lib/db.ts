@@ -447,10 +447,12 @@ export async function updateContentCategory(contentId: number, mainCatId: number
   return data;
 }
 
-export async function updateContentItem(
-  id: number,
-  updates: Partial<Pick<ContentItem, 'title' | 'summary' | 'content_md' | 'video_id' | 'publish_date' | 'original_tags' | 'is_active'>>
-) {
+/** The fields the admin content form edits. media_types is derived from them in the DB. */
+export type EditableContent = Partial<Pick<ContentItem,
+  'title' | 'summary' | 'content_md' | 'video_id' | 'publish_date' | 'original_tags' | 'is_active' |
+  'content_type' | 'main_category' | 'source_id'>>;
+
+export async function updateContentItem(id: number, updates: EditableContent) {
   const { data, error } = await supabase
     .from('content_items')
     .update(updates)
@@ -461,5 +463,20 @@ export async function updateContentItem(
   if (error) throw error;
   await refreshPublicSite();
   return data;
+}
+
+/** A new item from the admin form. Titles are unique: a duplicate fails with code 23505. */
+export async function createContentItem(item: EditableContent & { title: string; main_category: string }) {
+  const { data, error } = await supabase.from('content_items').insert(item).select('id').single();
+  if (error) throw error;
+  await refreshPublicSite();
+  return data as { id: number };
+}
+
+/** Sources for the admin form's dropdown (the library's source axis, migration 004). */
+export async function getSourceOptions(): Promise<{ id: number; name: string }[]> {
+  const { data, error } = await supabase.from('sources').select('id, name').order('sort_order');
+  if (error) throw error;
+  return data || [];
 }
 

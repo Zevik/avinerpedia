@@ -12,7 +12,24 @@ describe('displayTitle', () => {
     expect(displayTitle(null)).toBe('');
   });
 });
-import { cardThumbnail } from '../../lib/video';
+import { cardThumbnail, isValidVideoId, normalizeVideoInput } from '../../lib/video';
+
+describe('normalizeVideoInput (admin form)', () => {
+  it('takes the id out of YouTube URLs, keeps ids and site ids', () => {
+    expect(normalizeVideoInput('https://www.youtube.com/watch?v=G6qejC6Dx-U&t=30')).toBe('G6qejC6Dx-U');
+    expect(normalizeVideoInput('https://youtu.be/G6qejC6Dx-U?si=x')).toBe('G6qejC6Dx-U');
+    expect(normalizeVideoInput('https://www.youtube.com/embed/G6qejC6Dx-U')).toBe('G6qejC6Dx-U');
+    expect(normalizeVideoInput('https://youtube.com/shorts/G6qejC6Dx-U')).toBe('G6qejC6Dx-U');
+    expect(normalizeVideoInput(' G6qejC6Dx-U ')).toBe('G6qejC6Dx-U');
+    expect(normalizeVideoInput('meir:8519')).toBe('Meir:8519');
+    expect(normalizeVideoInput('   ')).toBeNull();
+  });
+  it('validates ids', () => {
+    expect(isValidVideoId('G6qejC6Dx-U')).toBe(true);
+    expect(isValidVideoId('Meir:8519')).toBe(true);
+    expect(isValidVideoId('not a video')).toBe(false);
+  });
+});
 
 describe('cardSummary', () => {
   it('drops Machon Meir embed leftovers', () => {

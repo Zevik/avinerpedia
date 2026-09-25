@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures';
 
 // Signed-out visitors: every admin page redirects to the login page (middleware.ts).
-for (const route of ['/admin/dashboard', '/admin/content', '/admin/categories']) {
+for (const route of ['/admin/dashboard', '/admin/content', '/admin/content/new', '/admin/content/edit/104', '/admin/categories']) {
   test(`${route} redirects to login when signed out`, async ({ page }) => {
     await page.goto(route);
     await expect(page).toHaveURL(/\/admin\/login$/);

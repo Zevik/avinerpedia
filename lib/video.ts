@@ -21,6 +21,24 @@ export function meirLessonUrl(meirId: string): string {
 }
 
 /**
+ * A video id from what an editor pastes: a YouTube id, a YouTube URL (watch?v=, youtu.be/,
+ * embed/, shorts/), or a site id ("Meir:1234", "Maale:…"). Empty -> null.
+ */
+export function normalizeVideoInput(input: string): string | null {
+    const v = input.trim();
+    if (!v) return null;
+    if (/^(Meir|Maale):/i.test(v)) return v.replace(/^meir:/i, 'Meir:').replace(/^maale:/i, 'Maale:');
+    const url = v.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);
+    if (url) return url[1];
+    return v;
+}
+
+/** Whether a (normalized) video id looks valid: a YouTube id, or Meir:/Maale: with a value. */
+export function isValidVideoId(id: string): boolean {
+    return /^[\w-]{11}$/.test(id) || /^Meir:\d+/.test(id) || /^Maale:\S+/.test(id);
+}
+
+/**
  * Thumbnail for list cards (sync, client-safe): YouTube, or the Vimeo thumbnail of a
  * Machon Meir lesson. null for Maale and Meir lessons without a known Vimeo video.
  */
