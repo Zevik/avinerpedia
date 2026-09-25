@@ -7,7 +7,7 @@ function trackErrors(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && !msg.text().startsWith('Failed to load resource')) {
+    if (msg.type() === 'error' && !msg.text().startsWith('Failed to load resource') && !msg.text().startsWith('Permissions policy violation') /* YouTube embeds */) {
       errors.push(`console: ${msg.text()}`);
     }
   });

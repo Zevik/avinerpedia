@@ -5,7 +5,7 @@ function trackErrors(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && !msg.text().startsWith('Failed to load resource')) errors.push(`console: ${msg.text()}`);
+    if (msg.type() === 'error' && !msg.text().startsWith('Failed to load resource') && !msg.text().startsWith('Permissions policy violation') /* YouTube embeds */) errors.push(`console: ${msg.text()}`);
   });
   page.on('response', (res) => {
     if (res.status() >= 400 && res.request().resourceType() !== 'image') errors.push(`http ${res.status()}: ${res.url()}`);
