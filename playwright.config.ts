@@ -12,6 +12,10 @@ export default defineConfig({
   // Against the live site, stay gentle: many parallel browsers (each prefetching dozens of
   // links) overload cold serverless functions and make navigations time out.
   workers: REMOTE ? 2 : undefined,
+  // Against the live site one retry: about 1 client navigation in 60 doesn't commit even though
+  // its response arrived (measured 2026-09-25; suspected: app/loading.tsx streaming). A real
+  // regression fails twice.
+  retries: REMOTE ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: REMOTE || `http://localhost:${PORT}`,
