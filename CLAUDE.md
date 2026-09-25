@@ -243,7 +243,7 @@ Gotchas:
 
 ## Roadmap / pending
 
-- **Rare stuck navigation** (fixed?): about 1 client navigation in 60 didn't commit although its RSC response arrived complete (measured on the live site, 2026-09-25). The root `app/loading.tsx` was removed for it; see the measurement in git history. The live E2E run keeps `retries: 1`.
+- **Stuck client navigation — fixed** (2026-09-25): about 1 click in 60 didn't commit although its RSC response arrived complete; after removing the root `app/loading.tsx`, 0 in 180 (live site, hydrated pages, /topics /library /series links). The live E2E run keeps `retries: 1` as a safety net.
 - **Admin taxonomy editing** (next): content type selector, series + episode number, topic multi-select in the edit form (keeping `main_category`/`sub_category` in sync); replace the legacy categories screen with topic-tree and series management.
 - **Content refresh**: 2,045 pages were edited on the source after the MDX export (2026-02-14), and 246 items are empty in the DB though the source has text. `scripts/source/wikitext-to-markdown.mjs` does the conversion (used for the 9 filled items above); what's left is a script that compares every item with its source text and refreshes the changed ones, with a review list like `docs/empty-items-review.csv`.
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
