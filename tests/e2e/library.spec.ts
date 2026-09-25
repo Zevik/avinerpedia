@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 // The content library (/library; /videos, /articles, /qa are presets of it): search, and
 // filters by type, source, topic (and Q&A section), all kept in the URL.

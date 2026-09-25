@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 // Uncaught errors and non-image request failures (see smoke.spec.ts).
 function trackErrors(page: Page) {

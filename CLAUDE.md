@@ -34,7 +34,7 @@ npm run test:all     # typecheck + unit + e2e — run before every commit
 npm run revalidate   # purge the cached live site after a script wrote to the DB
 ```
 
-Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first; locally on Windows, prefetched `/series/[id]` client navigations can stall). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored).
+Playwright starts `npm run dev` itself (or reuses a running server). `E2E_PROD=1` runs against `npm run start` instead (build first). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored). **Specs import `test`/`expect` from `tests/e2e/fixtures.ts`**, whose `page.goto` waits until every link in `<main>` is hydrated (React's `__reactProps$…` on the node): under the parallel suite's CPU load a click that landed mid-hydration was lost, which was the cause of the long-standing intermittent "clicked, URL never changed" failures (with prefetch floods, fixed by `prefetch={false}` on crowded pages).
 
 ## Environment variables
 

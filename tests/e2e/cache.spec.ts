@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 // The public site is cached (lib/cache.ts) and purged on demand via /api/revalidate.
 

@@ -1,4 +1,4 @@
-import { test, expect, type APIRequestContext } from '@playwright/test';
+import { test, expect, type APIRequestContext } from './fixtures';
 import redirects from '../../lib/legacy-redirects.json';
 
 // Real HTTP requests against the app: status code and Location header, no redirect following.

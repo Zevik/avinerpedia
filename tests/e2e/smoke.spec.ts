@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 // Collects uncaught page errors, console errors and failed requests so a test can assert
 // there were none. Broken images are ignored: many YouTube thumbnails 404 because the

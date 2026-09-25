@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 // Signed-out visitors: every admin page redirects to the login page (middleware.ts).
 for (const route of ['/admin/dashboard', '/admin/content', '/admin/categories']) {
