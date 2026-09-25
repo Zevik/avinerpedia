@@ -47,3 +47,11 @@ test('navbar: every link has the same style; the current section is marked', asy
     [...new Set(els.filter((e) => e.textContent?.trim() !== 'אבינרפדיה').map((e) => getComputedStyle(e).backgroundColor + '|' + getComputedStyle(e).borderRadius))]);
   expect(shapes).toHaveLength(1);
 });
+
+test('navbar: no "בית" item; the logo leads home', async ({ page }) => {
+  await page.goto('/library');
+  const nav = page.getByRole('navigation').first();
+  await expect(nav.getByRole('link', { name: 'בית', exact: true })).toHaveCount(0);
+  await nav.getByRole('link', { name: 'אבינרפדיה – לדף הבית' }).click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 30_000 });
+});

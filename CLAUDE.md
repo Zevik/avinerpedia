@@ -123,7 +123,7 @@ Browsing without a search shows a different selection every day but a fixed orde
 
 ### Home page
 
-Compact hero with the search box (→ `/library?q=`), quick tiles (הלכה, אמונה, חגים ומועדים, זוגיות ומשפחה → `/library?topic=`; שו"ת סמס → `?source=shut-sms`; סדרות לימוד → `/series`), then horizontally scrolling rows (`components/home/ContentRow.tsx`: swipe on mobile, arrows on desktop): פנינים מהארכיון (daily, all types), סדרות לימוד מומלצות (daily), שיעורי וידאו (daily), שו"תים ומאמרים אחרונים (newest). Navbar links share one style; the current section has `aria-current="page"` and a light pill.
+Compact hero with the search box (→ `/library?q=`), quick tiles (הלכה, אמונה, חגים ומועדים, זוגיות ומשפחה → `/library?topic=`; שו"ת סמס → `?source=shut-sms`; סדרות לימוד → `/series`), then horizontally scrolling rows (`components/home/ContentRow.tsx`: swipe on mobile, arrows on desktop): פנינים מהארכיון (daily, all types), סדרות לימוד מומלצות (daily), שיעורי וידאו (daily), שו"תים ומאמרים אחרונים (newest). Navbar links share one style; the current section has `aria-current="page"` and a light pill. No "בית" item: the logo is the home link.
 
 ### Library axes: media types and sources
 

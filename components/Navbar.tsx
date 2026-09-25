@@ -18,7 +18,6 @@ export function Navbar() {
     }`;
 
   const navLinks = [
-    { href: '/', label: 'בית' },
     { href: '/library', label: 'ספריית התכנים' },
     { href: '/videos', label: 'סרטונים' },
     { href: '/qa', label: 'שו״ת' },
@@ -33,7 +32,8 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo - Right side */}
-          <Link href="/" className="flex items-center space-x-2 space-x-reverse">
+          {/* The logo is the link to the home page (there is no separate "בית" item). */}
+          <Link href="/" aria-label="אבינרפדיה – לדף הבית" className="flex items-center space-x-2 space-x-reverse">
             <div className="text-2xl font-bold text-primary">
               אבינרפדיה
             </div>
