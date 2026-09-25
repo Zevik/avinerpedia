@@ -60,7 +60,7 @@ test.describe('legacy MediaWiki URLs', () => {
   test('unknown title -> 302 to search with the decoded title', async ({ request }) => {
     const { status, location } = await hit(request, underscored('דף שלא קיים בכלל'));
     expect(status).toBe(302);
-    expect(pathOf(location)).toBe('/search?q=דף שלא קיים בכלל');
+    expect(pathOf(location)).toBe('/library?q=דף שלא קיים בכלל');
   });
 
   test('the redirect target actually loads', async ({ page }) => {

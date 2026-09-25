@@ -65,7 +65,7 @@ export function SearchAutocomplete() {
         e.preventDefault();
         if (query.trim()) {
             setIsOpen(false);
-            router.push(`/search?q=${encodeURIComponent(query)}`);
+            router.push(`/library?q=${encodeURIComponent(query)}`);
         }
     };
 

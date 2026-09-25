@@ -24,7 +24,7 @@ export type LegacyResolution =
   | { status: 404 };
 
 const map = redirects as LegacyRedirects;
-const searchPath = (q: string) => (q ? `/search?q=${encodeURIComponent(q)}` : '/');
+const searchPath = (q: string) => (q ? `/library?q=${encodeURIComponent(q)}` : '/');
 
 /**
  * Resolves a legacy request. `pathname` is the raw (possibly percent-encoded) path;

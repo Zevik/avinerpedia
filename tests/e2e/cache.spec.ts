@@ -11,9 +11,9 @@ test('revalidate endpoint refuses callers that are not admins', async ({ request
 
 test('content pages are served from the cache', async ({ request }) => {
   test.skip(!process.env.E2E_BASE_URL && !process.env.E2E_PROD, 'next dev never caches');
-  // A request can land on an edge node that hasn't cached the page yet (MISS): retry a few times.
+  // The first request, or one landing on an edge node that hasn't cached the page yet, is a MISS: retry.
   let res = await request.get('/content/104');
-  for (let i = 0; i < 4 && res.headers()['x-vercel-cache'] === 'MISS'; i++) res = await request.get('/content/104');
+  for (let i = 0; i < 4 && (res.headers()['x-vercel-cache'] ?? res.headers()['x-nextjs-cache']) === 'MISS'; i++) res = await request.get('/content/104');
   expect(res.status()).toBe(200);
   const h = res.headers();
   if (h['x-vercel-cache']) {

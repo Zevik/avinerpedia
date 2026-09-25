@@ -39,6 +39,9 @@ export interface ContentItem {
   primary_node_id?: number | null;
   sa_section?: string | null;
   source_collection?: string | null;
+  /** Library axes (migration 004): the item's source, and the media types it counts as. */
+  source_id?: number | null;
+  media_types?: string[];
 }
 
 export interface Series {

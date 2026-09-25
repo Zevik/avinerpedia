@@ -55,6 +55,8 @@ Schema lives in `supabase/` and is applied by hand in the Supabase SQL Editor (t
 1. `supabase/schema.sql` — base tables, indexes, RLS, functions (run once on an empty `public` schema)
 2. `supabase/migrations/002_taxonomy.sql` — topics, series and their links (idempotent)
 3. `supabase/migrations/003_filter_tree.sql` — the curated filter tree (idempotent)
+4. `supabase/migrations/004_library.sql` — the content library: `sources` table + `content_items.source_id`, generated `content_items.media_types`, functions `library_match` / `library_items` / `library_facets` (idempotent); then `node scripts/source/apply-sources.mjs --apply`
+5. `supabase/migrations/005_library_sa.sql` — the Q&A Shulchan Aruch section as a library filter (`p_sa`, `sa` facet; replaces the 004 functions)
 
 ### Tables
 
@@ -74,7 +76,7 @@ Every table has RLS on. Anyone can `select`; writes require `public.is_admin()` 
 
 ### Search
 
-`content_items.fts` is a generated weighted tsvector (`simple` config): title A, summary B, content C, with a GIN index. `searchContent()` in `lib/db.ts` uses `textSearch('fts', q, { type: 'websearch', config: 'simple' })`. Title `ilike` searches (`/api/search`, filters) use the `pg_trgm` GIN index on `title`.
+`content_items.fts` is a generated weighted tsvector (`simple` config): title A, summary B, content C, with a GIN index. The library search (`library_match()` in migration 004) matches `fts @@ websearch_to_tsquery('simple', q)` or a title substring, and ranks by `ts_rank` plus a title-match bonus. Title `ilike` searches (`/api/search`, filters) use the `pg_trgm` GIN index on `title`.
 
 ### Functions
 
@@ -98,9 +100,10 @@ UI:
 | `/content/[id]` | Item; `SeriesNav` (episode N of M, prev/next) if it has `series_id`; `TopicChips` at the bottom: curated nodes (most specific, primary first) and the item's question-tags (`original_tags`, linking to search) |
 | `/topics` | The 11 core topics of the curated tree, with sub-topic chips |
 | `/topics/[...path]` | Name-based URL of a curated node (`/topics/מועדים/חנוכה`, built by `nodeHref()`): breadcrumb, sub-topics with counts, paginated items (node + descendants). Old numeric `/topics/<id>` URLs (pre-curated topics) 301 to the node via `next.config.ts` redirects from `lib/topic-redirects.json` |
-| `/videos`, `/articles`, `/qa` | `FilteredContentPage` + `TopicFilter`: curated tree with counts, search inside the filter, drawer on mobile; `?topic=<node id>` (old `?topic=<name>` links resolve by name); `/qa` adds Shulchan Aruch chips (`?sa=`). `/videos` (and the home page's video row) excludes series episodes (`exclude_series`: `series_id is null`, 593 items) — they live on `/series`; the `__has_video` counts follow the same rule |
+| `/library` | **The content library** (`components/library/LibraryView.tsx`): all content with a search box and three filter axes — type (מאמרים / סרטונים / שו"ת / סדרות), source (`sources`) and topic (curated tree, with search inside it) — plus the Shulchan Aruch section for Q&A. Counts next to every option (faceted: each axis counted with the other axes applied). Mixed results as `LibraryCard`s labelled מאמר / וידאו / שו"ת / שו"ת בווידאו / שיעור בסדרה, with the source. State is in the URL (`?q=&type=&topic=<node id>&source=<slug>&sa=&page=`; `lib/library-url.ts`); desktop sidebar, mobile bottom sheet. `/search` redirects here |
+| `/videos`, `/articles`, `/qa` | The library with the type preset (`fixedType`); the type buttons move between them and `/library` (`libraryHref()`). `/videos` excludes series episodes (type `video` = has a video and no `series_id`); old `?topic=<name>` links still resolve |
 
-Queries for the taxonomy live in `lib/taxonomy.ts`, for the filter tree in `lib/filters.ts`; the rest in `lib/db.ts`.
+Queries for the taxonomy live in `lib/taxonomy.ts`, for the filter tree in `lib/filters.ts`, for the library in `lib/library.ts` (Postgres functions from migrations 004/005); the rest in `lib/db.ts`.
 
 ### Curated filter tree (topics for filtering)
 
@@ -110,6 +113,12 @@ The raw 914 `topics` (many are single questions, typos, concatenated paths) stay
 - After an apply, run `select * from public.sync_content_categories();` in the SQL Editor (legacy `categories` follow `sub_category`).
 - **A topic filed under two parents**: the mapping target may name several nodes, `"path | path"` (each node has one `parent_id`, so it is two nodes with the same name). `EXTRA_NODES` in the draft script writes them; the apply script, the series rules and the title-keyword fallback link items to all of them; the legacy category redirect uses the first. Example: שמירת הלשון under both `מוסר ומידות` and `הלכה › בין אדם לחברו` (it used to be classified as a series only; `TOPICS_OVER_SERIES`).
 - **Renaming a node**: rename it in `draft-topic-taxonomy.mjs` and regenerate, then `node scripts/source/rename-filter-node.mjs "<old path>" "<new path>" --apply` **before** `apply-topic-taxonomy.mjs --apply` — the apply upserts by path, so without the in-place rename the node gets a new id and `?topic=<id>` links break. Done for מועדים → חגים ומועדים (2026-09-25). The new site hasn't launched, so its own interim URLs (like `/topics/מועדים`) get no redirects.
+
+### Library axes: media types and sources
+
+- **Media type** (`content_items.media_types`, a generated column, so it never goes stale): `qa` (content_type qa), `video` (has a video, not a series episode), `series` (series episode), `article` (everything else with text). An item can have several — a Q&A answered on video is `qa` + `video`, so "שו"ת (וידאו)" shows under both.
+- **Source** (`sources` table, `content_items.source_id`): ישיבת עטרת ירושלים (`ateret`, 1,046), מכון מאיר (`machon-meir`, 411: `Meir:` video ids or the source's category), שו"ת סמס (`shut-sms`, 36), ציוצים (25), שירים (12), מאמרים מיוחדים (61). Assigned by `scripts/source/apply-sources.mjs` (dry run / `--apply`, backup); **re-run it after `apply-topic-taxonomy.mjs`** (which rewrites `source_collection`), then `npm run revalidate`. Sources are a separate axis: an Ateret lesson keeps its topic.
+- **Prefetching**: library and `/topics` links use `prefetch={false}` — those pages have 70–95 links, and prefetching them all clogged the server so clicks stalled (the intermittent E2E navigation timeouts).
 
 ## Caching (and load protection)
 
@@ -147,7 +156,7 @@ Into a new project, `admin_users` rows reference `auth.users`, which is not in t
 
 - **Every page builds its metadata with `pageMetadata()` from `lib/seo.ts`** (title, description, canonical, Open Graph, Twitter). Don't hand-write `openGraph`: Next.js replaces nested metadata objects instead of merging them, so a page-level `openGraph` without `images` silently drops the default share image.
 - Titles: content `[Title] - הרב שלמה אבינר | אבינרפדיה`, series `סדרת [name] - שיעורי הרב שלמה אבינר`, topics `[name] - שיעורים ומאמרים | הרב שלמה אבינר`. Descriptions come from `describe()` (summary, else cleaned body, ≤160 chars).
-- Canonicals drop query strings (`?from=`, `?page=`, `?topic=` all canonicalize to the base path). `/search` is `noindex, follow`. Hidden (inactive) and missing items return not-found metadata with `noindex`.
+- Canonicals drop query strings (`?from=`, `?page=`, `?topic=` all canonicalize to the base path). `/search` redirects to `/library` (canonical `/library`, without the query). Hidden (inactive) and missing items return not-found metadata with `noindex`.
 - Share images: YouTube items use `img.youtube.com/vi/<id>/hqdefault.jpg`, Machon Meir items their Vimeo thumbnail; menu pages use their own section image (`OG_IMAGES` in `lib/seo.ts`: `public/og-videos.jpg`, `og-articles`, `og-qa`, `og-series`, `og-topics` — also on topic sub-pages — and `og-french`); everything else uses `public/og-default.jpg`. All 1200×630, ~60KB (WhatsApp may skip images over ~300KB). Regenerate them with `node scripts/make-og-image.mjs [domain]` (the domain is printed on the images).
 - `app/sitemap.ts`: all active content items, series, topics with items, and hubs (~8,100 URLs), revalidated daily. `app/robots.ts`: allow all, disallow `/admin` and `/api/`, points to the sitemap.
 - The site URL (`SITE_URL` in `lib/seo.ts`: canonicals, og:url/og:image, sitemap, robots) is, on Vercel, the project's production domain (`VERCEL_PROJECT_PRODUCTION_URL`): `avinerpedia.vercel.app` today, the custom domain automatically once it is attached to the project. `NEXT_PUBLIC_SITE_URL` only applies off Vercel. (It was once set to `https://www.shlomo-aviner.net` while that domain still served the old wiki: every canonical and share preview pointed at the old site, and WhatsApp showed its home page video. `tests/e2e/seo.spec.ts` now checks that og:url and og:image resolve on this app.)
@@ -165,7 +174,7 @@ Into a new project, `admin_users` rows reference `auth.users`, which is not in t
 | MediaWiki redirect pages (aliases, chains resolved) | 301 → final target |
 | `/עמוד_ראשי`, `/(הרב)_אבינרפדיה-...` (old home page), bare `/index.php` | 301 → `/` |
 | `/קטגוריה:X`, `/Category:X` | 301 → the curated node page (`/topics/הלכה/כשרות ומזון`), `/series/[id]` or a hub (`/videos`, `/qa`, `/french`...) |
-| Hidden item, deleted page, unknown title | 302 → `/search?q=<title>` |
+| Hidden item, deleted page, unknown title | 302 → `/library?q=<title>` |
 | Asset-like paths (`*.ico`, `*.php`...), unknown `/api/`, `/admin/`, `/_next/` | 404 |
 
 - Titles are normalized by `legacyTitleKey()` in `lib/legacy-title.ts` (underscores, entities, `''`→`"`, first-letter case, `Category:`→`קטגוריה:`), used both at build time and per request.

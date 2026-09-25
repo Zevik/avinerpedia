@@ -1,5 +1,5 @@
 import { OG_IMAGES, pageMetadata } from '@/lib/seo';
-import { FilteredContentPage } from '@/components/FilteredContentPage';
+import { LibraryView } from '@/components/library/LibraryView';
 
 export const metadata = pageMetadata({
   title: "סרטונים - שיעורי וידאו של הרב שלמה אבינר | אבינרפדיה",
@@ -8,16 +8,7 @@ export const metadata = pageMetadata({
   image: OG_IMAGES.videos,
 });
 
-export default async function VideosPage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
-  return (
-    <FilteredContentPage
-      title="סרטונים"
-      basePath="/videos"
-      scope="__has_video"
-      // Series episodes are on /series, not here (counts: scripts/source/filter-counts.mjs).
-      baseFilters={{ has_video: true, exclude_series: true }}
-      type="video"
-      searchParams={await searchParams}
-    />
-  );
+/** The library with the "video" type preset (series episodes are on /series). */
+export default async function VideosPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return <LibraryView heading="סרטונים" fixedType="video" searchParams={await searchParams} />;
 }

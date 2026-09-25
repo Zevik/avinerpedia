@@ -133,19 +133,3 @@ export async function getContentNodes(contentId: number, primaryNodeId?: number 
     .map((n) => ({ path: n.path, name: n.name, primary: n.id === primaryNodeId }))
     .sort((a, b) => Number(b.primary) - Number(a.primary) || b.path.split(SEP).length - a.path.split(SEP).length);
 }
-
-/** Q&A counts per Shulchan Aruch section (for the second filter axis on /qa). */
-export const getSaSectionCounts = cache(async (): Promise<{ section: string; count: number }[]> => {
-  const results = await Promise.all(
-    SA_SECTIONS.map(async (section) => {
-      const { count } = await supabase
-        .from('content_items')
-        .select('id', { count: 'exact', head: true })
-        .eq('main_category', 'שו"ת הלכה')
-        .eq('is_active', true)
-        .eq('sa_section', section);
-      return { section, count: count || 0 };
-    }),
-  );
-  return results.filter((r) => r.count > 0);
-});

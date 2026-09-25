@@ -250,27 +250,6 @@ export async function getWikiPosts(limit: number = 60, offset: number = 0, categ
   return data || [];
 }
 
-/**
- * Full-text search using PostgreSQL FTS
- */
-export async function searchContent(query: string, limit: number = 20): Promise<ContentItem[]> {
-  const { data, error } = await supabase
-    .from('content_items')
-    .select('*')
-    .textSearch('fts', query, {
-      type: 'websearch',
-      config: 'simple',
-    })
-    .eq('is_active', true)
-    .limit(limit);
-
-  if (error) {
-    console.error('Error searching content:', error);
-    return [];
-  }
-
-  return data || [];
-}
 
 export async function getContentCount(filters?: ContentFilters): Promise<number> {
   let query = supabase

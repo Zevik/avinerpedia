@@ -50,6 +50,23 @@ export default async function Home() {
           <p className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto leading-relaxed font-light">
             הארכיון המקיף לשיעוריו ותורתו של הרב שלמה אבינר שליט"א
           </p>
+          {/* Search goes to the content library, which filters by topic, type and source. */}
+          <form action="/library" method="get" role="search" className="relative mt-8 max-w-xl mx-auto">
+            <label htmlFor="home-q" className="sr-only">חיפוש בספריית התכנים</label>
+            <input
+              id="home-q"
+              name="q"
+              type="search"
+              placeholder="חיפוש שיעורים, מאמרים ושאלות..."
+              className="w-full rounded-full bg-white/95 text-gray-900 pr-6 pl-28 py-4 shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300/50"
+            />
+            <button type="submit" className="absolute left-2 top-1/2 -translate-y-1/2 px-5 py-2.5 rounded-full bg-blue-700 text-white font-semibold hover:bg-blue-800">
+              חיפוש
+            </button>
+          </form>
+          <Link href="/library" className="inline-block mt-4 text-blue-100 hover:text-white underline underline-offset-4">
+            לעיון בכל ספריית התכנים
+          </Link>
         </div>
       </section>
 

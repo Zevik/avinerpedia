@@ -1,5 +1,5 @@
 import { OG_IMAGES, pageMetadata } from '@/lib/seo';
-import { FilteredContentPage } from '@/components/FilteredContentPage';
+import { LibraryView } from '@/components/library/LibraryView';
 
 export const metadata = pageMetadata({
   title: "שו\"ת הלכה - שאלות ותשובות עם הרב שלמה אבינר | אבינרפדיה",
@@ -8,16 +8,7 @@ export const metadata = pageMetadata({
   image: OG_IMAGES.qa,
 });
 
-export default async function QAPage({ searchParams }: { searchParams: Promise<{ topic?: string; sa?: string }> }) {
-  return (
-    <FilteredContentPage
-      title='שו"ת הלכה'
-      basePath="/qa"
-      scope='שו"ת הלכה'
-      baseFilters={{ main_category: 'שו"ת הלכה' }}
-      type="qa"
-      searchParams={await searchParams}
-      withSaSections
-    />
-  );
+/** The library with the "Q&A" type preset; adds the Shulchan Aruch section filter. */
+export default async function QAPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  return <LibraryView heading='שו"ת הלכה' fixedType="qa" searchParams={await searchParams} />;
 }

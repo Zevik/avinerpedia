@@ -41,7 +41,7 @@ export function TopicChips({ topics, tags = [] }: TopicChipsProps) {
             {tags.map((tag) => (
               <Link
                 key={tag}
-                href={`/search?q=${encodeURIComponent(tag)}`}
+                href={`/library?q=${encodeURIComponent(tag)}`}
                 className="px-2.5 py-0.5 rounded-full text-xs border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
               >
                 {tag}

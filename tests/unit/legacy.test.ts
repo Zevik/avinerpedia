@@ -71,7 +71,7 @@ describe('resolveLegacy', () => {
   it('falls back to a 302 search for unknown titles', () => {
     expect(resolveLegacy('/' + encodeURIComponent('דף_שלא_קיים_בכלל'), params())).toEqual({
       status: 302,
-      location: `/search?q=${encodeURIComponent('דף שלא קיים בכלל')}`,
+      location: `/library?q=${encodeURIComponent('דף שלא קיים בכלל')}`,
     });
   });
 
@@ -79,7 +79,7 @@ describe('resolveLegacy', () => {
     const [title, target] = Object.entries(redirects.searches)[0];
     expect(resolveLegacy('/' + encodeURIComponent(title), params())).toEqual({
       status: 302,
-      location: `/search?q=${encodeURIComponent(target)}`,
+      location: `/library?q=${encodeURIComponent(target)}`,
     });
   });
 

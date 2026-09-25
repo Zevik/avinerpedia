@@ -19,11 +19,15 @@ const nextConfig: NextConfig = {
   // from the page would be client-side with status 200 instead of a real 301.
   // Map built by scripts/source/build-legacy-redirects.ts.
   async redirects() {
-    return Object.entries(topicRedirects as Record<string, string>).map(([id, destination]) => ({
-      source: `/topics/${id}`,
-      destination,
-      statusCode: 301 as const,
-    }));
+    return [
+      ...Object.entries(topicRedirects as Record<string, string>).map(([id, destination]) => ({
+        source: `/topics/${id}`,
+        destination,
+        statusCode: 301 as const,
+      })),
+      // Search lives in the content library (the query string is carried over).
+      { source: '/search', destination: '/library', permanent: false },
+    ];
   },
 };
 

@@ -11,6 +11,7 @@ export function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'בית' },
+    { href: '/library', label: 'ספריית התכנים' },
     { href: '/videos', label: 'סרטונים' },
     { href: '/qa', label: 'שו״ת' },
     { href: '/articles', label: 'מאמרים' },

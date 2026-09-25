@@ -77,13 +77,15 @@ test('home and menu pages share their own image, served from this site', async (
   }
 });
 
-test('hub pages have their own titles; search is noindex', async ({ page }) => {
+test('hub pages have their own titles; /search leads to the library, canonical without the query', async ({ page }) => {
   await page.goto('/videos');
   await expect(page).toHaveTitle(/^סרטונים/);
   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/\/videos$/);
 
   await page.goto('/search?q=תפילה');
-  expect(await meta(page, 'name', 'robots')).toContain('noindex');
+  await expect(page).toHaveURL(/\/library\?q=/);
+  await expect(page).toHaveTitle(/^ספריית התכנים/);
+  expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/\/library$/);
 });
 
 test('sitemap.xml lists content, series, topics and hubs', async ({ request }) => {

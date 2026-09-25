@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
-import { ArticleCard } from '@/components/ArticleCard';
+import { ChevronLeft, Library } from 'lucide-react';
+import { LibraryCard } from '@/components/library/LibraryCard';
 import { getContentItems } from '@/lib/db';
+import { getSources, libraryHref } from '@/lib/library';
 import { findNodeBySegments, getFilterTree, nodeHref } from '@/lib/filters';
 import { OG_IMAGES, pageMetadata } from '@/lib/seo';
 
@@ -49,7 +50,11 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
   if (!node) notFound();
 
   const page = Math.max(1, Number((await searchParams).page) || 1);
-  const items = await getContentItems({ node_id: node.id, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
+  const [items, sources] = await Promise.all([
+    getContentItems({ node_id: node.id, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
+    getSources(),
+  ]);
+  const sourceName = new Map(sources.map((s) => [s.id, s.name]));
   const pages = Math.ceil(node.count / PAGE_SIZE);
   const pageHref = (p: number) => `${nodeHref(node.path)}${p > 1 ? `?page=${p}` : ''}`;
 
@@ -67,7 +72,16 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
         </nav>
 
         <h1 className="text-4xl font-bold mb-2">{node.name}</h1>
-        <p className="text-muted-foreground mb-8">{node.count} פריטים</p>
+        <div className="flex flex-wrap items-center gap-4 mb-8">
+          <p className="text-muted-foreground">{node.count} פריטים</p>
+          <Link
+            href={libraryHref({ topic: node.id })}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-primary text-primary text-sm font-semibold hover:bg-primary hover:text-white transition-colors"
+          >
+            <Library className="w-4 h-4" />
+            סינון התכנים בנושא בספרייה
+          </Link>
+        </div>
 
         {node.children.length > 0 && (
           <section className="mb-10">
@@ -90,11 +104,13 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
         {items.length > 0 && (
           <section>
             {node.children.length > 0 && <h2 className="text-xl font-bold mb-4">כל התכנים בנושא {node.name}</h2>}
-            <div className="space-y-6">
+            <ul className="space-y-3">
               {items.map((item) => (
-                <ArticleCard key={item.id} article={item} />
+                <li key={item.id}>
+                  <LibraryCard item={item} sourceName={item.source_id ? sourceName.get(item.source_id) : undefined} />
+                </li>
               ))}
-            </div>
+            </ul>
 
             {pages > 1 && (
               <nav aria-label="עמודים" className="flex items-center justify-center gap-4 mt-10">
