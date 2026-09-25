@@ -16,7 +16,7 @@ const IMAGES = [
   { file: 'og-articles.jpg', badge: SECTION_BADGE, h1: 'מאמרים', h2: 'מאמרי הרב שלמה אבינר', line: 'אמונה · הלכה · חינוך · זוגיות ומשפחה · מדינת ישראל' },
   { file: 'og-qa.jpg', badge: SECTION_BADGE, h1: 'שו"ת הלכה', h2: 'שאלות ותשובות עם הרב שלמה אבינר', line: 'אורח חיים · יורה דעה · אבן העזר · חושן משפט' },
   { file: 'og-series.jpg', badge: SECTION_BADGE, h1: 'סדרות לימוד', h2: 'שיעורי הרב שלמה אבינר לפי הסדר', line: 'אורות · אורות התחיה · עין איה · כוזרי ועוד' },
-  { file: 'og-topics.jpg', badge: SECTION_BADGE, h1: 'נושאים', h2: 'כל התכנים לפי נושא', line: 'הלכה · אמונה · מועדים · תפילה · חינוך · ועוד' },
+  { file: 'og-topics.jpg', badge: SECTION_BADGE, h1: 'נושאים', h2: 'כל התכנים לפי נושא', line: 'הלכה · אמונה · חגים ומועדים · תפילה · ועוד' },
   { file: 'og-french.jpg', badge: SECTION_BADGE, h1: 'Cours en français', h1Size: 118, h1Dir: 'ltr', h2: 'שיעורי הרב שלמה אבינר בצרפתית', line: 'Emouna · Erets Israël · La Paracha de la semaine' },
 ];
 

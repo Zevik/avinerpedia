@@ -15,7 +15,7 @@ export type FilterScope = 'סרטונים' | 'מאמרים' | 'שו"ת הלכה'
 
 const SEP = ' › ';
 
-/** URL of a node's topic page: its path as segments, e.g. /topics/מועדים/חנוכה. */
+/** URL of a node's topic page: its path as segments, e.g. /topics/חגים ומועדים/חנוכה. */
 export function nodeHref(path: string): string {
   return '/topics/' + path.split(SEP).map(encodeURIComponent).join('/');
 }

@@ -54,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // Curated topic pages (/topics/מועדים/חנוכה); core topics rank higher.
+  // Curated topic pages (/topics/חגים ומועדים/חנוכה); core topics rank higher.
   const topicPages: MetadataRoute.Sitemap = flattenTree(tree).map((n) => ({
     url: url(nodeHref(n.path)),
     changeFrequency: 'weekly',

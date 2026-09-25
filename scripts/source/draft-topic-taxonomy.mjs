@@ -31,7 +31,7 @@ const TREE = {
     'גיור': ['גיור', 'גיור - הלכה'],
     'פסיקת הלכה': ['פסיקת הלכה'],
   },
-  'מועדים': {
+  'חגים ומועדים': {
     'ימים נוראים': ['ראש השנה', 'יום כיפור', 'עשרת ימי תשובה', 'סליחות', 'אלול', 'צום גדליה', 'חודש אלול'],
     'סוכות ושמחת תורה': ['סוכות', 'שמחת תורה', 'שמיני עצרת - שמחת תורה', 'חול המועד', 'סוכה'],
     'חנוכה': ['חנוכה'],
@@ -129,10 +129,15 @@ const SERIES_NODES = [
   [/אורות|עין איה|למהלך האידאות|מידות הראיה|קריאה גדולה/, 'אישים › הרב קוק'],
   [/לנתיבות ישראל|יסוד שיטת הרב קוק/, 'אישים › הרב צבי יהודה'],
   [/כוזרי|שמונה פרקים|מסילת ישרים|תפארת ישראל|נתיב התורה/, 'אמונה › מחשבת ישראל'],
-  [/שמירת הלשון/, 'מוסר ומידות › שמירת הלשון'],
+  [/שמירת הלשון/, 'מוסר ומידות › שמירת הלשון | הלכה › בין אדם לחברו › שמירת הלשון'],
   [/יוסף הצדיק/, 'תורה ולימוד › תנ"ך'],
   [/לזמרת בצבא/, 'מדינת ישראל וצה"ל › צה"ל וביטחון'],
 ];
+// Names that are both a series and a subject: filed as a topic (the series stays on /series).
+const TOPICS_OVER_SERIES = new Set(['שמירת הלשון']);
+// Topics filed under a second parent too (a node has one parent, so a second node with the
+// same name). Written to the CSV target as "path | path".
+const EXTRA_NODES = { 'שמירת הלשון': ['הלכה › בין אדם לחברו › שמירת הלשון'] };
 // Shulchan Aruch sections: a second axis for Q&A, not part of the filter tree above.
 const SHULCHAN_ARUCH = ['אורח חיים', 'יורה דעה', 'אבן העזר', 'חושן משפט'];
 // Source containers/collections that are not subjects.
@@ -221,7 +226,7 @@ function editDistance(a, b) {
 // ---------------------------------------------------------------- classify
 const nodeOfSource = new Map(); // source name -> "core › sub"
 // Source topics that are the same subject as a core topic under another name.
-const CORE_ALIASES = { 'תורה': 'תורה ולימוד', 'מדינת ישראל': 'מדינת ישראל וצה"ל' };
+const CORE_ALIASES = { 'תורה': 'תורה ולימוד', 'מדינת ישראל': 'מדינת ישראל וצה"ל', 'מועדים': 'חגים ומועדים' };
 for (const [alias, core] of Object.entries(CORE_ALIASES)) nodeOfSource.set(alias, core);
 for (const [core, subs] of Object.entries(TREE)) {
   nodeOfSource.set(core, `${core}`);
@@ -236,7 +241,7 @@ const FRENCH_ROOTS = new Set(['Emouna', 'Erets Israel', "L'état d'Israël", 'Le
 const isFrench = (t) => /^[A-Za-zÀ-ÿ'’ ]+$/.test(t.name) || t.parents.some((p) => FRENCH_ROOTS.has(p));
 // Content formats under the source's "מיוחדים" container.
 const FORMATS = { 'מאמרים מיוחדים': 'מקור: מאמרים מיוחדים', 'ציוצים': 'מקור: ציוצים', 'שירים': 'מקור: שירים' };
-// "X - הלכה" / "X - הלכות": a third level "הלכות X" under X's node (מועדים › חנוכה › הלכות חנוכה).
+// "X - הלכה" / "X - הלכות": a third level "הלכות X" under X's node (חגים ומועדים › חנוכה › הלכות חנוכה).
 const HALACHA_SUFFIX = /^(.+?)\s*-\s*הלכ(?:ה|ות)$/;
 
 // Pass A: structural kinds.
@@ -258,7 +263,7 @@ for (const t of topics) {
   if (CHUMASH_TOPICS[n]) { set(n, 'parasha', `תורה ולימוד › פרשת השבוע › ${CHUMASH_TOPICS[n]}`); continue; }
   if (PARASHA_HUBS.includes(n)) { set(n, 'parasha', 'תורה ולימוד › פרשת השבוע'); continue; }
   const ser = seriesOf(n);
-  if (ser) { set(n, 'series', ser); continue; }
+  if (ser && !TOPICS_OVER_SERIES.has(n)) { set(n, 'series', ser); continue; }
   if (/[:\[\]]/.test(n)) {
     const segs = n.replace(/\[\[קטגוריה:?/g, ':').replace(/\s*\((מאמרים|וידאו|שו"ת)\)\s*/g, ' ').split(':').map((s) => s.trim()).filter(Boolean);
     const mapped = segs.map((s) => nodeOfSource.get(s)).find(Boolean);
@@ -360,6 +365,11 @@ for (const t of topics) {
   else set(t.name, 'review', '(לבדיקה)', t.pages ? '' : 'ללא פריטים');
 }
 
+for (const [name, extra] of Object.entries(EXTRA_NODES)) {
+  const c = result.get(name);
+  if (c?.kind === 'filter') c.target = [c.target, ...extra].join(' | ');
+}
+
 // ---------------------------------------------------------------- counts per filter node
 const nodeItems = new Map();
 const add = (node, id) => { if (!nodeItems.has(node)) nodeItems.set(node, new Set()); nodeItems.get(node).add(id); };
@@ -367,8 +377,10 @@ for (const r of records) {
   for (const name of r.topics) {
     const c = result.get(name);
     if (!c || !c.target || c.target.startsWith('(') || ['series', 'collection', 'shulchan-aruch'].includes(c.kind)) continue;
-    const parts = c.target.split(' › ');
-    for (let i = 1; i <= parts.length; i++) add(parts.slice(0, i).join(' › '), r.source_page_id);
+    for (const target of c.target.split(' | ')) {
+      const parts = target.split(' › ');
+      for (let i = 1; i <= parts.length; i++) add(parts.slice(0, i).join(' › '), r.source_page_id);
+    }
   }
 }
 const count = (node) => nodeItems.get(node)?.size || 0;
@@ -504,6 +516,7 @@ for (const [core, subs] of Object.entries(TREE)) {
   treePaths.push(core);
   for (const sub of Object.keys(subs)) treePaths.push(`${core} › ${sub}`);
 }
+for (const extra of Object.values(EXTRA_NODES).flat()) treePaths.push(extra);
 treePaths.push('תורה ולימוד › פרשת השבוע');
 for (const [c, ps] of Object.entries(CHUMASH)) {
   treePaths.push(`תורה ולימוד › פרשת השבוע › ${c}`);

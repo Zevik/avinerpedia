@@ -29,17 +29,21 @@ const mapping = new Map(csvRows.map(([name, , kind, target]) => [name, { kind, t
 
 const NODE_KINDS = new Set(['נושא סינון', 'מקופל', 'מקופל (מועמד לתת-נושא)', 'תגית', 'פרשת השבוע', 'כפילות/שגיאת כתיב', 'נתיב משורשר']);
 const isNodePath = (t) => t && !t.startsWith('(') && !t.startsWith('→') && !t.includes(':');
+// A target can name several nodes, "path | path" (a topic filed under two parents).
+const targetsOf = (target) => (target || '').split(' | ').map((t) => t.trim()).filter(isNodePath);
 
 // ---------------------------------------------------------------- node set
 // Curated order first; any other valid target path (e.g. a "הלכות X" level) after it.
 const nodePaths = [...tree.treePaths];
 const known = new Set(nodePaths);
 for (const { kind, target } of mapping.values()) {
-  if (!NODE_KINDS.has(kind) || !isNodePath(target)) continue;
-  const parts = target.split(SEP);
-  for (let i = 1; i <= parts.length; i++) {
-    const p = parts.slice(0, i).join(SEP);
-    if (!known.has(p)) { known.add(p); nodePaths.push(p); }
+  if (!NODE_KINDS.has(kind)) continue;
+  for (const t of targetsOf(target)) {
+    const parts = t.split(SEP);
+    for (let i = 1; i <= parts.length; i++) {
+      const p = parts.slice(0, i).join(SEP);
+      if (!known.has(p)) { known.add(p); nodePaths.push(p); }
+    }
   }
 }
 
@@ -51,8 +55,8 @@ const seriesRules = tree.seriesNodes.map(([re, node]) => [new RegExp(re), node])
 // Title keyword fallback: node names and the source topics mapped to them, longest first.
 const keywordIndex = [];
 for (const [name, { kind, target }] of mapping) {
-  if (!['נושא סינון', 'כפילות/שגיאת כתיב'].includes(kind) || !isNodePath(target) || name.length < 3) continue;
-  keywordIndex.push([name, target]);
+  if (!['נושא סינון', 'כפילות/שגיאת כתיב'].includes(kind) || !targetsOf(target).length || name.length < 3) continue;
+  keywordIndex.push([name, targetsOf(target)]);
 }
 for (const p of nodePaths) {
   const last = p.split(SEP).pop();
@@ -72,7 +76,7 @@ function titleNodes(title) {
     new RegExp(`^(פרשת\\s+${escapeRe(p)}([\\s,:\\-]|$)|${escapeRe(p)}\\s+(ע"[א-ת]|תש"?[א-ת]))`).test(title));
   if (par) return [`תורה ולימוד${SEP}פרשת השבוע${SEP}${chumashOf.get(par)}${SEP}${par}`];
   const hit = keywordRes.find(([re]) => re.test(title));
-  return hit ? [hit[1]] : [];
+  return hit ? [].concat(hit[1]) : []; // a keyword may map to several nodes (a topic filed twice)
 }
 
 const SA = new Set(tree.shulchanAruch);
@@ -100,13 +104,13 @@ for (const r of records) {
     const m = mapping.get(t);
     if (!m) continue;
     if (m.kind === 'תגית') tags.push(t);
-    if (NODE_KINDS.has(m.kind) && isNodePath(m.target)) nodes.add(m.target);
+    if (NODE_KINDS.has(m.kind)) for (const t of targetsOf(m.target)) nodes.add(t);
     if (m.kind === 'אוסף/מכל' && m.target.startsWith('מקור: ')) source ??= m.target.slice('מקור: '.length);
   }
   let how = nodes.size ? 'fromTopics' : null;
   if (r.series) {
     const rule = seriesRules.find(([re]) => re.test(r.series));
-    if (rule) { nodes.add(rule[1]); how ??= 'fromSeries'; }
+    if (rule) { for (const t of targetsOf(rule[1])) nodes.add(t); how ??= 'fromSeries'; }
   }
   if (!nodes.size) for (const n of titleNodes(r.title)) { nodes.add(n); how = 'fromTitle'; titleSamples.push(`${r.title}  =>  ${n}`); }
   if (!nodes.size && r.content_type === 'qa') { nodes.add('הלכה'); how = 'qaFallback'; }
@@ -114,8 +118,9 @@ for (const r of records) {
 
   // Primary: the node of the page's most specific source topic, else the deepest node.
   const primaryTopic = r.primary_topic && mapping.get(r.primary_topic);
-  const primary = primaryTopic && isNodePath(primaryTopic.target) && nodes.has(primaryTopic.target)
-    ? primaryTopic.target
+  const primaryTarget = primaryTopic && targetsOf(primaryTopic.target)[0];
+  const primary = primaryTarget && nodes.has(primaryTarget)
+    ? primaryTarget
     : [...nodes].sort((a, b) => b.split(SEP).length - a.split(SEP).length)[0] || null;
 
   classified.set(r.source_page_id, { nodes, primary, sa: saSection(r.topics), source, tags });

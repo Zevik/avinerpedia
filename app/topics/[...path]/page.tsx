@@ -22,7 +22,7 @@ const decode = (s: string) => {
   }
 };
 
-/** /topics/מועדים/חנוכה -> the node and its ancestors (empty if no such node). */
+/** /topics/חגים ומועדים/חנוכה -> the node and its ancestors (empty if no such node). */
 async function resolve(params: TopicPageProps['params']) {
   const { path } = await params;
   const segments = path.map(decode);

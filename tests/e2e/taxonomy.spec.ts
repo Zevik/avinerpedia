@@ -91,6 +91,22 @@ test('old numeric topic URLs redirect permanently to the curated node', async ({
   expect(decodeURIComponent(res.headers()['location'])).toMatch(/\/topics\/הלכה$/);
 });
 
+test('renamed topic: old /topics/מועדים URLs redirect permanently to חגים ומועדים', async ({ request }) => {
+  for (const [from, to] of [['/topics/מועדים', '/topics/חגים ומועדים'], ['/topics/מועדים/חנוכה', '/topics/חגים ומועדים/חנוכה']]) {
+    const res = await request.get(from.split('/').map(encodeURIComponent).join('/'), { maxRedirects: 0 });
+    expect(res.status(), from).toBe(301);
+    expect(decodeURIComponent(new URL(res.headers()['location'], 'http://x').pathname), from).toBe(to);
+  }
+});
+
+test('שמירת הלשון is a topic under both מוסר ומידות and הלכה › בין אדם לחברו', async ({ page }) => {
+  for (const path of ['/topics/מוסר ומידות/שמירת הלשון', '/topics/הלכה/בין אדם לחברו/שמירת הלשון']) {
+    await page.goto(path.split('/').map(encodeURIComponent).join('/'));
+    await expect(page.getByRole('heading', { level: 1 }), path).toHaveText('שמירת הלשון');
+    await expect(page.locator('a[href^="/content/"]').first(), path).toBeVisible();
+  }
+});
+
 test('unknown topic path shows the not-found page', async ({ page }) => {
   await page.goto('/topics/' + encodeURIComponent('אין נושא כזה'));
   await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();

@@ -64,7 +64,8 @@ const nodeHref = (p: string) => '/topics/' + p.split(' › ').map(encodeURICompo
 const topicByName = new Map<string, string>();
 for (const [name, , kind, target] of parseCsv(fs.readFileSync('docs/topic-taxonomy-mapping.csv', 'utf8').replace(/^﻿/, '')).slice(1)) {
   if (kind === 'סדרה/ספר' && seriesByName.has(target)) topicByName.set(name, seriesByName.get(target)!);
-  else if (NODE_KINDS.has(kind) && target && !target.startsWith('(') && !target.startsWith('→') && !target.includes(':')) topicByName.set(name, nodeHref(target));
+  // A target may name two nodes ("path | path"); the old category page goes to the first.
+  else if (NODE_KINDS.has(kind) && target && !target.startsWith('(') && !target.startsWith('→') && !target.includes(':')) topicByName.set(name, nodeHref(target.split(' | ')[0]));
 }
 
 // Old numeric topic pages (/topics/<topics.id>, before the curated tree) -> the new page.
@@ -86,7 +87,9 @@ const SUFFIX = /\s*\((וידאו|מאמרים|מאמר|שו"ת|שו"תים|סד�
 function categoryPath(name: string): string | undefined {
   if (HUB_CATEGORIES[name]) return HUB_CATEGORIES[name];
   const stripped = name.replace(SUFFIX, '').trim();
-  return seriesByName.get(stripped) ?? seriesByName.get(name) ?? topicByName.get(TOPIC_ALIASES[stripped] || stripped) ?? topicByName.get(name);
+  // The mapping decides first (series-kind rows already map to their series page); a series
+  // of the same name only as a fallback — "שמירת הלשון (מאמרים)" is a topic, not the video series.
+  return topicByName.get(TOPIC_ALIASES[stripped] || stripped) ?? topicByName.get(name) ?? seriesByName.get(stripped) ?? seriesByName.get(name);
 }
 
 // The old home page ("עמוד ראשי") redirects to "(הרב) אבינרפדיה- ..." index pages.
