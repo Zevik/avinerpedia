@@ -15,8 +15,15 @@ import { getVimeoId } from './video';
  * the old wiki made WhatsApp preview the old site. NEXT_PUBLIC_SITE_URL is for other hosts.
  */
 const vercelProductionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+/**
+ * TEMPORARY (2026-09-25): shlomo-aviner.net is attached to the Vercel project (so it became the
+ * production domain) but its DNS still points at the old wiki behind Cloudflare. Until the DNS
+ * moves to Vercel, pin the origin; then set this to null (domain switch checklist, CLAUDE.md).
+ */
+const PINNED_SITE_URL: string | null = 'https://avinerpedia.vercel.app';
 export const SITE_URL = (
-  vercelProductionHost ? `https://${vercelProductionHost}` : process.env.NEXT_PUBLIC_SITE_URL || 'https://avinerpedia.vercel.app'
+  PINNED_SITE_URL ??
+  (vercelProductionHost ? `https://${vercelProductionHost}` : process.env.NEXT_PUBLIC_SITE_URL || 'https://avinerpedia.vercel.app')
 ).replace(/\/$/, '');
 export const SITE_NAME = 'אבינרפדיה';
 export const DEFAULT_DESCRIPTION =
