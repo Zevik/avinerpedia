@@ -243,6 +243,7 @@ Gotchas:
 
 ## Roadmap / pending
 
+- **Rare stuck navigation**: about 1 client navigation in 60 (measured on the live site, 2026-09-25, with hydrated pages and prefetch off) doesn't commit although its RSC response arrived complete; a second click works. Suspect: the root `app/loading.tsx` (streaming Suspense around every page). Removing it would also make `notFound()` return a real 404 and in-page redirects real 301s, at the cost of the loading spinner during navigation — measure before/after with a few hundred clicks. The live E2E run has `retries: 1` meanwhile.
 - **Admin taxonomy editing** (next): content type selector, series + episode number, topic multi-select in the edit form (keeping `main_category`/`sub_category` in sync); replace the legacy categories screen with topic-tree and series management.
 - **Content refresh**: 2,045 pages were edited on the source after the MDX export (2026-02-14), and 246 items are empty in the DB though the source has text. `scripts/source/wikitext-to-markdown.mjs` does the conversion (used for the 9 filled items above); what's left is a script that compares every item with its source text and refreshes the changed ones, with a review list like `docs/empty-items-review.csv`.
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
