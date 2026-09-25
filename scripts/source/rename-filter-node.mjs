@@ -4,8 +4,7 @@
 // Why: apply-topic-taxonomy.mjs upserts nodes by path, so renaming only in the mapping would
 // create new nodes (new ids) and delete the old ones, breaking ?topic=<id> links. Run this
 // first, after renaming the node in draft-topic-taxonomy.mjs (and regenerating the mapping),
-// then apply-topic-taxonomy.mjs --apply. Old /topics/<old path> URLs need a redirect in
-// next.config.ts.
+// then apply-topic-taxonomy.mjs --apply.
 import fs from 'fs';
 import path from 'path';
 import { config } from 'dotenv';

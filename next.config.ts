@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 import topicRedirects from "./lib/topic-redirects.json";
 
-/** Core topics renamed after launch: old name -> new name (first path segment of /topics URLs). */
-const RENAMED_TOPICS: Record<string, string> = {
-  'מועדים': 'חגים ומועדים',
-};
-
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -24,19 +19,11 @@ const nextConfig: NextConfig = {
   // from the page would be client-side with status 200 instead of a real 301.
   // Map built by scripts/source/build-legacy-redirects.ts.
   async redirects() {
-    return [
-      ...Object.entries(topicRedirects as Record<string, string>).map(([id, destination]) => ({
-        source: `/topics/${id}`,
-        destination,
-        statusCode: 301 as const,
-      })),
-      // Renamed curated topics (scripts/source/rename-filter-node.mjs keeps their ids, so
-      // ?topic=<id> links still work; only the name-based /topics URLs change).
-      ...Object.entries(RENAMED_TOPICS).flatMap(([from, to]) => [
-        { source: `/topics/${encodeURIComponent(from)}`, destination: `/topics/${encodeURIComponent(to)}`, statusCode: 301 as const },
-        { source: `/topics/${encodeURIComponent(from)}/:rest*`, destination: `/topics/${encodeURIComponent(to)}/:rest*`, statusCode: 301 as const },
-      ]),
-    ];
+    return Object.entries(topicRedirects as Record<string, string>).map(([id, destination]) => ({
+      source: `/topics/${id}`,
+      destination,
+      statusCode: 301 as const,
+    }));
   },
 };
 
