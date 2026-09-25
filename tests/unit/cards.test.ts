@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { cardSummary, displayTitle } from '../../lib/utils';
 
 describe('displayTitle', () => {
-  it('drops the "(מאמר)" suffix, keeps other parentheses', () => {
+  it('drops the (מאמר) / (וידאו) / (שו"ת) suffixes, keeps other parentheses', () => {
     expect(displayTitle('גבעת האולפנה היא שלנו (מאמר)')).toBe('גבעת האולפנה היא שלנו');
     expect(displayTitle('פרשת וירא: מעלת הכנסת אורחים (מאמר))')).toBe('פרשת וירא: מעלת הכנסת אורחים');
-    expect(displayTitle('כפירה (שו"ת)')).toBe('כפירה (שו"ת)');
+    expect(displayTitle('כפירה (שו"ת)')).toBe('כפירה');
+    expect(displayTitle('נטילת ידיים(שו״ת)')).toBe('נטילת ידיים');
+    expect(displayTitle('שו"ת חתונה')).toBe('שו"ת חתונה'); // only the parenthesized suffix
     expect(displayTitle('תפילה בישיבה (וידאו)')).toBe('תפילה בישיבה');
     expect(displayTitle('תפילה(וידאו)')).toBe('תפילה');
     expect(displayTitle('תפילה במניין - למי יש עדיפות? (וידאו קצר)')).toBe('תפילה במניין - למי יש עדיפות? (וידאו קצר)');
