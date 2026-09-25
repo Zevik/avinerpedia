@@ -16,6 +16,8 @@ export interface LibraryFilterData {
   total: number;
   /** How many filters (type, source, section, topic) are active. */
   activeCount: number;
+  /** The type of a preset page (/videos, /articles, /qa): the type section is hidden there. */
+  fixedType?: MediaType;
 }
 
 /**
@@ -63,7 +65,7 @@ export function LibraryFilters(data: LibraryFilterData) {
               <div className="flex-1 overflow-y-auto px-5 py-4">{panel}</div>
               <div className="flex items-center gap-3 px-5 py-3 border-t">
                 {data.activeCount > 0 && (
-                  <Link prefetch={false} href={libraryHref({ q: data.state.q })} scroll={false} className="px-4 py-2.5 rounded-lg border font-medium">
+                  <Link prefetch={false} href={libraryHref({ q: data.state.q, type: data.fixedType })} scroll={false} className="px-4 py-2.5 rounded-lg border font-medium">
                     ניקוי
                   </Link>
                 )}
@@ -93,25 +95,27 @@ const pill = (active: boolean) =>
     active ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/70'
   }`;
 
-function Panel({ state, typeCounts, sources, saSections, topicTree, topicPathIds }: LibraryFilterData) {
+function Panel({ state, typeCounts, sources, saSections, topicTree, topicPathIds, fixedType }: LibraryFilterData) {
   const href = (change: Partial<Omit<LibraryState, 'page'>>) => libraryHref(withChange(state, change));
 
   return (
     <div>
-      <Section title="סוג תוכן">
-        <div className="flex flex-wrap gap-2">
-          <Link prefetch={false} href={href({ type: undefined })} scroll={false} className={pill(!state.type)}>הכל</Link>
-          {MEDIA_TYPES.map((t) => {
-            const count = typeCounts[t.key] ?? 0;
-            if (!count && state.type !== t.key) return null;
-            return (
-              <Link prefetch={false} key={t.key} href={href({ type: t.key })} scroll={false} className={pill(state.type === t.key)}>
-                {t.label} <span className="text-xs opacity-75">{count.toLocaleString('he-IL')}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </Section>
+      {!fixedType && (
+        <Section title="סוג תוכן">
+          <div className="flex flex-wrap gap-2">
+            <Link prefetch={false} href={href({ type: undefined })} scroll={false} className={pill(!state.type)}>הכל</Link>
+            {MEDIA_TYPES.map((t) => {
+              const count = typeCounts[t.key] ?? 0;
+              if (!count && state.type !== t.key) return null;
+              return (
+                <Link prefetch={false} key={t.key} href={href({ type: t.key })} scroll={false} className={pill(state.type === t.key)}>
+                  {t.label} <span className="text-xs opacity-75">{count.toLocaleString('he-IL')}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       {saSections.length > 0 && (
         <Section title="חלק בשולחן ערוך">

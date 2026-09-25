@@ -35,7 +35,9 @@ export async function LibraryView({ heading, searchParams, fixedType }: LibraryV
   const pages = Math.ceil(total / LIBRARY_PAGE_SIZE);
 
   // Active filters as removable chips.
-  const typeLabel = MEDIA_TYPES.find((t) => t.key === state.type)?.label;
+  // On a preset page (/videos, /articles, /qa) the type is the page itself: no chip, no type filter.
+  const typeLabel = fixedType ? undefined : MEDIA_TYPES.find((t) => t.key === state.type)?.label;
+  const clearAllHref = libraryHref({ type: fixedType });
   const chips = [
     typeLabel && { label: typeLabel, href: libraryHref(withChange(state, { type: undefined })) },
     state.sa && { label: state.sa, href: libraryHref(withChange(state, { sa: undefined })) },
@@ -82,7 +84,7 @@ export async function LibraryView({ heading, searchParams, fixedType }: LibraryV
               </Link>
             ))}
             {chips.length > 1 && (
-              <Link prefetch={false} href="/library" className="flex-shrink-0 px-3 py-1.5 text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline">
+              <Link prefetch={false} href={clearAllHref} className="flex-shrink-0 px-3 py-1.5 text-sm text-muted-foreground hover:text-primary underline-offset-2 hover:underline">
                 ניקוי הכל
               </Link>
             )}
@@ -93,6 +95,7 @@ export async function LibraryView({ heading, searchParams, fixedType }: LibraryV
           <LibraryFilters
             state={state}
             typeCounts={facets.types}
+            fixedType={fixedType}
             sources={sources.map((s) => ({ slug: s.slug, name: s.name, count: facets.sources.get(s.id) ?? 0 })).filter((s) => s.count > 0 || s.slug === state.source)}
             saSections={state.type === 'qa' ? SA_SECTIONS.map((name) => ({ name, count: facets.sa.get(name) ?? 0 })).filter((s) => s.count > 0 || s.name === state.sa) : []}
             topicTree={treeWithCounts(tree, facets.nodes)}

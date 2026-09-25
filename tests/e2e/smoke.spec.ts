@@ -62,13 +62,15 @@ test('Machon Meir lesson embeds only the Vimeo player', async ({ page }) => {
 });
 
 // 7838 was hidden by scripts/check-dead-videos.mjs (its only content was a removed YouTube video).
-test('hidden (inactive) item shows the not-found page', async ({ page }) => {
-  await page.goto('/content/7838');
+test('hidden (inactive) item shows the not-found page, with a real 404', async ({ page }) => {
+  const res = await page.goto('/content/7838');
+  expect(res?.status()).toBe(404);
   await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
   await expect(page.locator('iframe[src*="I1LDD3PY9U0"]')).toHaveCount(0);
 });
 
-test('unknown content id shows the not-found page', async ({ page }) => {
-  await page.goto('/content/999999999');
+test('unknown content id shows the not-found page, with a real 404', async ({ page }) => {
+  const res = await page.goto('/content/999999999');
+  expect(res?.status()).toBe(404);
   await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
 });

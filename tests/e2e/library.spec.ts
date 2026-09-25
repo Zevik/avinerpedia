@@ -66,11 +66,25 @@ test('all three axes combine, and the URL restores them (shareable)', async ({ p
   const topicHref = await page.locator('aside ul a[href*="topic="]').first().getAttribute('href');
   const topic = new URL(topicHref!, 'http://x').searchParams.get('topic');
   await page.goto(`/videos?source=ateret&topic=${topic}`);
-  await expect(activeChips(page)).toContainText('סרטונים');
   await expect(activeChips(page)).toContainText('ישיבת עטרת ירושלים');
+  await expect(activeChips(page)).not.toContainText('סרטונים'); // the page's own type: no chip
   await expect(results(page).first()).toBeVisible();
   const labels = await results(page).evaluateAll((els) => els.map((e) => e.textContent || ''));
   expect(labels.every((t) => t.includes('ישיבת עטרת ירושלים') && /וידאו/.test(t))).toBe(true);
+});
+
+test('preset pages hide the type filter; the library shows it', async ({ page, isMobile }) => {
+  for (const path of ['/articles', '/videos', '/qa']) {
+    await page.goto(path + '?source=ateret');
+    const panel = await filterPanel(page, isMobile);
+    await expect(panel.getByRole('heading', { name: 'סוג תוכן' }), path).toHaveCount(0);
+    await expect(panel.getByRole('heading', { name: 'נושא' }), path).toBeVisible();
+    await expect(activeChips(page).getByRole('link'), path).toHaveCount(1); // only the source
+    if (isMobile) await page.getByRole('button', { name: 'סגור' }).click();
+  }
+  await page.goto('/library');
+  const panel = await filterPanel(page, isMobile);
+  await expect(panel.getByRole('heading', { name: 'סוג תוכן' })).toBeVisible();
 });
 
 test('search: the box searches the library; /search redirects to it', async ({ page }) => {
