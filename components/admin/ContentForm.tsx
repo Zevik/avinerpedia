@@ -5,7 +5,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2, Save } from 'lucide-react';
-import { createContentItem, getSourceOptions, updateContentItem, type EditableContent } from '@/lib/db';
+import {
+  createContentItem, getItemTopicNodeIds, getSourceOptions, getTopicNodes, refreshItemTopicCounts, setItemTopics,
+  updateContentItem, type EditableContent,
+} from '@/lib/db';
+import { specificSelection } from '@/lib/topic-selection';
+import { TopicPicker, type PickerNode } from './TopicPicker';
 import type { ContentItem } from '@/lib/types';
 import { cardThumbnail, isValidVideoId, normalizeVideoInput } from '@/lib/video';
 
@@ -23,8 +28,8 @@ const label = 'text-sm font-medium text-gray-700';
 
 /**
  * Add or edit a content item: title, type (article / video / Q&A), source, date, summary,
- * video (any type — a Q&A answered on video counts as both Q&A and video in the library),
- * body, tags, visibility. Saving purges the public cache (lib/revalidate.ts).
+ * topics (from the curated tree), video (any type — a Q&A answered on video counts as both
+ * Q&A and video in the library), body, tags, visibility. Saving purges the public cache (lib/revalidate.ts).
  */
 export function ContentForm({ item }: { item?: ContentItem }) {
   const router = useRouter();
@@ -46,9 +51,23 @@ export function ContentForm({ item }: { item?: ContentItem }) {
   });
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((f) => ({ ...f, [key]: value }));
 
+  // Topics: the curated tree, and the item's current nodes (only the most specific are shown).
+  const [nodes, setNodes] = useState<PickerNode[]>([]);
+  const [topics, setTopics] = useState<number[]>([]);
+  const [primary, setPrimary] = useState<number | null>(item?.primary_node_id ?? null);
+  const [topicsChanged, setTopicsChanged] = useState(false);
+
   useEffect(() => {
     getSourceOptions().then(setSources).catch((e) => console.error('Error loading sources:', e));
-  }, []);
+    Promise.all([getTopicNodes(), item ? getItemTopicNodeIds(item.id) : Promise.resolve([])])
+      .then(([all, linked]) => {
+        setNodes(all);
+        const chosen = specificSelection(linked, new Map(all.map((n) => [n.id, n.parent_id])));
+        setTopics(chosen);
+        setPrimary((p) => (p != null && chosen.includes(p) ? p : chosen[0] ?? null));
+      })
+      .catch((e) => console.error('Error loading topics:', e));
+  }, [item]);
 
   const videoId = normalizeVideoInput(form.video);
   const videoInvalid = !!videoId && !isValidVideoId(videoId);
@@ -75,13 +94,21 @@ export function ContentForm({ item }: { item?: ContentItem }) {
 
     setSaving(true);
     try {
-      if (item) {
-        await updateContentItem(item.id, fields);
-        router.push('/admin/content');
-      } else {
-        const created = await createContentItem({ ...fields, title: fields.title!, main_category: type.mainCategory });
-        router.push(`/admin/content/edit/${created.id}`);
+      const id = item
+        ? (await updateContentItem(item.id, fields), item.id)
+        : (await createContentItem({ ...fields, title: fields.title!, main_category: type.mainCategory })).id;
+      // Topics after the item (a new item needs its id). The counts per topic depend on the
+      // item's type, video and visibility too, so recount them on every save.
+      try {
+        if (topicsChanged || (!item && topics.length)) await setItemTopics(id, topics, primary);
+        else await refreshItemTopicCounts(id);
+      } catch (topicErr) {
+        console.error('Error saving topics:', topicErr);
+        setError('הפריט נשמר, אבל שמירת הנושאים נכשלה (האם הורצה migration 007?). נסו לשמור שוב.');
+        if (!item) router.push(`/admin/content/edit/${id}`);
+        return;
       }
+      router.push(item ? '/admin/content' : `/admin/content/edit/${id}`);
       router.refresh();
     } catch (err) {
       console.error('Error saving item:', err);
@@ -138,6 +165,20 @@ export function ContentForm({ item }: { item?: ContentItem }) {
               <input id="f-date" type="date" value={form.publish_date} onChange={(e) => set('publish_date', e.target.value)} className={input} />
             </div>
           </div>
+
+          <fieldset className="space-y-2">
+            <legend className={label}>נושאים</legend>
+            <TopicPicker
+              nodes={nodes}
+              selected={topics}
+              primary={primary}
+              onChange={(next, nextPrimary) => {
+                setTopics(next);
+                setPrimary(nextPrimary);
+                setTopicsChanged(true);
+              }}
+            />
+          </fieldset>
 
           <div className="space-y-2">
             <label htmlFor="f-video" className={label}>
@@ -208,7 +249,7 @@ export function ContentForm({ item }: { item?: ContentItem }) {
 
           {!item && (
             <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
-              פריט חדש מופיע בספריית התכנים ובחיפוש מיד. שיוך לנושאים (סינון לפי נושא) עדיין אינו חלק מהטופס.
+              פריט חדש מופיע בספריית התכנים ובחיפוש מיד, ובסינון לפי הנושאים שנבחרו.
             </p>
           )}
 

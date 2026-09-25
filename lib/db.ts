@@ -473,6 +473,40 @@ export async function createContentItem(item: EditableContent & { title: string;
   return data as { id: number };
 }
 
+/** Every curated topic node (filter tree, migration 003), for the admin form's topic picker. */
+export async function getTopicNodes(): Promise<{ id: number; name: string; path: string; parent_id: number | null; depth: number; sort_order: number }[]> {
+  const { data, error } = await supabase
+    .from('filter_nodes')
+    .select('id, name, path, parent_id, depth, sort_order')
+    .order('depth')
+    .order('sort_order');
+  if (error) throw error;
+  return data || [];
+}
+
+/** The node ids an item is linked to (its chosen nodes and their ancestors). */
+export async function getItemTopicNodeIds(contentId: number): Promise<number[]> {
+  const { data, error } = await supabase.from('content_filter_nodes').select('node_id').eq('content_id', contentId);
+  if (error) throw error;
+  return (data || []).map((r) => r.node_id);
+}
+
+/**
+ * Links an item to topic nodes (ancestors added in the DB), sets its primary node and
+ * recounts the topics (admin_set_item_topics, migration 007). Admin only.
+ */
+export async function setItemTopics(contentId: number, nodeIds: number[], primaryId: number | null) {
+  const { error } = await supabase.rpc('admin_set_item_topics', { p_item: contentId, p_nodes: nodeIds, p_primary: primaryId });
+  if (error) throw error;
+  await refreshPublicSite();
+}
+
+/** After a save that may change an item's type, video or visibility: recount its topics. */
+export async function refreshItemTopicCounts(contentId: number) {
+  const { error } = await supabase.rpc('admin_refresh_item_counts', { p_item: contentId });
+  if (error) throw error;
+}
+
 /** Sources for the admin form's dropdown (the library's source axis, migration 004). */
 export async function getSourceOptions(): Promise<{ id: number; name: string }[]> {
   const { data, error } = await supabase.from('sources').select('id, name').order('sort_order');

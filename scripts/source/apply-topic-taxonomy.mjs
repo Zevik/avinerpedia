@@ -167,7 +167,10 @@ async function fetchAll(table, columns) {
   }
 }
 
-const items = await fetchAll('content_items', 'id, source_page_id, sub_category, primary_node_id, sa_section, source_collection, original_tags');
+const items = await fetchAll('content_items', 'id, source_page_id, sub_category, primary_node_id, sa_section, source_collection, original_tags, topics_manual');
+// Items whose topics were set in the admin form (migration 007) keep their links, primary node
+// and sub_category; everything else is rebuilt from the source data.
+const manualIds = new Set(items.filter((i) => i.topics_manual).map((i) => i.id));
 const backupDir = 'support/derived/backup';
 fs.mkdirSync(backupDir, { recursive: true });
 const backupFile = path.join(backupDir, `filter-tree-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
@@ -193,20 +196,29 @@ const links = [];
 const updates = [];
 for (const item of items) {
   const c = item.source_page_id && classified.get(item.source_page_id);
-  const nodes = c ? withAncestors(c.nodes) : new Set();
+  const manual = manualIds.has(item.id);
+  const nodes = c && !manual ? withAncestors(c.nodes) : new Set();
   for (const p of nodes) links.push({ content_id: item.id, node_id: idByPath.get(p) });
   const primaryId = c?.primary ? idByPath.get(c.primary) : null;
   const change = {
-    primary_node_id: primaryId ?? null,
+    ...(manual ? {} : { primary_node_id: primaryId ?? null }),
     sa_section: c?.sa ?? null,
     source_collection: c?.source ?? null,
     original_tags: c?.tags.length ? c.tags.join(' | ') : null,
     // Cards show sub_category; use the curated leaf name instead of the raw topic.
-    ...(c?.primary ? { sub_category: c.primary.split(SEP).pop() } : {}),
+    ...(c?.primary && !manual ? { sub_category: c.primary.split(SEP).pop() } : {}),
   };
   if (Object.entries(change).some(([k, v]) => (item[k] ?? null) !== v)) updates.push({ id: item.id, change });
 }
 
+// Keep the manual items' links (their node ids survive: nodes are upserted by path).
+const manualLinks = [];
+for (const ids = [...manualIds]; ids.length; ) {
+  const batch = ids.splice(0, 200);
+  manualLinks.push(...(await check('manual links', supabase.from('content_filter_nodes').select('content_id, node_id').in('content_id', batch))));
+}
+links.push(...manualLinks);
+if (manualIds.size) console.log(`kept admin-set topics of ${manualIds.size} items (${manualLinks.length} links)`);
 await check('clear links', supabase.from('content_filter_nodes').delete().gt('node_id', 0));
 for (let i = 0; i < links.length; i += 1000) {
   await check('links', supabase.from('content_filter_nodes').insert(links.slice(i, i + 1000)));
