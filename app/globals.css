@@ -26,6 +26,45 @@
   }
 }
 
+/* Accessibility (ת"י 5568 / WCAG 2.1 AA) */
+html {
+  /* The sticky navbar (4rem) must not cover the element that has keyboard focus or an #anchor target. */
+  scroll-padding-top: 5rem;
+}
+
+/* A clearly visible focus ring on everything focusable, for keyboard users only. */
+:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* RTL Support */
 [dir="rtl"] {
   text-align: right;

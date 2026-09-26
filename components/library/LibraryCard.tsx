@@ -22,7 +22,7 @@ export function LibraryCard({ item, sourceName }: { item: CardItem; sourceName?:
     >
       {thumbnail && (
         <div className="relative w-28 sm:w-44 flex-shrink-0 self-start aspect-video overflow-hidden rounded-lg bg-muted">
-          <Image src={thumbnail} alt={title} fill className="object-cover" sizes="(max-width: 640px) 112px, 176px" />
+          <Image src={thumbnail} alt="" fill className="object-cover" sizes="(max-width: 640px) 112px, 176px" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-9 h-9 rounded-full bg-white/90 flex items-center justify-center shadow">
               <Play className="w-4 h-4 text-primary mr-0.5" fill="currentColor" />

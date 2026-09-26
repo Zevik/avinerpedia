@@ -29,6 +29,7 @@
     "tailwindcss-typography": "^3.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@types/csv-parse": "^1.1.12",
     "@types/node": "^22.10.5",

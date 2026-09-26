@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, Search, SlidersHorizontal, X } from 'lucide-react';
 import { libraryHref, MEDIA_TYPES, withChange, type LibraryState, type MediaType } from '@/lib/library-url';
 import type { FilterNode } from '@/lib/types';
+import { useDialogFocus } from '@/lib/hooks/useDialogFocus';
 
 export interface LibraryFilterData {
   state: LibraryState;
@@ -27,6 +28,9 @@ export interface LibraryFilterData {
  */
 export function LibraryFilters(data: LibraryFilterData) {
   const [open, setOpen] = useState(false);
+  const sheet = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useDialogFocus(sheet, open, close);
   const panel = <Panel {...data} />;
 
   return (
@@ -43,7 +47,7 @@ export function LibraryFilters(data: LibraryFilterData) {
           aria-haspopup="dialog"
         >
           <span className="flex items-center gap-2">
-            <SlidersHorizontal className="w-5 h-5 text-primary" />
+            <SlidersHorizontal className="w-5 h-5 text-primary" aria-hidden />
             סינון
             {data.activeCount > 0 && (
               <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">{data.activeCount}</span>
@@ -53,7 +57,7 @@ export function LibraryFilters(data: LibraryFilterData) {
         </button>
 
         {open && (
-          <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="סינון">
+          <div ref={sheet} className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="סינון">
             <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
             <div className="absolute inset-x-0 bottom-0 max-h-[88vh] flex flex-col bg-white rounded-t-2xl shadow-xl">
               <div className="flex items-center justify-between px-5 py-3 border-b">

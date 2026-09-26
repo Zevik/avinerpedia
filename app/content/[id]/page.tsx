@@ -100,7 +100,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
+              src={`https://www.youtube-nocookie.com/embed/${videoId}`}
               title={displayTitle(item.title)}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -128,7 +128,7 @@ function VideoContent({ item, vimeoId }: { item: any, vimeoId?: string | null })
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              src={`https://player.vimeo.com/video/${vimeoId}`}
+              src={`https://player.vimeo.com/video/${vimeoId}?dnt=1`}
               title={displayTitle(item.title)}
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen

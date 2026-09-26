@@ -20,7 +20,7 @@ export function ItemRowCard({ item, sourceName }: { item: LibraryItem; sourceNam
     <Link prefetch={false} href={`/content/${item.id}`} className={CARD}>
       {thumbnail ? (
         <div className="relative aspect-video bg-muted">
-          <Image src={thumbnail} alt={title} fill className="object-cover" sizes="(max-width: 640px) 70vw, 256px" />
+          <Image src={thumbnail} alt="" fill className="object-cover" sizes="(max-width: 640px) 70vw, 256px" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow">
               <Play className="w-5 h-5 text-primary mr-0.5" fill="currentColor" />

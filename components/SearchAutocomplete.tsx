@@ -15,7 +15,8 @@ interface SearchResult {
     sub_category?: string;
 }
 
-export function SearchAutocomplete() {
+/** The navbar search: suggestions while typing, Enter goes to the library. Escape closes the suggestions, then the search itself (`onEscape`). */
+export function SearchAutocomplete({ autoFocus, onEscape }: { autoFocus?: boolean; onEscape?: () => void } = {}) {
     const router = useRouter();
     const [query, setQuery] = React.useState('');
     const [results, setResults] = React.useState<SearchResult[]>([]);
@@ -80,9 +81,18 @@ export function SearchAutocomplete() {
 
     return (
         <div ref={containerRef} className="relative w-full max-w-md">
-            <form onSubmit={handleSearch} className="relative">
+            <form onSubmit={handleSearch} role="search" className="relative">
                 <input
-                    type="text"
+                    type="search"
+                    aria-label="חיפוש באתר"
+                    aria-controls="search-suggestions"
+                    aria-expanded={isOpen && results.length > 0}
+                    autoFocus={autoFocus}
+                    onKeyDown={(e) => {
+                        if (e.key !== 'Escape') return;
+                        if (isOpen && results.length > 0) setIsOpen(false);
+                        else onEscape?.();
+                    }}
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
@@ -97,9 +107,10 @@ export function SearchAutocomplete() {
                 />
                 <button
                     type="submit"
+                    aria-label="חיפוש"
                     className="absolute left-3 top-1/2 -translate-y-1/2 p-1 hover:bg-secondary rounded-full transition-colors"
                 >
-                    <Search className="w-5 h-5 text-muted-foreground" />
+                    <Search className="w-5 h-5 text-muted-foreground" aria-hidden />
                 </button>
                 {isLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -108,9 +119,14 @@ export function SearchAutocomplete() {
                 )}
             </form>
 
+            {/* Screen readers hear how many suggestions appeared. */}
+            <p className="sr-only" aria-live="polite">
+                {isOpen && debouncedQuery.length >= 2 && !isLoading ? (results.length ? `${results.length} הצעות` : 'אין הצעות') : ''}
+            </p>
+
             {/* Dropdown Results */}
             {isOpen && results.length > 0 && (
-                <div className="absolute top-full text-right right-0 w-full mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[100]">
+                <div id="search-suggestions" className="absolute top-full text-right right-0 w-full mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[100]">
                     <ul className="max-h-[60vh] overflow-y-auto">
                         {results.map((result) => (
                             <li key={result.id} className="border-b last:border-0 border-gray-50">
@@ -120,11 +136,11 @@ export function SearchAutocomplete() {
                                     className="block px-4 py-3 hover:bg-secondary/50 transition-colors"
                                 >
                                     <div className="flex items-start gap-3">
-                                        <div className="mt-1 text-primary/70">
+                                        <div className="mt-1 text-primary/70" aria-hidden>
                                             {getIcon(result.main_category)}
                                         </div>
                                         <div>
-                                            <h4 className="font-medium text-gray-900 line-clamp-1">{displayTitle(result.title)}</h4>
+                                            <span className="block font-medium text-gray-900 line-clamp-1">{displayTitle(result.title)}</span>
                                             <p className="text-xs text-muted-foreground mt-0.5">
                                                 {result.main_category}
                                                 {result.sub_category && ` • ${result.sub_category}`}
@@ -137,6 +153,7 @@ export function SearchAutocomplete() {
                     </ul>
                     <div className="p-2 bg-gray-50 border-t border-gray-100 text-center">
                         <button
+                            type="button"
                             onClick={handleSearch}
                             className="text-sm text-primary hover:underline font-medium"
                         >

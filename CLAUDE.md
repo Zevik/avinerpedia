@@ -104,6 +104,7 @@ UI:
 | `/topics/[...path]` | Name-based URL of a curated node (`/topics/מועדים/חנוכה`, built by `nodeHref()`): breadcrumb, sub-topics with counts, paginated items (node + descendants). Old numeric `/topics/<id>` URLs (pre-curated topics) 301 to the node via `next.config.ts` redirects from `lib/topic-redirects.json` |
 | `/library` | **The content library** (`components/library/LibraryView.tsx`): all content with a search box and three filter axes — type (מאמרים / סרטונים / שו"ת / סדרות), source (`sources`) and topic (curated tree, with search inside it) — plus the Shulchan Aruch section for Q&A. Counts next to every option (faceted: each axis counted with the other axes applied). Mixed results as `LibraryCard`s labelled מאמר / וידאו / שו"ת / שו"ת בווידאו / שיעור בסדרה, with the source. State is in the URL (`?q=&type=&topic=<node id>&source=<slug>&sa=&page=`; `lib/library-url.ts`); desktop sidebar, mobile bottom sheet. `/search` redirects here |
 | `/videos`, `/articles`, `/qa` | The library with the type preset (`fixedType`); the type buttons move between them and `/library` (`libraryHref()`). `/videos` excludes series episodes (type `video` = has a video and no `series_id`); old `?topic=<name>` links still resolve |
+| `/about`, `/accessibility`, `/privacy` | Static text pages (`components/legal/LegalPage.tsx`), linked from the footer; the navbar's accessibility icon (next to search, same style — no floating widget) links to `/accessibility` |
 
 Queries for the taxonomy live in `lib/taxonomy.ts`, for the filter tree in `lib/filters.ts`, for the library in `lib/library.ts` (Postgres functions from migrations 004/005); the rest in `lib/db.ts`.
 
@@ -150,6 +151,13 @@ Content changes every few days, so the public site is cached and a flood of requ
 | General per-IP rate limit | everything | 3,000 |
 
 Verified 2026-09-24: revalidate 20×401 then 429; search 120×200 then 429 (other pages unaffected). A page view is 25–100 requests (Link prefetches; `/topics` alone prefetches 84), and schools share one IP, so the general limit needs headroom: at 1,000 it blocked the E2E suite (~2,000 requests/min from one IP); at 3,000 the suite passes. Vercel's automatic mitigation is separate: ~30 concurrent requests from one IP got a "Vercel Security Checkpoint" challenge (403, `X-Vercel-Mitigated: challenge`) for ~9 minutes — browsers pass it, curl doesn't. Don't load-test the live site with parallel curl.
+
+## Accessibility and privacy
+
+- **Accessibility is in the code, not an overlay** (ת"י 5568 / WCAG 2.1 AA): skip link (`.skip-link` → `#main-content`), a global `:focus-visible` ring, `scroll-padding-top` so the sticky navbar never hides the focused element, reduced-motion CSS, labelled search inputs/buttons with an `aria-live` suggestion count, `aria-expanded` on the navbar toggles. **Modal dialogs use `useDialogFocus()`** (`lib/hooks/useDialogFocus.ts`: focus in, Tab trapped, Escape closes, focus returns) — the library's mobile filter sheet does. Card thumbnails sit inside a link next to the title, so they're `alt=""`.
+- `tests/e2e/a11y.spec.ts`: axe-core (`@axe-core/playwright`, WCAG 2.0/2.1 A+AA, iframes excluded) on the main pages, plus keyboard tests (skip link, filter dialog). New pages/components should keep it at zero violations. A manual screen-reader audit hasn't been done yet, so `/accessibility` says "מונגש בחלקו"; update it after one.
+- **No tracking**: no analytics, pixels or ads; public visitors get no cookies from the site (only admins get the Supabase auth cookie). YouTube embeds use `youtube-nocookie.com`, Vimeo `?dnt=1`; thumbnails go through `next/image` and the font through `next/font`, so the browser doesn't contact Google for them. **Adding analytics, a form or a new provider means updating `/privacy` first** (and possibly a consent banner).
+- **Owner facts are in `lib/site-info.ts`** (operator, contact e-mail, accessibility contact, server regions, log retention, physical service). While a value is `null`, the pages show a highlighted `[נדרש אישור בעל האתר: …]`. Fill them in before the public launch; whether the accessibility regulations (and their exemptions) and privacy duties apply to the operator is for the owner/legal advice to confirm.
 
 ## Backups
 

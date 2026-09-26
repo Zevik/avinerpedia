@@ -23,7 +23,7 @@ export default function NotFound() {
 
         {/* 404 Message */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <div className="text-7xl font-bold text-primary/20 mb-4">404</div>
+          <div className="text-7xl font-bold text-primary/50 mb-4">404</div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-3">
             הדף לא נמצא
           </h2>

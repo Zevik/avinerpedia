@@ -34,7 +34,8 @@ export async function ContentRenderer({ content: rawContent, className = '' }: C
       ? `<div class="relative w-full mb-6" style="padding-bottom: 56.25%">
         <iframe
           class="absolute top-0 left-0 w-full h-full rounded-lg"
-          src="https://player.vimeo.com/video/${vimeoId}"
+          src="https://player.vimeo.com/video/${vimeoId}?dnt=1"
+          title="סרטון משיעור במכון מאיר"
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
         ></iframe>
@@ -82,8 +83,8 @@ export async function ContentRenderer({ content: rawContent, className = '' }: C
             <div key={index} className="relative w-full rounded-lg overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%' }}>
               <iframe
                 className="absolute top-0 left-0 w-full h-full"
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title={`YouTube video ${index + 1}`}
+                src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                title={youtubeIds.length > 1 ? `סרטון ${index + 1}` : 'סרטון'}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />

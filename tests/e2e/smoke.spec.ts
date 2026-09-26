@@ -56,7 +56,7 @@ test('home page links open a content page', async ({ page }) => {
 // page itself (which brings its own cookie banner, ads and chat widget).
 test('Machon Meir lesson embeds only the Vimeo player', async ({ page }) => {
   await page.goto('/content/7847');
-  await expect(page.locator('iframe[src="https://player.vimeo.com/video/232304444"]')).toHaveCount(1);
+  await expect(page.locator('iframe[src="https://player.vimeo.com/video/232304444?dnt=1"]')).toHaveCount(1);
   await expect(page.locator('iframe[src*="meirtv.com"]')).toHaveCount(0);
   expect(await page.locator('meta[property="og:image"]').first().getAttribute('content')).toBe('https://vumbnail.com/232304444.jpg');
 });

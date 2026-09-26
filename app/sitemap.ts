@@ -36,6 +36,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     })),
     { url: url('/french'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    ...['/about', '/accessibility', '/privacy'].map((path) => ({
+      url: url(path),
+      lastModified: now,
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    })),
   ];
 
   const [items, series, tree] = await Promise.all([
