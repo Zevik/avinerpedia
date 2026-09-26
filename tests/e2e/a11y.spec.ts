@@ -18,6 +18,7 @@ const pages = [
   '/content/7838',
   '/french',
   '/about',
+  '/rav-aviner',
   '/accessibility',
   '/privacy',
   '/content/999999999', // not found
@@ -70,6 +71,7 @@ test('footer and navbar link to about, accessibility and privacy', async ({ page
   await page.goto('/');
   const footer = page.locator('footer');
   await expect(footer.getByRole('link', { name: 'אודות' })).toHaveAttribute('href', '/about');
+  await expect(footer.getByRole('link', { name: 'על הרב אבינר' })).toHaveAttribute('href', '/rav-aviner');
   await expect(footer.getByRole('link', { name: 'הצהרת נגישות' })).toHaveAttribute('href', '/accessibility');
   // The accessibility icon sits in the navbar like the search icon (no floating widget).
   await expect(page.locator('nav[aria-label="ראשי"]').getByRole('link', { name: 'נגישות' })).toHaveAttribute('href', '/accessibility');

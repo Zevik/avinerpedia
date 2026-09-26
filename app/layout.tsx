@@ -38,8 +38,9 @@ export default function RootLayout({
             <p className="mt-2 text-sm">
               תוכן מאת הרב שלמה אבינר שליט״א
             </p>
-            <nav aria-label="מידע על האתר" className="mt-3 flex justify-center gap-4 text-sm">
+            <nav aria-label="מידע על האתר" className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
               <Link prefetch={false} href="/about" className="underline underline-offset-4 hover:text-primary">אודות</Link>
+              <Link prefetch={false} href="/rav-aviner" className="underline underline-offset-4 hover:text-primary">על הרב אבינר</Link>
               <Link prefetch={false} href="/accessibility" className="underline underline-offset-4 hover:text-primary">הצהרת נגישות</Link>
               <Link prefetch={false} href="/privacy" className="underline underline-offset-4 hover:text-primary">מדיניות פרטיות</Link>
             </nav>
