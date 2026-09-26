@@ -79,7 +79,9 @@ const HUB_CATEGORIES: Record<string, string> = {
   'וידאו': '/videos', 'סרטונים': '/videos', 'וידאו קצר': '/videos', 'וידאו ארוך': '/videos',
   'מאמר': '/articles', 'מאמרים': '/articles',
   'שו"ת': '/qa', 'שו"תים': '/qa', 'שו"ת לפי נושא': '/qa',
-  'סדרות': '/series', 'שיעורי הרב אבינר בצרפתית': '/french',
+  'סדרות': '/series',
+  // The French lessons were deleted (2026-09-26); their old category goes to the home page.
+  'שיעורי הרב אבינר בצרפתית': '/',
 };
 const TOPIC_ALIASES: Record<string, string> = { 'חגים': 'מועדים' };
 const SUFFIX = /\s*\((וידאו|מאמרים|מאמר|שו"ת|שו"תים|סדרות|סדרת וידאו)\)+$/;
@@ -127,7 +129,7 @@ for (const page of xml) {
   const key = legacyTitleKey(page.title);
   const home = page.ns === 0 && isHomePage(page.title);
   // A page's own mapping wins over its redirect (e.g. the French category page is a
-  // redirect, but its name maps straight to /french).
+  // redirect, but its name maps straight to its hub).
   const own = directPath(page);
   const { page: final, missing } = home || own ? { page, missing: undefined } : follow(page);
   const target = own ?? (final ? directPath(final) : undefined);

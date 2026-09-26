@@ -16,7 +16,6 @@ const pages = [
   `/topics/${encodeURIComponent('מוסר ומידות')}`,
   '/content/104',
   '/content/7838',
-  '/french',
   '/about',
   '/rav-aviner',
   '/accessibility',

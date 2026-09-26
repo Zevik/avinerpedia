@@ -61,7 +61,7 @@ test('topic page title and canonical (name-based URL, no query string)', async (
 test('home and menu pages share their own image, served from this site', async ({ page, request }) => {
   const hubs: [string, string][] = [
     ['/', 'og-default.jpg'], ['/videos', 'og-videos.jpg'], ['/articles', 'og-articles.jpg'], ['/qa', 'og-qa.jpg'],
-    ['/series', 'og-series.jpg'], ['/topics', 'og-topics.jpg'], ['/french', 'og-french.jpg'],
+    ['/series', 'og-series.jpg'], ['/topics', 'og-topics.jpg'],
   ];
   for (const [path, file] of hubs) {
     await page.goto(path);

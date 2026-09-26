@@ -25,7 +25,7 @@ async function expectNoErrorBoundary(page: Page) {
   await expect(page.getByText('An error occurred in the Server Components render')).toHaveCount(0);
 }
 
-const routes = ['/', '/videos', '/articles', '/qa', '/series', '/topics', '/library', '/library?q=תפילה', '/french'];
+const routes = ['/', '/videos', '/articles', '/qa', '/series', '/topics', '/library', '/library?q=תפילה'];
 
 for (const route of routes) {
   test(`${route} renders without errors`, async ({ page }) => {

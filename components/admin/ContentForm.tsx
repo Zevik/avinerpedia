@@ -36,7 +36,7 @@ export function ContentForm({ item }: { item?: ContentItem }) {
   const [sources, setSources] = useState<{ id: number; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Series episodes and French lessons keep their type (series order, the /french page).
+  // Series episodes keep their type (series order).
   const lockedType = item && !isEditableType(item.content_type) ? item.content_type : null;
   const [form, setForm] = useState({
     title: item?.title ?? '',

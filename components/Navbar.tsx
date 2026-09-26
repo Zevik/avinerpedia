@@ -25,7 +25,6 @@ export function Navbar() {
     { href: '/articles', label: 'מאמרים' },
     { href: '/series', label: 'סדרות' },
     { href: '/topics', label: 'נושאים' },
-    { href: '/french', label: 'Cours en Français' },
   ];
 
   return (

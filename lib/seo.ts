@@ -38,7 +38,6 @@ export const OG_IMAGES = {
   qa: ogImage('og-qa.jpg', 'שו"ת הלכה - שאלות ותשובות עם הרב שלמה אבינר'),
   series: ogImage('og-series.jpg', 'סדרות לימוד - שיעורי הרב שלמה אבינר'),
   topics: ogImage('og-topics.jpg', 'נושאים - תכני הרב שלמה אבינר לפי נושא'),
-  french: ogImage('og-french.jpg', 'Cours du Rav Aviner en français'),
 };
 
 interface PageMetadataInput {
