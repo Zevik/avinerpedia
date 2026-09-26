@@ -14,6 +14,6 @@ export const SITE_INFO = {
   serverRegions: null as string | null,
   /** How long the hosting provider keeps request logs (IP addresses), per the Vercel plan. */
   logRetention: null as string | null,
-  /** Date of the last review of both pages. */
-  lastUpdated: '26.9.2026',
+  /** Date of the last review of /about, /privacy and /accessibility (shown at the top of each). */
+  lastUpdated: '27.9.2026',
 };

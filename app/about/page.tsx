@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage } from '@/components/legal/LegalPage';
 import { pageMetadata } from '@/lib/seo';
+import { SITE_INFO } from '@/lib/site-info';
 
 // Text supplied by the site owner (2026-09-26).
 export const metadata: Metadata = pageMetadata({
@@ -12,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function AboutPage() {
   return (
-    <LegalPage title="אודות">
+    <LegalPage title="אודות" updated={SITE_INFO.lastUpdated}>
       <p className="lead">
         <strong>ברוכים הבאים ל&quot;אבינר-פדיה&quot; - המאגר הדיגיטלי המרכזי לתורתו, שיעוריו וספריו של הרב שלמה אבינר.</strong>
       </p>
