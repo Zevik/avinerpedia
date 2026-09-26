@@ -9,13 +9,11 @@ export const SITE_INFO = {
   /** Contact e-mail for privacy requests. */
   contactEmail: null as string | null,
   /** The person handling accessibility requests: name, e-mail, phone (and SMS/WhatsApp if possible). */
-  accessibilityContact: null as { name: string; email: string; phone?: string } | null,
+  accessibilityContact: { name: 'זאב אבינר', email: 'zevik.aviner@gmail.com' } as { name: string; email: string; phone?: string },
   /** Where the hosting and the database run (Vercel functions region, Supabase project region). */
   serverRegions: null as string | null,
   /** How long the hosting provider keeps request logs (IP addresses), per the Vercel plan. */
   logRetention: null as string | null,
-  /** Physical service locations (תקנה 34), or a statement that there are none. */
-  physicalService: null as string | null,
   /** Date of the last review of both pages. */
   lastUpdated: '26.9.2026',
 };

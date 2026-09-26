@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LegalPage, OwnerValue } from '@/components/legal/LegalPage';
+import { LegalPage } from '@/components/legal/LegalPage';
 import { pageMetadata } from '@/lib/seo';
 import { SITE_INFO } from '@/lib/site-info';
 
@@ -74,18 +74,13 @@ export default function AccessibilityPage() {
         מסייעת השתמשתם.
       </p>
       <ul>
-        <li>האחראי על הנגישות: <OwnerValue value={contact?.name} missing="שם האחראי על הנגישות" /></li>
-        <li>דוא&quot;ל: <OwnerValue value={contact?.email} missing="כתובת דוא״ל לפניות נגישות" /></li>
-        <li>טלפון או הודעה (SMS / WhatsApp): <OwnerValue value={contact?.phone} missing="מספר טלפון לפניות נגישות, אם יש" /></li>
+        <li>האחראי על הנגישות: {contact.name}</li>
+        <li>דוא&quot;ל: <a href={`mailto:${contact.email}`} dir="ltr">{contact.email}</a></li>
+        {contact.phone && <li>טלפון או הודעה (SMS / WhatsApp): <bdi dir="ltr">{contact.phone}</bdi></li>}
       </ul>
       <p>
         נחזור אליכם ונטפל בפנייה בתוך הזמנים שקובעות תקנות שוויון זכויות לאנשים עם מוגבלות. פנייה אלינו אינה פוגעת בשום
         זכות שלכם לפי החוק.
-      </p>
-
-      <h2>הסדרי נגישות פיזיים</h2>
-      <p>
-        <OwnerValue value={SITE_INFO.physicalService} missing="האם יש שירות במקום פיזי, ואם כן – הסדרי הנגישות בו; אם אין, לציין זאת" />
       </p>
     </LegalPage>
   );
