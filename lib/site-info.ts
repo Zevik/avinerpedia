@@ -7,7 +7,7 @@ export const SITE_INFO = {
   /** Who operates the site and is responsible for it (person, association, company). */
   operator: null as string | null,
   /** Contact e-mail for privacy requests. */
-  contactEmail: null as string | null,
+  contactEmail: 'zevik.aviner@gmail.com' as string | null,
   /** The person handling accessibility requests: name, e-mail, phone (and SMS/WhatsApp if possible). */
   accessibilityContact: { name: 'זאב אבינר', email: 'zevik.aviner@gmail.com' } as { name: string; email: string; phone?: string },
   /** Where the hosting and the database run (Vercel functions region, Supabase project region). */

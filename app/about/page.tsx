@@ -31,7 +31,7 @@ export default function AboutPage() {
       <h2>מה תמצאו באתר?</h2>
       <ul>
         <li>
-          <strong><Link href="/videos">מאגר שיעורי וידאו ואודיו</Link>:</strong> אלפי שיעורים מוקלטים לאורך עשרות שנות פעילות
+          <strong><Link href="/videos">מאגר שיעורי וידאו</Link>:</strong> אלפי שיעורים מוקלטים לאורך עשרות שנות פעילות
           בישיבה, במכינות, בכנסים וברדיו.
         </li>
         <li>
@@ -43,7 +43,7 @@ export default function AboutPage() {
         </li>
         <li>
           <strong><Link href="/series">סדרות עומק וביאורים</Link>:</strong> שיעורים סדורים על ספרי יסוד (כוזרי, מסילת ישרים, עין
-          איה, שיחות הרב צבי יהודה ועוד).
+          איה ועוד).
         </li>
       </ul>
 

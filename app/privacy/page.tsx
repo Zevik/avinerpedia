@@ -14,6 +14,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function PrivacyPage() {
   const email = SITE_INFO.contactEmail;
+  const emailLink = email ? <a href={`mailto:${email}`} dir="ltr">{email}</a> : null;
   return (
     <LegalPage title="מדיניות פרטיות" updated={SITE_INFO.lastUpdated}>
       <p>
@@ -24,7 +25,7 @@ export default function PrivacyPage() {
       <h2>מי מפעיל את האתר</h2>
       <p>
         האתר מופעל על ידי <OwnerValue value={SITE_INFO.operator} missing="שם הגוף או האדם המפעיל את האתר" />.
-        לפניות בנושא פרטיות: <OwnerValue value={email} missing="כתובת דוא״ל לפניות" />.
+        לפניות בנושא פרטיות: {emailLink ?? <OwnerValue value={null} missing="כתובת דוא״ל לפניות" />}.
       </p>
 
       <h2>מידע שאתם מוסרים</h2>
@@ -85,7 +86,7 @@ export default function PrivacyPage() {
       <p>
         לפי חוק הגנת הפרטיות, התשמ&quot;א-1981, אפשר לבקש לעיין במידע עליכם שמוחזק אצלנו ולבקש לתקן או למחוק אותו. מכיוון
         שהאתר אינו אוסף פרטים מזהים על גולשים, בדרך כלל אין אצלנו מידע כזה. עורכי האתר יכולים לבקש למחוק את חשבון הניהול
-        שלהם. לכל בקשה או שאלה: <OwnerValue value={email} missing="כתובת דוא״ל לפניות" />.
+        שלהם. לכל בקשה או שאלה: {emailLink ?? <OwnerValue value={null} missing="כתובת דוא״ל לפניות" />}.
       </p>
 
       <h2>שינויים במדיניות</h2>
