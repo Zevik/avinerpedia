@@ -43,7 +43,8 @@ export default function PrivacyPage() {
       <p>
         כמו בכל אתר, בכל בקשה לדף מגיעים לשרת האחסון פרטים טכניים: כתובת IP, סוג הדפדפן והמכשיר, הדף שנתבקש והשעה.
         ספק האחסון (Vercel) משתמש בהם כדי להפעיל את האתר ולהגן עליו, למשל כדי לחסום עומס חריג מכתובת אחת. יומני
-        הבקשות נשמרים לתקופה מוגבלת: <OwnerValue value={SITE_INFO.logRetention} missing="משך שמירת יומני השרת לפי חבילת Vercel" />.
+        הבקשות נשמרים אצל הספק לתקופה מוגבלת, לפי{' '}
+        <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">מדיניות הפרטיות של Vercel</a>.
         איננו משתמשים במידע הזה לזיהוי גולשים, לפרסום או לבניית פרופיל.
       </p>
 
@@ -73,7 +74,7 @@ export default function PrivacyPage() {
         <li><strong>YouTube (Google) ו-Vimeo</strong>: נגני הסרטונים, כמתואר למעלה.</li>
       </ul>
       <p>
-        השרתים של ספקים אלה עשויים להיות מחוץ לישראל: <OwnerValue value={SITE_INFO.serverRegions} missing="אזורי השרתים של Vercel ו-Supabase בפרויקט" />.
+        השרתים של ספקים אלה עשויים להיות מחוץ לישראל, למשל בארצות הברית או באירופה.
       </p>
 
       <h2>אבטחת מידע</h2>
