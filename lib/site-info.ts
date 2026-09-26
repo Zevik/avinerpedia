@@ -5,7 +5,7 @@
  */
 export const SITE_INFO = {
   /** Who operates the site and is responsible for it (person, association, company). */
-  operator: null as string | null,
+  operator: 'זאב אבינר' as string | null,
   /** Contact e-mail for privacy requests. */
   contactEmail: 'zevik.aviner@gmail.com' as string | null,
   /** The person handling accessibility requests: name, e-mail, phone (and SMS/WhatsApp if possible). */
