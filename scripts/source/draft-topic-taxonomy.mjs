@@ -123,6 +123,18 @@ const TREE = {
     'הספדים ואזכרות': [],
   },
 };
+// Source topics that keep their own node as a third level under their sub-topic instead of
+// being merged into it (owner's decisions from docs/topic-merge-review.csv, 2026-09-27). The
+// node name may differ from the source name. Topics folded into these (typos, children,
+// concatenated paths) follow them down.
+const THIRD_LEVEL = {
+  'עם ישראל': 'מדינת ישראל וצה"ל › גאולת ישראל וציונות › עם ישראל',
+  'המדינה אתחלתא דגאולה': 'מדינת ישראל וצה"ל › גאולת ישראל וציונות › אתחלתא דגאולה',
+  'עבודת הזוגיות': 'זוגיות ומשפחה › חיי זוגיות › עבודת הזוגיות',
+  'זוגיות במקורות': 'זוגיות ומשפחה › חיי זוגיות › זוגיות במקורות',
+  'שמירת התא המשפחתי': 'זוגיות ומשפחה › חיי זוגיות › שמירת התא המשפחתי',
+  'הכנה לחתונה': 'זוגיות ומשפחה › שידוכים וחתונה › הכנה לחתונה',
+};
 // Series (books/courses) are their own entity on /series; for topic filtering each series
 // also gets the node it belongs to.
 const SERIES_NODES = [
@@ -232,6 +244,7 @@ for (const [core, subs] of Object.entries(TREE)) {
   nodeOfSource.set(core, `${core}`);
   for (const [sub, names] of Object.entries(subs)) for (const n of names) if (!nodeOfSource.has(n) || nodeOfSource.get(n) === n) nodeOfSource.set(n, `${core} › ${sub}`);
 }
+for (const [name, path] of Object.entries(THIRD_LEVEL)) nodeOfSource.set(name, path);
 
 const result = new Map(); // name -> { kind, target, note }
 const set = (name, kind, target, note = '') => result.set(name, { kind, target, note });
@@ -514,7 +527,10 @@ fs.writeFileSync('docs/TOPIC_TAXONOMY_DRAFT.md', md);
 const treePaths = [];
 for (const [core, subs] of Object.entries(TREE)) {
   treePaths.push(core);
-  for (const sub of Object.keys(subs)) treePaths.push(`${core} › ${sub}`);
+  for (const sub of Object.keys(subs)) {
+    treePaths.push(`${core} › ${sub}`);
+    for (const third of Object.values(THIRD_LEVEL)) if (third.startsWith(`${core} › ${sub} › `)) treePaths.push(third);
+  }
 }
 for (const extra of Object.values(EXTRA_NODES).flat()) treePaths.push(extra);
 treePaths.push('תורה ולימוד › פרשת השבוע');
