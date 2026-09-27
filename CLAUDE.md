@@ -59,6 +59,7 @@ Schema lives in `supabase/` and is applied by hand in the Supabase SQL Editor (t
 5. `supabase/migrations/005_library_sa.sql` — the Q&A Shulchan Aruch section as a library filter (`p_sa`, `sa` facet; replaces the 004 functions)
 6. `supabase/migrations/006_library_sort.sql` — library sort orders (`p_sort`: `daily` / `newest` / `series`, `p_seed`); replaces the functions again and includes 005. `getLibraryItems()` falls back to the older signatures while it isn't applied (newest-first order)
 7. `supabase/migrations/007_admin_topics.sql` — topics from the admin form: `content_items.topics_manual`, `admin_set_item_topics(item, nodes, primary)` (links + ancestors, primary node, `sub_category`, recount), `admin_refresh_item_counts(item)`; both require `is_admin()`
+8. `supabase/migrations/008_keep_alive.sql` — `keep_alive` (one row, RLS on, no policies) and `keep_alive_ping()` (security definer, callable by anon), for the keep-alive below
 
 ### Tables
 
@@ -171,6 +172,10 @@ gpg --decrypt --output avinerpedia.dump avinerpedia-YYYY-MM-DD.dump.gpg
 pg_restore --no-owner --no-privileges --clean --if-exists -d "<session pooler URI>" avinerpedia.dump
 ```
 Into a new project, `admin_users` rows reference `auth.users`, which is not in the dump: recreate the admins (see Admin). Then `npm run revalidate`.
+
+## Keep-alive (Supabase free tier)
+
+Supabase pauses free projects after 7 days without activity, and the site barely touches the DB (24 h Data Cache, few visitors before launch; the weekly backup is too sparse and GitHub disables schedules after 60 idle days). A **cron-job.org** job (the owner's account) calls `POST https://oufpplkyijyloacrdrgq.supabase.co/rest/v1/rpc/keep_alive_ping` every 12 hours (`0 */12 * * *`) with the anon key in `apikey` and `Authorization: Bearer` (it is a legacy JWT key), body `{}`; failure e-mails on. The function writes a real row update (migration 008) and returns `{"last_ping","ping_count"}`; a 404 (`PGRST202`) means the migration isn't applied. Check it with `select * from public.keep_alive;`. Never put the service role key there.
 
 ## SEO and sharing
 
