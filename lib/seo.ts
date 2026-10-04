@@ -16,11 +16,10 @@ import { getVimeoId } from './video';
  */
 const vercelProductionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
 /**
- * TEMPORARY (2026-09-25): shlomo-aviner.net is attached to the Vercel project (so it became the
- * production domain) but its DNS still points at the old wiki behind Cloudflare. Until the DNS
- * moves to Vercel, pin the origin; then set this to null (domain switch checklist, CLAUDE.md).
+ * The site's own domain (DNS moved to Vercel on 2026-10-04). Pinned so canonicals never depend
+ * on which attached domain Vercel reports as the production one.
  */
-const PINNED_SITE_URL: string | null = 'https://avinerpedia.vercel.app';
+const PINNED_SITE_URL: string | null = 'https://shlomo-aviner.net';
 export const SITE_URL = (
   PINNED_SITE_URL ??
   (vercelProductionHost ? `https://${vercelProductionHost}` : process.env.NEXT_PUBLIC_SITE_URL || 'https://avinerpedia.vercel.app')

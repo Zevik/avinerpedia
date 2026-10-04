@@ -6,7 +6,7 @@ Guidance for anyone (human or Claude) working on this repository. Keep it curren
 
 Avinerpedia is a Hebrew (RTL) archive of Rabbi Shlomo Aviner's teaching: ~7,500 articles, videos, Q&A pages and ordered lesson series, originally published on a MediaWiki site (shlomo-aviner.net). The content was exported to MDX, loaded into Supabase, and enriched with the source wiki's taxonomy (types, topics, series).
 
-- Live: https://avinerpedia.vercel.app
+- Live: https://shlomo-aviner.net (DNS moved from the old wiki to Vercel on 2026-10-04; `www` and `avinerpedia.vercel.app` also serve it)
 - Repo: `github.com/Zevik/avinerpedia` (the only relevant remote; ignore the old `aviner-pedia-2`)
 - Supabase project: `oufpplkyijyloacrdrgq`, account `zevik.contact@gmail.com`
 - Vercel project: `avinerpedia` (team `zeviks-projects`); every push to `main` deploys to production
@@ -184,7 +184,7 @@ Supabase pauses free projects after 7 days without activity, and the site barely
 - Canonicals drop query strings (`?from=`, `?page=`, `?topic=` all canonicalize to the base path). `/search` redirects to `/library` (canonical `/library`, without the query). Hidden (inactive) and missing items return not-found metadata with `noindex`.
 - Share images: YouTube items use `img.youtube.com/vi/<id>/hqdefault.jpg`, Machon Meir items their Vimeo thumbnail; menu pages use their own section image (`OG_IMAGES` in `lib/seo.ts`: `public/og-videos.jpg`, `og-articles`, `og-qa`, `og-series`, `og-topics` — also on topic sub-pages —); everything else uses `public/og-default.jpg`. All 1200×630, ~60KB (WhatsApp may skip images over ~300KB). Regenerate them with `node scripts/make-og-image.mjs [domain]` (the domain is printed on the images).
 - `app/sitemap.ts`: all active content items, series, topics with items, and hubs (~8,100 URLs), revalidated daily. `app/robots.ts`: allow all, disallow `/admin` and `/api/`, points to the sitemap.
-- The site URL (`SITE_URL` in `lib/seo.ts`: canonicals, og:url/og:image, sitemap, robots) is, on Vercel, the project's production domain (`VERCEL_PROJECT_PRODUCTION_URL`): `avinerpedia.vercel.app` today, the custom domain automatically once it is attached to the project. `NEXT_PUBLIC_SITE_URL` only applies off Vercel. (It was once set to `https://www.shlomo-aviner.net` while that domain still served the old wiki: every canonical and share preview pointed at the old site, and WhatsApp showed its home page video. `tests/e2e/seo.spec.ts` now checks that og:url and og:image resolve on this app.)
+- The site URL (`SITE_URL` in `lib/seo.ts`: canonicals, og:url/og:image, sitemap, robots) is pinned to `https://shlomo-aviner.net` (`PINNED_SITE_URL`); with the pin set to `null` it would follow the project's production domain (`VERCEL_PROJECT_PRODUCTION_URL`), and `NEXT_PUBLIC_SITE_URL` only applies off Vercel. (It was once set to `https://www.shlomo-aviner.net` while that domain still served the old wiki: every canonical and share preview pointed at the old site, and WhatsApp showed its home page video. `tests/e2e/seo.spec.ts` checks that og:url and og:image resolve on this app.)
 - `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getFilterTree`).
 
 ## Legacy URL redirects (old shlomo-aviner.net MediaWiki)
@@ -208,7 +208,7 @@ Supabase pauses free projects after 7 days without activity, and the site barely
 - **Regenerate the map whenever items are hidden/re-activated or re-imported** (it only maps to active items): `npx tsx scripts/source/build-legacy-redirects.ts`, then commit `lib/legacy-redirects.json`. First build: 8,519 titles/curids with 301 (8,259 direct, 260 via wiki redirects, 4 home), 124 redirect-to-deleted-page searches, 350 unmapped (hidden items, 6 missing pages, 36 non-topic categories) → search.
 - Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/302 + Location).
 
-**Domain switch checklist** (shlomo-aviner.net → this app): add the domain (apex + `www`) to the Vercel project and point DNS at Vercel; **set `PINNED_SITE_URL` in `lib/seo.ts` to `null`** (since 2026-09-25 the domain is attached to the project while its DNS still serves the old wiki via Cloudflare, so the origin is pinned to `avinerpedia.vercel.app`); redeploy (canonicals, sitemap and robots follow the project's production domain by themselves), and re-run `node scripts/make-og-image.mjs shlomo-aviner.net` so the share images show the new domain; make the custom domain primary so `*.vercel.app` redirects to it; in Search Console verify the domain property and submit the new sitemap (same domain, so no Change of Address); spot-check a few old URLs from Search Console's top pages.
+**Domain switch** (shlomo-aviner.net → this app, 2026-10-04): DNS points at Vercel, `PINNED_SITE_URL` = `https://shlomo-aviner.net`, share images regenerated with the domain. Still for the owner: in Vercel → Domains make `shlomo-aviner.net` primary and set `www` and `avinerpedia.vercel.app` to redirect to it with **308 (permanent)** (`www` was a 307); in Search Console verify the domain property and submit the new sitemap (same domain, so no Change of Address); spot-check a few old URLs from Search Console's top pages.
 
 ## Content and data pipeline
 
@@ -266,5 +266,5 @@ Gotchas:
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
 - **Missing pages**: 6 source pages (titles with `\`) are not in the DB.
 - **YouTube validation**: done once with `scripts/check-dead-videos.mjs`; re-run periodically (videos keep disappearing). Meir/Maale videos are not checked.
-- **Search Console**: submit `https://avinerpedia.vercel.app/sitemap.xml` in Google Search Console (and Bing Webmaster Tools) after verifying the site.
+- **Search Console**: submit `https://shlomo-aviner.net/sitemap.xml` in Google Search Console (and Bing Webmaster Tools).
 - **Cleanups**: `/wiki` (an older all-content listing via `getWikiPosts`, not linked from the navbar) and `/admin/posts` (a redirect to `/admin/content`) are leftovers; `getSeriesGroups` in `lib/db.ts` is unused; the `next-mdx-remote` dependency is unused (`gray-matter` is still used by the import script and unit tests); `@supabase/auth-helpers-nextjs` is deprecated in favor of `@supabase/ssr`.
