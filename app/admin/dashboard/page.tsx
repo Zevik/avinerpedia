@@ -160,27 +160,6 @@ export default function AdminDashboard() {
               </Link>
             </div>
           </div>
-
-          {/* Database Browser */}
-          <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition group">
-            <div className="bg-indigo-600 h-32 flex items-center justify-center group-hover:bg-indigo-700 transition">
-              <div className="text-white text-5xl">🗄️</div>
-            </div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">דפדפן מסד נתונים</h2>
-              <p className="text-gray-600 text-sm mb-4">
-                גישה ישירה לטבלאות ב-Supabase (למתקדמים)
-              </p>
-              <a
-                href="https://supabase.com/dashboard/project/oufpplkyijyloacrdrgq/editor"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
-              >
-                פתח ב-Supabase ←
-              </a>
-            </div>
-          </div>
         </div>
 
         {/* Quick Info */}
