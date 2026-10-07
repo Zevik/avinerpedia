@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       })),
       // Search lives in the content library (the query string is carried over).
       { source: '/search', destination: '/library', permanent: false },
+      // The old all-content listing (no canonical, every item duplicated) -> the library.
+      { source: '/wiki', destination: '/library', statusCode: 301 as const },
     ];
   },
 };

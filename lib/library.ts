@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { supabase } from './supabase';
+import { readFailed, supabase } from './supabase';
 import type { FilterNode } from './types';
 import { dailySeed } from './daily';
 import { effectiveSort, isMediaType, LIBRARY_PAGE_SIZE, type LibraryState, type MediaType } from './library-url';
@@ -22,10 +22,7 @@ export interface Source {
 
 export const getSources = cache(async (): Promise<Source[]> => {
   const { data, error } = await supabase.from('sources').select('id, slug, name, sort_order').order('sort_order');
-  if (error) {
-    console.error('Error fetching sources:', error);
-    return [];
-  }
+  if (error) readFailed('Error fetching sources', error);
   return data as Source[];
 });
 
@@ -73,10 +70,7 @@ export async function getLibraryItems(
     const { p_sa: _sa, ...old } = base as typeof base & { p_sa?: string };
     res = await supabase.rpc('library_items', old);
   }
-  if (res.error) {
-    console.error('Error fetching library items:', res.error);
-    return { items: [], total: 0 };
-  }
+  if (res.error) readFailed('Error fetching library items', res.error);
   const rows = (res.data || []) as (LibraryItem & { total: number })[];
   return { items: rows.map(({ total: _total, ...item }) => item), total: Number(rows[0]?.total ?? 0) };
 }
@@ -93,10 +87,7 @@ export interface LibraryFacets {
 export async function getLibraryFacets(state: LibraryState, sourceId?: number): Promise<LibraryFacets> {
   const facets: LibraryFacets = { types: {}, sources: new Map(), sa: new Map(), nodes: new Map(), total: 0 };
   const { data, error } = await supabase.rpc('library_facets', rpcArgs(state, sourceId));
-  if (error) {
-    console.error('Error fetching library facets:', error);
-    return facets;
-  }
+  if (error) readFailed('Error fetching library facets', error);
   for (const { facet, key, item_count } of (data || []) as { facet: string; key: string | null; item_count: number }[]) {
     const n = Number(item_count);
     if (facet === 'type' && isMediaType(key)) facets.types[key] = n;

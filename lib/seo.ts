@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getVimeoId } from './video';
+import { isFilteredLibraryUrl, type MediaType } from './library-url';
 
 /**
  * Shared SEO helpers. Every page builds its metadata through `pageMetadata` because
@@ -46,6 +47,11 @@ interface PageMetadataInput {
   path?: string;
   image?: { url: string; width?: number; height?: number; alt?: string } | null;
   type?: 'website' | 'article';
+  /**
+   * `noindex, follow`, for filtered/searched/paged views. Such a page gets no canonical: a
+   * canonical pointing at another URL plus noindex are conflicting signals, and Google may carry
+   * the noindex over to the canonical page.
+   */
   noindex?: boolean;
 }
 
@@ -54,11 +60,18 @@ export function pageMetadata({ title, description = DEFAULT_DESCRIPTION, path, i
   return {
     title,
     description,
-    ...(path ? { alternates: { canonical: path } } : {}),
+    ...(path && !noindex ? { alternates: { canonical: path } } : {}),
     openGraph: { title, description, ...(path ? { url: path } : {}), siteName: SITE_NAME, locale: 'he_IL', type, images },
     twitter: { card: 'summary_large_image', title, description, images: images.map((i) => i.url) },
     ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
+}
+
+export type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+/** Metadata of a library page (/library, /videos, /articles, /qa): its filtered views are noindex. */
+export async function libraryMetadata(input: PageMetadataInput, searchParams: PageSearchParams, fixedType?: MediaType): Promise<Metadata> {
+  return pageMetadata({ ...input, noindex: isFilteredLibraryUrl(await searchParams, fixedType) });
 }
 
 /** YouTube thumbnail for a plain YouTube id (not `Meir:` / `Maale:` ids), or null. */

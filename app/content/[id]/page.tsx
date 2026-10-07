@@ -23,7 +23,8 @@ interface ContentPageProps {
 }
 
 // Shared by generateMetadata and the page, so the item is fetched once per request.
-const getItem = cache((id: string) => getContentItemById(parseInt(id, 10)));
+// Non-numeric ids (/content/abc) are not found without a query.
+const getItem = cache((id: string) => (/^\d{1,9}$/.test(id) ? getContentItemById(Number(id)) : null));
 
 export async function generateMetadata({ params }: ContentPageProps): Promise<Metadata> {
   const { id } = await params;

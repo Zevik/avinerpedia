@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { supabase } from './supabase';
+import { readFailed, supabase } from './supabase';
 import type { FilterNode } from './types';
 
 /**
@@ -56,10 +56,8 @@ export const getFilterTree = cache(async (scope: FilterScope): Promise<FilterNod
     supabase.from('filter_nodes').select('id, path, name, parent_id, depth, sort_order').order('depth').order('sort_order'),
     scope === 'all' ? countsQuery.neq('main_category', '__has_video').limit(5000) : countsQuery.eq('main_category', scope),
   ]);
-  if (nodesRes.error || countsRes.error) {
-    console.error('Error fetching filter tree:', nodesRes.error || countsRes.error);
-    return [];
-  }
+  const failed = nodesRes.error || countsRes.error;
+  if (failed) readFailed('Error fetching filter tree', failed);
 
   // For 'all', a node's count is the sum over the main categories.
   const counts = new Map<number, number>();
@@ -120,10 +118,7 @@ export async function getContentNodes(contentId: number, primaryNodeId?: number 
     .from('content_filter_nodes')
     .select('filter_nodes(id, path, name)')
     .eq('content_id', contentId);
-  if (error) {
-    console.error('Error fetching content nodes:', error);
-    return [];
-  }
+  if (error) readFailed('Error fetching content nodes', error);
   const nodes = (data || []).flatMap((r) => {
     const n = r.filter_nodes as unknown as { id: number; path: string; name: string } | null;
     return n ? [n] : [];

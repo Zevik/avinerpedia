@@ -52,10 +52,35 @@ test('topic page title and canonical (name-based URL, no query string)', async (
   const chip = page.locator('section div a[href^="/topics/"]').first(); // a sub-topic chip
   const name = (await chip.textContent())?.trim();
   const href = await chip.getAttribute('href');
-  await page.goto(`${href}?page=2`);
+  await page.goto(href!);
   await expect(page).toHaveTitle(`${name} - שיעורים ומאמרים | הרב שלמה אבינר`);
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
   expect(new URL(canonical!).pathname).toBe(href);
+  expect(await page.locator('meta[name="robots"]').count()).toBe(0);
+  // Later pages: noindex, follow and no canonical (lib/seo.ts).
+  await page.goto(`${href}?page=2`);
+  expect(await meta(page, 'name', 'robots')).toBe('noindex, follow');
+  expect(await page.locator('link[rel="canonical"]').count()).toBe(0);
+});
+
+test('library hubs are indexable; searched, filtered, sorted and paged views are noindex, follow', async ({ page }) => {
+  test.setTimeout(240_000); // 11 library pages, each a cold render on the dev server
+  for (const path of ['/library', '/videos', '/articles', '/qa', '/videos?utm_source=x']) {
+    await page.goto(path);
+    expect(await page.locator('meta[name="robots"]').count(), path).toBe(0);
+    expect(new URL((await page.locator('link[rel="canonical"]').getAttribute('href'))!).pathname, path).toBe(path.split('?')[0]);
+  }
+  for (const path of ['/library?q=אמונה', '/library?type=series', '/videos?source=ateret', '/articles?sort=newest', '/qa?page=2', '/library?topic=1']) {
+    await page.goto(path);
+    expect(await meta(page, 'name', 'robots'), path).toBe('noindex, follow');
+    expect(await page.locator('link[rel="canonical"]').count(), path).toBe(0);
+  }
+});
+
+test('non-numeric content and series ids are a 404', async ({ request }) => {
+  for (const path of ['/content/abc', '/content/99999999', '/series/abc', "/series/10'"]) {
+    expect((await request.get(path, { maxRedirects: 0 })).status(), path).toBe(404);
+  }
 });
 
 test('home and menu pages share their own image, served from this site', async ({ page, request }) => {
@@ -77,7 +102,7 @@ test('home and menu pages share their own image, served from this site', async (
   }
 });
 
-test('hub pages have their own titles; /search leads to the library, canonical without the query', async ({ page }) => {
+test('hub pages have their own titles; /search leads to the library (a noindex search view)', async ({ page }) => {
   await page.goto('/videos');
   await expect(page).toHaveTitle(/^סרטונים/);
   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/\/videos$/);
@@ -85,7 +110,7 @@ test('hub pages have their own titles; /search leads to the library, canonical w
   await page.goto('/search?q=תפילה');
   await expect(page).toHaveURL(/\/library\?q=/);
   await expect(page).toHaveTitle(/^ספריית התכנים/);
-  expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(/\/library$/);
+  expect(await meta(page, 'name', 'robots')).toBe('noindex, follow');
 });
 
 test('sitemap.xml lists content, series, topics and hubs', async ({ request }) => {

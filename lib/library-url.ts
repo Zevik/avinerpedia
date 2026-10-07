@@ -78,6 +78,16 @@ export function parseLibraryState(sp: SearchParams, fixedType?: MediaType): Libr
   };
 }
 
+/**
+ * Whether a library URL is a searched, filtered, re-sorted or later-page view. Every library
+ * page links to ~200 such combinations, an endless crawl space of near-duplicates, so they are
+ * `noindex, follow` (pageMetadata); the plain hubs and the /topics pages are the indexable ones.
+ */
+export function isFilteredLibraryUrl(sp: SearchParams, fixedType?: MediaType): boolean {
+  const s = parseLibraryState(sp, fixedType);
+  return Boolean(s.q || (s.type && !fixedType) || s.topicParam || s.source || s.sa || s.sort || s.page > 1);
+}
+
 /** A state with one axis changed; any change returns to page 1, and leaving Q&A drops the section. */
 export function withChange(state: LibraryState, change: Partial<Omit<LibraryState, 'page'>>): LibraryState {
   const next = { ...state, ...change, page: 1 };

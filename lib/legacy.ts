@@ -21,10 +21,43 @@ export interface LegacyRedirects {
 export type LegacyResolution =
   | { status: 301; location: string }
   | { status: 302; location: string }
-  | { status: 404 };
+  | { status: 404 }
+  | { status: 410 };
 
 const map = redirects as LegacyRedirects;
 const searchPath = (q: string) => (q ? `/library?q=${encodeURIComponent(q)}` : '/');
+const GONE = { status: 410 } as const;
+
+/**
+ * The wiki's non-content namespaces (namespace list of the XML export, plus MediaWiki's English
+ * names and Hebrew aliases): special pages, users, talk pages, templates, files, forms. Google
+ * knew hundreds of thousands of these URLs (served with noindex by the wiki); they get 410 Gone
+ * so they drop out of the index, instead of a search page and a database query each.
+ */
+const WIKI_NAMESPACES = new Set([
+  'מדיה', 'מיוחד', 'שיחה', 'משתמש', 'משתמשת', 'שיחת משתמש', 'שיחת משתמשת',
+  'שיעורי הרב שלמה אבינר', 'שיחת שיעורי הרב שלמה אבינר', 'קובץ', 'שיחת קובץ', 'תמונה', 'שיחת תמונה',
+  'מדיה ויקי', 'שיחת מדיה ויקי', 'תבנית', 'שיחת תבנית', 'עזרה', 'שיחת עזרה', 'שיחת קטגוריה', 'טופס', 'שיחת טופס',
+  'media', 'special', 'talk', 'user', 'user talk', 'project', 'project talk', 'file', 'file talk', 'image',
+  'image talk', 'mediawiki', 'mediawiki talk', 'template', 'template talk', 'help', 'help talk', 'category talk',
+  'form', 'form talk', 'widget', 'widget talk',
+]);
+
+function isWikiNamespace(key: string): boolean {
+  const colon = key.indexOf(':');
+  return colon > 0 && WIKI_NAMESPACES.has(key.slice(0, colon).trim().toLowerCase());
+}
+
+/** Wiki tools rather than a page: edit forms, diffs, raw text, wiki search... (410). */
+function isWikiTool(params: URLSearchParams): boolean {
+  const action = params.get('action')?.toLowerCase();
+  return params.has('diff') || params.has('search') || (action != null && action !== 'view' && action !== 'history');
+}
+
+/** Another view of a page (history, old revision, print): follows a known title, else 410. */
+function isPageVariant(params: URLSearchParams): boolean {
+  return ['action', 'oldid', 'printable', 'redirect'].some((p) => params.has(p));
+}
 
 /**
  * Resolves a legacy request. `pathname` is the raw (possibly percent-encoded) path;
@@ -33,28 +66,46 @@ const searchPath = (q: string) => (q ? `/library?q=${encodeURIComponent(q)}` : '
 export function resolveLegacy(pathname: string, params: URLSearchParams): LegacyResolution {
   const path = safeDecode(pathname).replace(/^\/+/, '');
 
+  // The wiki's sitemap files (sitemap/sitemap-index-shlomo-aviner.xml...) -> this site's sitemap.
+  if (/^sitemap\//i.test(path)) return { status: 301, location: '/sitemap.xml' };
+
+  if (isWikiTool(params)) return GONE;
+
   // /index.php?title=X, /index.php?curid=N (also under the wiki's /w/ script path)
   if (/^(w\/)?index\.php$/i.test(path)) {
     const curid = params.get('curid') || params.get('page_id');
     if (curid && map.curids[curid]) return { status: 301, location: map.curids[curid] };
     const title = params.get('title');
-    return title ? byTitle(title) : { status: 301, location: '/' };
+    if (title) return byTitle(title, isPageVariant(params));
+    // Bare /index.php is the old home page; an unknown curid or a revision id without a title is gone.
+    return [...params.keys()].length ? GONE : { status: 301, location: '/' };
   }
+
+  // /index.php/Title (path-info style)
+  const pathInfo = path.match(/^(?:w\/)?index\.php\/(.+)$/i);
+  if (pathInfo) return byTitle(pathInfo[1], isPageVariant(params));
+
+  // Before the asset rule: file pages (/קובץ:Image.jpg) are wiki pages too.
+  if (isWikiNamespace(legacyTitleKey(path))) return GONE;
 
   // Asset-like paths (favicon.ico, *.png, wp-login.php...) and the app's own namespaces
   // (unknown /api/..., /admin/..., /_next/... paths) are not wiki pages.
   if (/\.[a-z0-9]{2,4}$/i.test(path) || /^(api|admin|_next)(\/|$)/i.test(path)) return { status: 404 };
 
   // /Title_With_Underscores (titles may contain "/", so the whole path is the title)
-  return byTitle(path);
+  return byTitle(path, isPageVariant(params));
 }
 
-/** `title` is already decoded (from the decoded path or from URLSearchParams). */
-function byTitle(title: string): LegacyResolution {
+/**
+ * `title` is already decoded (from the decoded path or from URLSearchParams). `variant`: the
+ * URL asked for another view of the page (history, old revision...), which has no search fallback.
+ */
+function byTitle(title: string, variant = false): LegacyResolution {
   const key = legacyTitleKey(title);
-  if (!key) return { status: 301, location: '/' };
+  if (!key) return variant ? GONE : { status: 301, location: '/' };
   const target = map.titles[key];
   if (target) return { status: 301, location: target };
+  if (variant || isWikiNamespace(key)) return GONE;
   const query = map.searches[key] ?? key.replace(/^קטגוריה:/, '');
   return { status: 302, location: searchPath(query) };
 }

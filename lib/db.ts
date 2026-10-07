@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { readFailed, supabase } from './supabase';
 import { refreshPublicSite } from './revalidate';
 import { ContentItem, ContentFilters, Category } from './types';
 
@@ -111,13 +111,10 @@ export async function getContentItemById(id: number): Promise<ContentItem | null
       sub_category_ref:categories!sub_category_id(id, name, parent_id)
     `)
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    console.error('Error fetching content item:', error);
-    return null;
-  }
-
+  // null only when there is no such item; a failed query throws (see readFailed).
+  if (error) readFailed('Error fetching content item', error);
   return data;
 }
 
@@ -205,51 +202,6 @@ export async function getLatestQA(limit: number = 10): Promise<ContentItem[]> {
     limit,
   });
 }
-
-/**
- * Wiki related functions (restored for backward compatibility and specialized fetching)
- */
-
-export async function getWikiCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('display_order', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching wiki categories:', error);
-    return [];
-  }
-  return data || [];
-}
-
-export async function getWikiPosts(limit: number = 60, offset: number = 0, categoryId?: string): Promise<ContentItem[]> {
-  let query = supabase
-    .from('content_items')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  if (categoryId) {
-    // If categoryId is numeric, use the ID column
-    const numericId = Number(categoryId);
-    if (!isNaN(numericId)) {
-      query = query.or(`main_category_id.eq.${numericId},sub_category_id.eq.${numericId}`);
-    } else {
-      // Fallback to string matching if it's legacy or a name
-      query = query.or(`main_category.eq."${categoryId}",sub_category.eq."${categoryId}"`);
-    }
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error('Error fetching wiki posts:', error);
-    return [];
-  }
-  return data || [];
-}
-
 
 export async function getContentCount(filters?: ContentFilters): Promise<number> {
   let query = supabase

@@ -31,8 +31,8 @@ async function resolve(params: TopicPageProps['params']) {
   return findNodeBySegments(tree, segments);
 }
 
-export async function generateMetadata({ params }: Pick<TopicPageProps, 'params'>): Promise<Metadata> {
-  const chain = await resolve(params);
+export async function generateMetadata({ params, searchParams }: TopicPageProps): Promise<Metadata> {
+  const [chain, sp] = await Promise.all([resolve(params), searchParams]);
   const node = chain.at(-1);
   if (!node) return { title: 'הדף לא נמצא | אבינרפדיה', robots: { index: false } };
   return pageMetadata({
@@ -40,6 +40,8 @@ export async function generateMetadata({ params }: Pick<TopicPageProps, 'params'
     description: `${node.count} שיעורים, מאמרים ושאלות ותשובות בנושא ${chain.map((n) => n.name).join(' › ')} מאת הרב שלמה אבינר.`,
     path: nodeHref(node.path),
     image: OG_IMAGES.topics,
+    // Later pages and the "newest" order list the same items as the topic page: noindex, follow.
+    noindex: Number(sp.page) > 1 || sp.sort === 'newest',
   });
 }
 

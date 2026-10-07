@@ -17,7 +17,8 @@ interface SeriesDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-const getSeries = cache((id: string) => getSeriesWithEpisodes(Number(id)));
+// Non-numeric ids (/series/abc) are not found without a query.
+const getSeries = cache((id: string) => (/^\d{1,9}$/.test(id) ? getSeriesWithEpisodes(Number(id)) : null));
 
 export async function generateMetadata({ params }: SeriesDetailPageProps): Promise<Metadata> {
   const { id } = await params;

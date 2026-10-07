@@ -57,6 +57,12 @@ describe('resolveLegacy', () => {
     expect(resolveLegacy('/index.php', params(`curid=${curid}`))).toEqual({ status: 301, location: path });
   });
 
+  it('never 410s a mapped title, whatever its prefix', () => {
+    for (const [title, path] of Object.entries(redirects.titles)) {
+      expect(resolveLegacy('/index.php', params(`title=${encodeURIComponent(title)}`))).toEqual({ status: 301, location: path });
+    }
+  });
+
   it('sends the old home page to /', () => {
     expect(resolveLegacy('/' + encodeURIComponent('עמוד_ראשי'), params())).toEqual({ status: 301, location: '/' });
     expect(resolveLegacy('/index.php', params())).toEqual({ status: 301, location: '/' });
@@ -81,6 +87,41 @@ describe('resolveLegacy', () => {
       status: 302,
       location: `/library?q=${encodeURIComponent(target)}`,
     });
+  });
+
+  it('410s the wiki namespaces (special pages, users, talk, templates...), Hebrew and English', () => {
+    for (const title of ['מיוחד:שינויים_אחרונים', 'Special:RecentChanges', 'special:Search', 'משתמש:Admin', 'User_talk:Bot',
+      'שיחה:דף_כלשהו', 'שיחת_קטגוריה:אמונה', 'תבנית:שות', 'Template:Video', 'קובץ:תמונה.jpg', 'שיעורי_הרב_שלמה_אבינר:אודות']) {
+      expect(resolveLegacy('/' + encodeURIComponent(title), params()), title).toEqual({ status: 410 });
+      expect(resolveLegacy('/index.php', params(`title=${encodeURIComponent(title)}`)), title).toEqual({ status: 410 });
+    }
+  });
+
+  it('410s wiki tools (edit, diff, raw, search) even for known titles', () => {
+    const [title] = firstTitleTo('/content/');
+    const t = encodeURIComponent(title.replace(/ /g, '_'));
+    for (const q of [`title=${t}&action=edit`, `title=${t}&diff=12&oldid=11`, `title=${t}&action=raw`, 'search=אמונה&title=מיוחד:חיפוש']) {
+      expect(resolveLegacy('/index.php', params(q)), q).toEqual({ status: 410 });
+    }
+    expect(resolveLegacy('/' + t, params('action=edit'))).toEqual({ status: 410 });
+  });
+
+  it('sends history, old revisions and print views of a known title to its page, else 410', () => {
+    const [title, path] = firstTitleTo('/content/');
+    const t = encodeURIComponent(title.replace(/ /g, '_'));
+    for (const q of ['action=history', 'oldid=1234', 'printable=yes', 'action=view']) {
+      expect(resolveLegacy('/index.php', params(`title=${t}&${q}`)), q).toEqual({ status: 301, location: path });
+      expect(resolveLegacy('/' + t, params(q)), q).toEqual({ status: 301, location: path });
+      expect(resolveLegacy('/index.php', params(`title=${encodeURIComponent('דף_שלא_קיים')}&${q}`)), q).toEqual({ status: 410 });
+    }
+    expect(resolveLegacy('/index.php', params('oldid=1234'))).toEqual({ status: 410 });
+    expect(resolveLegacy('/index.php', params('curid=999999999'))).toEqual({ status: 410 });
+  });
+
+  it('maps /index.php/Title and the old sitemap files', () => {
+    const [title, path] = firstTitleTo('/content/');
+    expect(resolveLegacy('/index.php/' + encodeURIComponent(title.replace(/ /g, '_')), params())).toEqual({ status: 301, location: path });
+    expect(resolveLegacy('/sitemap/sitemap-index-shlomo-aviner.xml', params())).toEqual({ status: 301, location: '/sitemap.xml' });
   });
 
   it('returns 404 for asset-like paths', () => {

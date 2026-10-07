@@ -22,3 +22,14 @@ export const supabase =
   typeof window === 'undefined'
     ? createClient(url, key, { global: { fetch: cachedFetch } })
     : createClientComponentClient({ supabaseUrl: url, supabaseKey: key });
+
+/**
+ * Fails a public page read. Returning an empty list or null instead would render "0 results"
+ * (HTTP 200) or a 404, and ISR would cache it for a day: a database timeout would show crawlers
+ * an empty or missing page. A thrown error renders the error page with HTTP 500, which is
+ * not cached (ISR keeps serving the last good version) and which crawlers retry later.
+ */
+export function readFailed(context: string, error: { message: string; code?: string }): never {
+  console.error(`${context}:`, error);
+  throw new Error(`${context}: ${error.code ? `${error.code} ` : ''}${error.message}`);
+}

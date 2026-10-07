@@ -63,6 +63,33 @@ test.describe('legacy MediaWiki URLs', () => {
     expect(pathOf(location)).toBe('/library?q=דף שלא קיים בכלל');
   });
 
+  test('wiki special pages, user pages and edit/diff URLs -> 410 Gone (noindex)', async ({ request }) => {
+    const t = encodeURIComponent(contentTitle.replace(/ /g, '_'));
+    for (const url of [
+      '/index.php?title=Special:RecentChanges&days=30',
+      `/${encodeURIComponent('מיוחד:דפים_מקושרים')}/X`,
+      `/${encodeURIComponent('משתמש:Admin')}`,
+      `/index.php?title=${t}&action=edit`,
+      `/index.php?title=${t}&diff=5&oldid=4`,
+    ]) {
+      const res = await request.get(url, { maxRedirects: 0 });
+      expect(res.status(), url).toBe(410);
+      expect(res.headers()['x-robots-tag'], url).toBe('noindex');
+    }
+  });
+
+  test('history and old revisions of a known page -> 301 to it; the old sitemap -> /sitemap.xml', async ({ request }) => {
+    const t = encodeURIComponent(contentTitle.replace(/ /g, '_'));
+    for (const q of ['action=history', 'oldid=1234']) {
+      const { status, location } = await hit(request, `/index.php?title=${t}&${q}`);
+      expect(status, q).toBe(301);
+      expect(pathOf(location), q).toBe(contentPath);
+    }
+    const { status, location } = await hit(request, '/sitemap/sitemap-index-shlomo-aviner.xml');
+    expect(status).toBe(301);
+    expect(pathOf(location)).toBe('/sitemap.xml');
+  });
+
   test('the redirect target actually loads', async ({ page }) => {
     const res = await page.goto(underscored(contentTitle));
     expect(res?.status()).toBe(200);

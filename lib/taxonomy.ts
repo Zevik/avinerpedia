@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { readFailed, supabase } from './supabase';
 import type { ContentItem, Series } from './types';
 
 /**
@@ -14,17 +14,15 @@ export async function getAllSeries(): Promise<(Series & { firstEpisodeId: number
     .select('id, name, detected_by, episode_count')
     .order('episode_count', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching series:', error);
-    return [];
-  }
+  if (error) readFailed('Error fetching series', error);
 
-  const { data: firsts } = await supabase
+  const { data: firsts, error: firstsError } = await supabase
     .from('content_items')
     .select('id, series_id')
     .eq('series_order', 1)
     .eq('is_active', true)
     .in('series_id', series.map((s) => s.id));
+  if (firstsError) readFailed('Error fetching first episodes', firstsError);
 
   const firstBySeries = new Map((firsts || []).map((f) => [f.series_id, f.id]));
   return series.map((s) => ({ ...s, firstEpisodeId: firstBySeries.get(s.id) ?? null }));
@@ -37,10 +35,8 @@ export async function getSeriesWithEpisodes(id: number): Promise<{ series: Serie
     .eq('id', id)
     .maybeSingle();
 
-  if (error || !series) {
-    if (error) console.error('Error fetching series:', error);
-    return null;
-  }
+  if (error) readFailed('Error fetching series', error);
+  if (!series) return null;
 
   const { data: episodes, error: epError } = await supabase
     .from('content_items')
@@ -49,7 +45,7 @@ export async function getSeriesWithEpisodes(id: number): Promise<{ series: Serie
     .eq('is_active', true)
     .order('series_order', { ascending: true });
 
-  if (epError) console.error('Error fetching episodes:', epError);
+  if (epError) readFailed('Error fetching episodes', epError);
   return { series, episodes: episodes || [] };
 }
 
@@ -77,6 +73,8 @@ export async function getSeriesNavigation(item: Pick<ContentItem, 'series_id' | 
       .limit(1),
   ]);
 
+  const failed = seriesRes.error || prevRes.error || nextRes.error;
+  if (failed) readFailed('Error fetching series navigation', failed);
   if (!seriesRes.data) return null;
   return {
     series: seriesRes.data,
