@@ -459,6 +459,22 @@ export async function refreshItemTopicCounts(contentId: number) {
   if (error) throw error;
 }
 
+/**
+ * Deletes an item for good (the edit form's delete button). It is hidden and its topics are
+ * recounted first: the counts include only active items, and the recount needs the item's
+ * topic links, which the delete removes with it (on delete cascade).
+ */
+export async function deleteContentItem(id: number) {
+  const { error: hideError } = await supabase.from('content_items').update({ is_active: false }).eq('id', id);
+  if (hideError) throw hideError;
+  await refreshItemTopicCounts(id);
+  // RLS denies silently (no error, no rows): check that the row really went.
+  const { data, error } = await supabase.from('content_items').delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error(`content item ${id} was not deleted`);
+  await refreshPublicSite();
+}
+
 /** Sources for the admin form's dropdown (the library's source axis, migration 004). */
 export async function getSourceOptions(): Promise<{ id: number; name: string }[]> {
   const { data, error } = await supabase.from('sources').select('id, name').order('sort_order');

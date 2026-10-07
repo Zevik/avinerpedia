@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2, Save } from 'lucide-react';
+import { ArrowRight, Loader2, Save, Trash2 } from 'lucide-react';
 import {
-  createContentItem, getItemTopicNodeIds, getSourceOptions, getTopicNodes, refreshItemTopicCounts, setItemTopics,
+  createContentItem, deleteContentItem, getItemTopicNodeIds, getSourceOptions, getTopicNodes, refreshItemTopicCounts, setItemTopics,
   updateContentItem, type EditableContent,
 } from '@/lib/db';
 import { specificSelection } from '@/lib/topic-selection';
@@ -36,6 +36,9 @@ export function ContentForm({ item }: { item?: ContentItem }) {
   const [sources, setSources] = useState<{ id: number; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Delete: the button asks for a second, explicit confirmation before anything happens.
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   // Series episodes keep their type (series order).
   const lockedType = item && !isEditableType(item.content_type) ? item.content_type : null;
   const [form, setForm] = useState({
@@ -116,6 +119,23 @@ export function ContentForm({ item }: { item?: ContentItem }) {
       setError(code === '23505' ? 'כבר קיים פריט עם הכותרת הזו. בחרו כותרת אחרת.' : 'שגיאה בשמירה. נסו שוב.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!item) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await deleteContentItem(item.id);
+      router.push('/admin/content');
+      router.refresh();
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      setError('המחיקה נכשלה. ייתכן שהפריט הוסתר אבל לא נמחק; נסו שוב.');
+      setConfirmDelete(false);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -255,12 +275,44 @@ export function ContentForm({ item }: { item?: ContentItem }) {
 
           {error && <p role="alert" className="text-sm text-red-700 bg-red-50 rounded-lg p-3">{error}</p>}
 
-          <div className="pt-4 flex justify-end gap-3 border-t">
-            <Link href="/admin/content" className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">ביטול</Link>
-            <button type="submit" disabled={saving || videoInvalid} className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
-              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              {item ? 'שמירת שינויים' : 'הוספת הפריט'}
-            </button>
+          {item && confirmDelete && (
+            <div role="alertdialog" aria-labelledby="delete-title" className="border border-red-200 bg-red-50 rounded-lg p-4 space-y-3">
+              <p id="delete-title" className="font-semibold text-red-800">למחוק את הפריט לצמיתות?</p>
+              <p className="text-sm text-red-700">
+                &quot;{item.title}&quot; יימחק מהמאגר עם השיוך שלו לנושאים, ולא ניתן יהיה לשחזר אותו.
+                כדי רק להסתיר אותו מהאתר, כבו את המתג &quot;פעיל&quot; ושמרו.
+              </p>
+              <div className="flex gap-3">
+                <button type="button" onClick={handleDelete} disabled={deleting} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50">
+                  {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                  כן, למחוק לצמיתות
+                </button>
+                <button type="button" onClick={() => setConfirmDelete(false)} disabled={deleting} className="px-4 py-2 text-gray-700 hover:bg-white rounded-lg transition">
+                  ביטול
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className={`pt-4 flex gap-3 border-t ${item ? 'justify-between' : 'justify-end'}`}>
+            {item && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving || deleting || confirmDelete}
+                className="flex items-center gap-2 px-4 py-2 text-red-700 border border-red-200 rounded-lg hover:bg-red-50 transition disabled:opacity-50"
+              >
+                <Trash2 className="w-5 h-5" />
+                מחיקת הפריט
+              </button>
+            )}
+            <div className="flex gap-3">
+              <Link href="/admin/content" className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">ביטול</Link>
+              <button type="submit" disabled={saving || deleting || videoInvalid} className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {item ? 'שמירת שינויים' : 'הוספת הפריט'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
