@@ -127,10 +127,13 @@ test('sitemap.xml lists content, series, topics and hubs', async ({ request }) =
   expect(xml).not.toMatch(/\/content\/7838</); // hidden item
 });
 
-test('robots.txt allows crawling, blocks admin, points to the sitemap', async ({ request }) => {
+test('robots.txt allows crawling, blocks admin and filtered library views, points to the sitemap', async ({ request }) => {
   const txt = await (await request.get('/robots.txt')).text();
   expect(txt).toContain('Allow: /');
   expect(txt).toContain('Disallow: /admin');
+  for (const rule of ['/library?', '/videos?', '/articles?', '/qa?', '/topics/*?']) expect(txt).toContain(`Disallow: ${rule}\n`);
+  // The plain hubs and topic pages stay crawlable: no rule ends at the bare path.
+  expect(txt).not.toMatch(/Disallow: \/(library|videos|articles|qa|topics)\s*$/m);
   expect(txt).toMatch(/Sitemap: https?:\/\/\S+\/sitemap\.xml/);
 });
 
