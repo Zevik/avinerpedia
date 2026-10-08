@@ -152,6 +152,14 @@ Content changes every few days, so the public site is cached and a flood of requ
 | Revalidate endpoint rate limit | `/api/revalidate` | 20 |
 | General per-IP rate limit | everything | 3,000 |
 
+**Bot management (2026-10-08)**, after the Firewall's Traffic view showed ~43,000 requests a day from Facebook's AS (one JA4 fingerprint over many IPs, browser user agents — Meta's crawler) plus OVH/Amazon scrapers hitting the library while Google sent ~17,000:
+
+- **Bot Protection: Challenge.** Anything that is not a real browser or a verified bot (Googlebot, Bingbot…) gets **429 with `X-Vercel-Mitigated: challenge`**. That includes `curl`, scripts and Playwright `request` calls against the live site — a 429 with that header is the challenge, not the rate limit.
+- **AI Bots: Log** (not Deny, so AI search tools can still cite the archive; they obey robots.txt, which keeps them off the filters). Revisit with the log.
+- **Custom rule "Allow Link Previews"**: User Agent matches `WhatsApp|TelegramBot|Twitterbot|LinkedInBot|Slackbot|Discordbot|SkypeUriPreview|facebookexternalhit` **and** path does not start with `/library` → Bypass. WhatsApp builds previews from the sharer's phone, which would otherwise be challenged (no title/image). The path condition stops UA spoofers from reaching the heaviest page (the rule UI has no "any query string" condition).
+- **Custom rule "Allow Technical Endpoints"**: path `/api/revalidate`, `/robots.txt`, `/sitemap.xml` → Bypass, so `npm run revalidate` and other crawlers work (`/api/revalidate` keeps its own auth and 20/min limit).
+- Verified 2026-10-08: WhatsApp/Telegram/Facebook/Twitter UAs get 200 with `og:image`; WhatsApp UA on `/library?q=` and plain curl on pages get the challenge; robots.txt/sitemap 200; `POST /api/revalidate` without a key 401.
+
 Verified 2026-09-24: revalidate 20×401 then 429; search 120×200 then 429 (other pages unaffected). A page view is 25–100 requests (Link prefetches; `/topics` alone prefetches 84), and schools share one IP, so the general limit needs headroom: at 1,000 it blocked the E2E suite (~2,000 requests/min from one IP); at 3,000 the suite passes. Vercel's automatic mitigation is separate: ~30 concurrent requests from one IP got a "Vercel Security Checkpoint" challenge (403, `X-Vercel-Mitigated: challenge`) for ~9 minutes — browsers pass it, curl doesn't. Don't load-test the live site with parallel curl.
 
 ## Accessibility and privacy
