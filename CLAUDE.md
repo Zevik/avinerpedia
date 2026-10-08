@@ -204,14 +204,14 @@ Supabase pauses free projects after 7 days without activity, and the site barely
 | `?action=history`, `?oldid=`, `?printable=`, `/index.php/Title` of a known title | 301 → its page (unknown title → 410) |
 | Wiki namespaces (`מיוחד:`/`Special:`, `משתמש:`/`User:`, talk pages, `תבנית:`, `קובץ:`, `מדיה ויקי:`, `טופס:`, the project namespace…; `WIKI_NAMESPACES` in `lib/legacy.ts`), wiki tools (`action=edit|raw|info…`, `diff=`, `search=`), a curid/oldid without a known page | 410 Gone (small HTML page, `X-Robots-Tag: noindex`, no DB query). Google knew ~785,000 such noindex wiki URLs |
 | `/sitemap/…` (the wiki's sitemap files) | 301 → `/sitemap.xml` |
-| Hidden item, deleted page, unknown title | 302 → `/library?q=<title>` (a noindex search page) |
+| Hidden item, deleted page, unknown title | 404: a light standalone page (no DB query, `X-Robots-Tag: noindex`) with a `rel=nofollow` button "חיפוש \"<title>\" בספריית התכנים" → `/library?q=<title>`. Until 2026-10-08 it was a 302 to that search, so every bot following old wiki links ran a database search |
 | Asset-like paths (`*.ico`, `*.php`...), unknown `/api/`, `/admin/`, `/_next/` | 404 |
 
 - Titles are normalized by `legacyTitleKey()` in `lib/legacy-title.ts` (underscores, entities, `''`→`"`, first-letter case, `Category:`→`קטגוריה:`), used both at build time and per request.
 - `build-legacy-redirects.ts` also writes `lib/topic-redirects.json` (old numeric topic id → curated node) and maps categories through `docs/topic-taxonomy-mapping.csv`, so **re-run it after changing the taxonomy mapping** too.
 - Pages render without a root loading boundary (`app/loading.tsx` was removed on 2026-09-25), so `notFound()` returns a real 404 and `permanentRedirect()` a real 308; `next.config.ts` `redirects()` or a route handler are still the place for exact status codes (301) and mass redirects.
 - **Regenerate the map whenever items are hidden/re-activated or re-imported** (it only maps to active items): `npx tsx scripts/source/build-legacy-redirects.ts`, then commit `lib/legacy-redirects.json`. First build: 8,519 titles/curids with 301 (8,259 direct, 260 via wiki redirects, 4 home), 124 redirect-to-deleted-page searches, 350 unmapped (hidden items, 6 missing pages, 36 non-topic categories) → search.
-- Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/302 + Location).
+- Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/404/410, Location, the search link, HTML escaping of the title).
 
 **Domain switch** (shlomo-aviner.net → this app, 2026-10-04): DNS points at Vercel, `PINNED_SITE_URL` = `https://shlomo-aviner.net`, share images regenerated with the domain. Still for the owner: in Vercel → Domains make `shlomo-aviner.net` primary and set `www` and `avinerpedia.vercel.app` to redirect to it with **308 (permanent)** (`www` was a 307); in Search Console verify the domain property and submit the new sitemap (same domain, so no Change of Address); spot-check a few old URLs from Search Console's top pages.
 

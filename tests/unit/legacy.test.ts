@@ -74,19 +74,14 @@ describe('resolveLegacy', () => {
     expect(resolveLegacy('/' + encodeURIComponent(title.replace(/ /g, '_')), params())).toEqual({ status: 301, location: path });
   });
 
-  it('falls back to a 302 search for unknown titles', () => {
-    expect(resolveLegacy('/' + encodeURIComponent('דף_שלא_קיים_בכלל'), params())).toEqual({
-      status: 302,
-      location: `/library?q=${encodeURIComponent('דף שלא קיים בכלל')}`,
-    });
+  it('answers 404 with the title as a search suggestion for unknown titles', () => {
+    expect(resolveLegacy('/' + encodeURIComponent('דף_שלא_קיים_בכלל'), params())).toEqual({ status: 404, query: 'דף שלא קיים בכלל' });
+    expect(resolveLegacy('/' + encodeURIComponent('קטגוריה:נושא_שלא_קיים'), params())).toEqual({ status: 404, query: 'נושא שלא קיים' });
   });
 
-  it('searches for the target title when a redirect points to a deleted page', () => {
+  it('suggests the target title when a redirect points to a deleted page', () => {
     const [title, target] = Object.entries(redirects.searches)[0];
-    expect(resolveLegacy('/' + encodeURIComponent(title), params())).toEqual({
-      status: 302,
-      location: `/library?q=${encodeURIComponent(target)}`,
-    });
+    expect(resolveLegacy('/' + encodeURIComponent(title), params())).toEqual({ status: 404, query: target });
   });
 
   it('410s the wiki namespaces (special pages, users, talk, templates...), Hebrew and English', () => {

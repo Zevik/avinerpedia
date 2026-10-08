@@ -57,10 +57,20 @@ test.describe('legacy MediaWiki URLs', () => {
     expect(pathOf(location)).toBe(decodeURIComponent(categoryPath));
   });
 
-  test('unknown title -> 302 to search with the decoded title', async ({ request }) => {
-    const { status, location } = await hit(request, underscored('דף שלא קיים בכלל'));
-    expect(status).toBe(302);
-    expect(pathOf(location)).toBe('/library?q=דף שלא קיים בכלל');
+  test('unknown title -> 404 page (no DB query) with a link to search for the decoded title', async ({ request, page }) => {
+    const res = await request.get(underscored('דף שלא קיים בכלל'), { maxRedirects: 0 });
+    expect(res.status()).toBe(404);
+    expect(res.headers()['x-robots-tag']).toBe('noindex');
+    await page.goto(underscored('דף שלא קיים בכלל'));
+    const search = page.getByRole('link', { name: /חיפוש "דף שלא קיים בכלל"/ });
+    await expect(search).toHaveAttribute('rel', 'nofollow');
+    expect(pathOf((await search.getAttribute('href'))!)).toBe('/library?q=דף שלא קיים בכלל');
+  });
+
+  test('the search suggestion escapes HTML in the title', async ({ request }) => {
+    const html = await (await request.get('/' + encodeURIComponent('<script>alert(1)</script>'))).text();
+    expect(html).not.toContain('<script>alert');
+    expect(html).toContain('&lt;script&gt;');
   });
 
   test('wiki special pages, user pages and edit/diff URLs -> 410 Gone (noindex)', async ({ request }) => {

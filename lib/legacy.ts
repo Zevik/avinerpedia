@@ -14,18 +14,21 @@ export interface LegacyRedirects {
   titles: Record<string, string>;
   /** MediaWiki page id (curid) -> new path, served as 301 */
   curids: Record<string, string>;
-  /** normalized title -> search query, for redirects whose target page no longer exists (302) */
+  /** normalized title -> search query, for redirects whose target page no longer exists (404 with a search link) */
   searches: Record<string, string>;
 }
 
+/**
+ * 404 with `query`: an old page we don't have (unknown, hidden or deleted title). The route
+ * shows a light not-found page with a link to search the library for `query`. It used to be a
+ * 302 to that search, so every bot following old wiki links ran a database search.
+ */
 export type LegacyResolution =
   | { status: 301; location: string }
-  | { status: 302; location: string }
-  | { status: 404 }
+  | { status: 404; query?: string }
   | { status: 410 };
 
 const map = redirects as LegacyRedirects;
-const searchPath = (q: string) => (q ? `/library?q=${encodeURIComponent(q)}` : '/');
 const GONE = { status: 410 } as const;
 
 /**
@@ -106,6 +109,5 @@ function byTitle(title: string, variant = false): LegacyResolution {
   const target = map.titles[key];
   if (target) return { status: 301, location: target };
   if (variant || isWikiNamespace(key)) return GONE;
-  const query = map.searches[key] ?? key.replace(/^קטגוריה:/, '');
-  return { status: 302, location: searchPath(query) };
+  return { status: 404, query: map.searches[key] ?? key.replace(/^קטגוריה:/, '') };
 }
