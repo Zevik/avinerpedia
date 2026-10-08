@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookOpen, CalendarDays, Heart, MessageSquareText, Scale, Search, Sparkles } from 'lucide-react';
+import { ChavaBooksBanner } from '@/components/ChavaBooks';
 import { ContentRow } from '@/components/home/ContentRow';
 import { ItemRowCard, SeriesRowCard } from '@/components/home/RowCards';
 import { dailySeed, seededShuffle } from '@/lib/daily';
@@ -91,6 +92,8 @@ export default async function Home() {
             </Link>
           ))}
         </nav>
+
+        <ChavaBooksBanner />
 
         <ContentRow title="פנינים מהארכיון" subtitle="מבחר מתחלף מדי יום" allHref="/library">
           {pearls.items.map((item) => (

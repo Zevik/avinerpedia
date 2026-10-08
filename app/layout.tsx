@@ -3,6 +3,7 @@ import { Heebo } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { ChavaBooksFooterLink } from '@/components/ChavaBooks';
 import { pageMetadata, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 const heebo = Heebo({
@@ -43,6 +44,7 @@ export default function RootLayout({
               <Link prefetch={false} href="/rav-aviner" className="underline underline-offset-4 hover:text-primary">על הרב אבינר</Link>
               <Link prefetch={false} href="/accessibility" className="underline underline-offset-4 hover:text-primary">הצהרת נגישות</Link>
               <Link prefetch={false} href="/privacy" className="underline underline-offset-4 hover:text-primary">מדיניות פרטיות</Link>
+              <ChavaBooksFooterLink />
             </nav>
           </div>
         </footer>
