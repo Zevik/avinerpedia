@@ -95,10 +95,12 @@ test('home and menu pages share their own image, served from this site', async (
     expect(image, path).toMatch(new RegExp(`/${file.replace('.', '\\.')}$`));
     // og:url and og:image must be on a host that serves this app (not a domain still on the old wiki).
     expect(new URL(image).host, path).toBe(new URL(url).host);
-    const img = await request.get(image, { maxRedirects: 0 });
+    // Fetched from the app under test by path: the live domain challenges scripted clients
+    // (Vercel Bot Protection answers 429), so the absolute URLs can't be fetched from here.
+    const img = await request.get(new URL(image).pathname, { maxRedirects: 0 });
     expect(img.status(), image).toBe(200);
     expect(img.headers()['content-type'], image).toContain('image/jpeg');
-    expect((await request.get(url, { maxRedirects: 0 })).status(), url).toBe(200);
+    expect((await request.get(new URL(url).pathname, { maxRedirects: 0 })).status(), url).toBe(200);
   }
 });
 

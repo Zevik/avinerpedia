@@ -40,6 +40,24 @@ export interface LibraryItem {
   media_types: MediaType[];
 }
 
+/**
+ * The shape of a request for the error log: which filters were set, and the search's length
+ * and word count — never the search text itself (visitors' searches are not logged).
+ */
+function describeState(state: LibraryState) {
+  const q = state.q?.trim();
+  const parts = [
+    q && `q=${q.length} chars/${q.split(/\s+/).length} words`,
+    state.type && `type=${state.type}`,
+    state.topic && `topic=${state.topic}`,
+    state.source && `source=${state.source}`,
+    state.sa && 'sa',
+    state.sort && `sort=${state.sort}`,
+    state.page > 1 && `page=${state.page}`,
+  ].filter(Boolean);
+  return parts.length ? parts.join(' ') : 'unfiltered';
+}
+
 function rpcArgs(state: LibraryState, sourceId: number | undefined, types?: MediaType[]) {
   return {
     p_node: state.topic ?? null,
@@ -70,7 +88,7 @@ export async function getLibraryItems(
     const { p_sa: _sa, ...old } = base as typeof base & { p_sa?: string };
     res = await supabase.rpc('library_items', old);
   }
-  if (res.error) readFailed('Error fetching library items', res.error);
+  if (res.error) readFailed(`Error fetching library items [${describeState(state)}]`, res.error);
   const rows = (res.data || []) as (LibraryItem & { total: number })[];
   return { items: rows.map(({ total: _total, ...item }) => item), total: Number(rows[0]?.total ?? 0) };
 }
@@ -87,7 +105,7 @@ export interface LibraryFacets {
 export async function getLibraryFacets(state: LibraryState, sourceId?: number): Promise<LibraryFacets> {
   const facets: LibraryFacets = { types: {}, sources: new Map(), sa: new Map(), nodes: new Map(), total: 0 };
   const { data, error } = await supabase.rpc('library_facets', rpcArgs(state, sourceId));
-  if (error) readFailed('Error fetching library facets', error);
+  if (error) readFailed(`Error fetching library facets [${describeState(state)}]`, error);
   for (const { facet, key, item_count } of (data || []) as { facet: string; key: string | null; item_count: number }[]) {
     const n = Number(item_count);
     if (facet === 'type' && isMediaType(key)) facets.types[key] = n;
