@@ -45,6 +45,7 @@ Playwright starts `npm run dev` itself (or reuses a running server). **Check tha
 | `NEXT_PUBLIC_SUPABASE_URL` | app + scripts | `https://oufpplkyijyloacrdrgq.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | app + scripts | Public by design; RLS protects the data. Must keep the `NEXT_PUBLIC_` prefix — browser code needs it, and the build fails without it |
 | `SUPABASE_SERVICE_ROLE_KEY` | scripts only | Bypasses RLS. Never expose to the browser, never prefix with `NEXT_PUBLIC_` |
+| `GSC_SERVICE_ACCOUNT_KEY` | `scripts/gsc.mjs` only | Base64 of the Google service account JSON (`claude-gsc@liz-5600d`), read-only Search Console access. Not needed on Vercel |
 
 **Vercel** needs the same three: the two public ones as *Config* in Production/Preview/Development, the service key as *Secret* in Production/Preview (Vercel does not allow Secrets in Development). A missing `NEXT_PUBLIC_SUPABASE_ANON_KEY` fails the build at `/admin/login` prerender. `scripts/push-vercel-env.mjs` pushes them from `.env.local` and verifies with `vercel env ls`; setting them by hand in the dashboard also works. The Vercel MCP connector cannot read or write env vars (403).
 
@@ -199,6 +200,12 @@ Supabase pauses free projects after 7 days without activity, and the site barely
 - `app/sitemap.ts`: all active content items, series, topics with items, and hubs (~8,100 URLs), revalidated daily. `app/robots.ts`: allow all, disallow `/admin`, `/api/` and the parameterized library/topic views (above), points to the sitemap.
 - The site URL (`SITE_URL` in `lib/seo.ts`: canonicals, og:url/og:image, sitemap, robots) is pinned to `https://shlomo-aviner.net` (`PINNED_SITE_URL`); with the pin set to `null` it would follow the project's production domain (`VERCEL_PROJECT_PRODUCTION_URL`), and `NEXT_PUBLIC_SITE_URL` only applies off Vercel. (It was once set to `https://www.shlomo-aviner.net` while that domain still served the old wiki: every canonical and share preview pointed at the old site, and WhatsApp showed its home page video. `tests/e2e/seo.spec.ts` checks that og:url and og:image resolve on this app.)
 - `generateMetadata` and the page share one fetch via React `cache` (`getItem` in `/content/[id]`, `getSeries`, and `getFilterTree`).
+
+### Google Search Console API
+
+`node scripts/gsc.mjs sites | sitemaps | query [days] [page|query|date|device|country] [rows] | inspect <url>...` (read-only; key from `GSC_SERVICE_ACCOUNT_KEY`). **Every check is for `sc-domain:shlomo-aviner.net` only**: the service account also has access to other owners' sites (tivon.me, chavabooks.co.il), and the script is hard-wired to this property and refuses other URLs. URL Inspection is limited to ~2,000 calls a day. The sitemap report's `indexed: 0` is a field Google no longer fills; check individual URLs with `inspect`.
+
+First check (2026-10-13): home, `/library`, `/series`, `/topics` and sampled `/content/N` pages are indexed with Google's canonical = ours; old wiki URLs are still in the index with their old canonical (last crawled before the switch, so Google hasn't seen the 301 yet) and still bring most of the clicks (~100/day); both `https://shlomo-aviner.net/sitemap.xml` and `https://www.shlomo-aviner.net/sitemap.xml` are submitted (7,341 URLs, 0 errors); the `www` entry is redundant now that `www` 308s to the apex.
 
 ## Legacy URL redirects (old shlomo-aviner.net MediaWiki)
 

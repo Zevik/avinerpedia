@@ -51,3 +51,7 @@ yaml*.json
 
 # Review documents (the *.csv rule above is for old data dumps)
 !docs/*.csv
+
+# Service account keys (store them in .env.local instead)
+gsc-key*.json
+*-sa-key.json
