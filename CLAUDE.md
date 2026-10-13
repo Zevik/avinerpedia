@@ -6,7 +6,7 @@ Guidance for anyone (human or Claude) working on this repository. Keep it curren
 
 Avinerpedia is a Hebrew (RTL) archive of Rabbi Shlomo Aviner's teaching: ~7,500 articles, videos, Q&A pages and ordered lesson series, originally published on a MediaWiki site (shlomo-aviner.net). The content was exported to MDX, loaded into Supabase, and enriched with the source wiki's taxonomy (types, topics, series).
 
-- Live: https://shlomo-aviner.net (DNS moved from the old wiki to Vercel on 2026-10-04; `www` and `avinerpedia.vercel.app` also serve it)
+- Live: https://shlomo-aviner.net (DNS moved from the old wiki to Vercel on 2026-10-04; `www` and `avinerpedia.vercel.app` 308 to it)
 - Repo: `github.com/Zevik/avinerpedia` (the only relevant remote; ignore the old `aviner-pedia-2`)
 - Supabase project: `oufpplkyijyloacrdrgq`, account `zevik.contact@gmail.com`
 - Vercel project: `avinerpedia` (team `zeviks-projects`); every push to `main` deploys to production
@@ -34,7 +34,7 @@ npm run test:all     # typecheck + unit + e2e — run before every commit
 npm run revalidate   # purge the cached live site after a script wrote to the DB
 ```
 
-Playwright starts `npm run dev` itself (or reuses a running server). **Check that port 3000 is really this app** (`curl -s localhost:3000 | grep אבינרפדיה`): `reuseExistingServer` happily tests another project's dev server on that port (happened 2026-09-27); if it's taken, start this app on another port and use `E2E_BASE_URL=http://localhost:<port>`. `E2E_PROD=1` runs against `npm run start` instead (build first). **`E2E_BASE_URL=https://avinerpedia.vercel.app npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored). **Specs import `test`/`expect` from `tests/e2e/fixtures.ts`**, whose `page.goto` waits until every link in `<main>` is hydrated (React's `__reactProps$…` on the node): under the parallel suite's CPU load a click that landed mid-hydration was lost, which was the cause of the long-standing intermittent "clicked, URL never changed" failures (with prefetch floods, fixed by `prefetch={false}` on crowded pages).
+Playwright starts `npm run dev` itself (or reuses a running server). **Check that port 3000 is really this app** (`curl -s localhost:3000 | grep אבינרפדיה`): `reuseExistingServer` happily tests another project's dev server on that port (happened 2026-09-27); if it's taken, start this app on another port and use `E2E_BASE_URL=http://localhost:<port>`. `E2E_PROD=1` runs against `npm run start` instead (build first). **`E2E_BASE_URL=https://shlomo-aviner.net npm run test:e2e` runs the suite against the deployed site** — the best post-deploy check. It uses 2 workers: full parallelism floods the live site with prefetches (cold functions) and navigations time out; in normal use they take 0.2–2 s. Output goes to `playwright-report/` and `test-results/` (gitignored). **Specs import `test`/`expect` from `tests/e2e/fixtures.ts`**, whose `page.goto` waits until every link in `<main>` is hydrated (React's `__reactProps$…` on the node): under the parallel suite's CPU load a click that landed mid-hydration was lost, which was the cause of the long-standing intermittent "clicked, URL never changed" failures (with prefetch floods, fixed by `prefetch={false}` on crowded pages).
 
 ## Environment variables
 
@@ -205,7 +205,7 @@ Supabase pauses free projects after 7 days without activity, and the site barely
 
 `node scripts/gsc.mjs sites | sitemaps | query [days] [page|query|date|device|country] [rows] | inspect <url>...` (read-only; key from `GSC_SERVICE_ACCOUNT_KEY`). **Every check is for `sc-domain:shlomo-aviner.net` only**: the service account also has access to other owners' sites (tivon.me, chavabooks.co.il), and the script is hard-wired to this property and refuses other URLs. URL Inspection is limited to ~2,000 calls a day. The sitemap report's `indexed: 0` is a field Google no longer fills; check individual URLs with `inspect`.
 
-First check (2026-10-13): home, `/library`, `/series`, `/topics` and sampled `/content/N` pages are indexed with Google's canonical = ours; old wiki URLs are still in the index with their old canonical (last crawled before the switch, so Google hasn't seen the 301 yet) and still bring most of the clicks (~100/day); both `https://shlomo-aviner.net/sitemap.xml` and `https://www.shlomo-aviner.net/sitemap.xml` are submitted (7,341 URLs, 0 errors); the `www` entry is redundant now that `www` 308s to the apex.
+First check (2026-10-13): home, `/library`, `/series`, `/topics` and sampled `/content/N` pages are indexed with Google's canonical = ours; old wiki URLs are still in the index with their old canonical (last crawled before the switch, so Google hasn't seen the 301 yet) and still bring most of the clicks (~100/day); the sitemap (7,341 URLs, 0 errors) is the only one submitted (the redundant `www` one was removed).
 
 ## Legacy URL redirects (old shlomo-aviner.net MediaWiki)
 
@@ -231,7 +231,7 @@ First check (2026-10-13): home, `/library`, `/series`, `/topics` and sampled `/c
 - **Regenerate the map whenever items are hidden/re-activated or re-imported** (it only maps to active items): `npx tsx scripts/source/build-legacy-redirects.ts`, then commit `lib/legacy-redirects.json`. First build: 8,519 titles/curids with 301 (8,259 direct, 260 via wiki redirects, 4 home), 124 redirect-to-deleted-page searches, 350 unmapped (hidden items, 6 missing pages, 36 non-topic categories) → search.
 - Tests: `tests/unit/legacy.test.ts` (every mapped title resolves, lookup <1 ms) and `tests/e2e/legacy-redirects.spec.ts` (real HTTP 301/404/410, Location, the search link, HTML escaping of the title).
 
-**Domain switch** (shlomo-aviner.net → this app, 2026-10-04): DNS points at Vercel, `PINNED_SITE_URL` = `https://shlomo-aviner.net`, share images regenerated with the domain. Still for the owner: in Vercel → Domains make `shlomo-aviner.net` primary and set `www` and `avinerpedia.vercel.app` to redirect to it with **308 (permanent)** (`www` was a 307); in Search Console verify the domain property and submit the new sitemap (same domain, so no Change of Address); spot-check a few old URLs from Search Console's top pages.
+**Domain switch** (shlomo-aviner.net → this app, 2026-10-04): DNS points at Vercel, `PINNED_SITE_URL` = `https://shlomo-aviner.net`, share images regenerated with the domain. `shlomo-aviner.net` is primary; `www` and `avinerpedia.vercel.app` 308 to it (verified 2026-10-13). Search Console: domain property verified, only `https://shlomo-aviner.net/sitemap.xml` submitted (same domain, so no Change of Address).
 
 ## Content and data pipeline
 
@@ -290,5 +290,5 @@ Gotchas:
 - **Individual Q&A**: 9,645 `{{שות|כותרת=|שאלה=|תשובה=}}` blocks could become separately searchable records.
 - **Missing pages**: 6 source pages (titles with `\`) are not in the DB.
 - **YouTube validation**: done once with `scripts/check-dead-videos.mjs`; re-run periodically (videos keep disappearing). Meir/Maale videos are not checked.
-- **Search Console**: submit `https://shlomo-aviner.net/sitemap.xml` in Google Search Console (and Bing Webmaster Tools).
+- **Search Console**: done for Google (2026-10-13; check with `node scripts/gsc.mjs`). Bing Webmaster Tools not set up yet (it can import the property from Search Console).
 - **Cleanups**: `/admin/posts` (a redirect to `/admin/content`) is a leftover; `getSeriesGroups` in `lib/db.ts` is unused; the `next-mdx-remote` dependency is unused (`gray-matter` is still used by the import script and unit tests); `@supabase/auth-helpers-nextjs` is deprecated in favor of `@supabase/ssr`.
